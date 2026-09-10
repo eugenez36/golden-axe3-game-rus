@@ -1,0 +1,6 @@
+# HUD health bar with HP forced to 0x7F for player 1 (poke, no ROM change).
+include _to_stage1.inc
+wait 10
+poke8 C8E6 7F
+include _stage1_hud_tail.inc
+screenshot build/shots/stage1_hud_hp7F.png 2

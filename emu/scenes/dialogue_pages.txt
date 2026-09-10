@@ -1,0 +1,13 @@
+# Four consecutive dialogue pages (every 300 frames): the Ё / Ъ / ( ) glyph check,
+# then the twelve credits pages (every 45 frames).
+include _to_dialogue.inc
+screenshot build/shots/dialogue_p1.png 2
+wait 300
+screenshot build/shots/dialogue_p2.png 2
+dump vram build/dumps/dialogue_p2_vram.bin
+wait 300
+screenshot build/shots/dialogue_p3.png 2
+dump vram build/dumps/dialogue_p3_vram.bin
+wait 300
+screenshot build/shots/dialogue_p4.png 2
+dump vram build/dumps/dialogue_p4_vram.bin

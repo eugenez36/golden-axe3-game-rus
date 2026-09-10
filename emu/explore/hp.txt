@@ -1,0 +1,94 @@
+quiet
+wait 2400
+press start 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 200
+press c 8
+wait 40
+press c 8
+wait 40
+press c 8
+wait 60
+hold right 70
+screenshot build/dumps/explore/hp/s01.png
+dump wram build/dumps/explore/hp/w01.bin
+hold right 70
+screenshot build/dumps/explore/hp/s02.png
+dump wram build/dumps/explore/hp/w02.bin
+hold right 70
+screenshot build/dumps/explore/hp/s03.png
+dump wram build/dumps/explore/hp/w03.bin
+hold right 70
+screenshot build/dumps/explore/hp/s04.png
+dump wram build/dumps/explore/hp/w04.bin
+hold right 70
+screenshot build/dumps/explore/hp/s05.png
+dump wram build/dumps/explore/hp/w05.bin
+hold right 70
+screenshot build/dumps/explore/hp/s06.png
+dump wram build/dumps/explore/hp/w06.bin
+hold right 70
+screenshot build/dumps/explore/hp/s07.png
+dump wram build/dumps/explore/hp/w07.bin
+hold right 70
+screenshot build/dumps/explore/hp/s08.png
+dump wram build/dumps/explore/hp/w08.bin
+hold right 70
+screenshot build/dumps/explore/hp/s09.png
+dump wram build/dumps/explore/hp/w09.bin
+hold right 70
+screenshot build/dumps/explore/hp/s10.png
+dump wram build/dumps/explore/hp/w10.bin
+hold right 70
+screenshot build/dumps/explore/hp/s11.png
+dump wram build/dumps/explore/hp/w11.bin
+hold right 70
+screenshot build/dumps/explore/hp/s12.png
+dump wram build/dumps/explore/hp/w12.bin
+hold right 70
+screenshot build/dumps/explore/hp/s13.png
+dump wram build/dumps/explore/hp/w13.bin
+hold right 70
+screenshot build/dumps/explore/hp/s14.png
+dump wram build/dumps/explore/hp/w14.bin
+hold right 70
+screenshot build/dumps/explore/hp/s15.png
+dump wram build/dumps/explore/hp/w15.bin
+hold right 70
+screenshot build/dumps/explore/hp/s16.png
+dump wram build/dumps/explore/hp/w16.bin
+hold right 70
+screenshot build/dumps/explore/hp/s17.png
+dump wram build/dumps/explore/hp/w17.bin
+hold right 70
+screenshot build/dumps/explore/hp/s18.png
+dump wram build/dumps/explore/hp/w18.bin
+hold right 70
+screenshot build/dumps/explore/hp/s19.png
+dump wram build/dumps/explore/hp/w19.bin
+hold right 70
+screenshot build/dumps/explore/hp/s20.png
+dump wram build/dumps/explore/hp/w20.bin
+hold right 70
+screenshot build/dumps/explore/hp/s21.png
+dump wram build/dumps/explore/hp/w21.bin
+hold right 70
+screenshot build/dumps/explore/hp/s22.png
+dump wram build/dumps/explore/hp/w22.bin
+hold right 70
+screenshot build/dumps/explore/hp/s23.png
+dump wram build/dumps/explore/hp/w23.bin
+hold right 70
+screenshot build/dumps/explore/hp/s24.png
+dump wram build/dumps/explore/hp/w24.bin
+hold right 70
+screenshot build/dumps/explore/hp/s25.png
+dump wram build/dumps/explore/hp/w25.bin
+hold right 70
+screenshot build/dumps/explore/hp/s26.png
+dump wram build/dumps/explore/hp/w26.bin

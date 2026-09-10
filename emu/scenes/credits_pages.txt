@@ -1,0 +1,40 @@
+# Twelve pages of the credits / ending text, 45 frames apart.
+include _to_stage1.inc
+wait 120
+wait 400
+wait 45
+dump vram build/dumps/credits_p01_vram.bin
+screenshot build/shots/credits_p01.png 2
+wait 45
+dump vram build/dumps/credits_p02_vram.bin
+screenshot build/shots/credits_p02.png 2
+wait 45
+dump vram build/dumps/credits_p03_vram.bin
+screenshot build/shots/credits_p03.png 2
+wait 45
+dump vram build/dumps/credits_p04_vram.bin
+screenshot build/shots/credits_p04.png 2
+wait 45
+dump vram build/dumps/credits_p05_vram.bin
+screenshot build/shots/credits_p05.png 2
+wait 45
+dump vram build/dumps/credits_p06_vram.bin
+screenshot build/shots/credits_p06.png 2
+wait 45
+dump vram build/dumps/credits_p07_vram.bin
+screenshot build/shots/credits_p07.png 2
+wait 45
+dump vram build/dumps/credits_p08_vram.bin
+screenshot build/shots/credits_p08.png 2
+wait 45
+dump vram build/dumps/credits_p09_vram.bin
+screenshot build/shots/credits_p09.png 2
+wait 45
+dump vram build/dumps/credits_p10_vram.bin
+screenshot build/shots/credits_p10.png 2
+wait 45
+dump vram build/dumps/credits_p11_vram.bin
+screenshot build/shots/credits_p11.png 2
+wait 45
+dump vram build/dumps/credits_p12_vram.bin
+screenshot build/shots/credits_p12.png 2

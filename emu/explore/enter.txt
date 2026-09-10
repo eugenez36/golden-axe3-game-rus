@@ -1,0 +1,23 @@
+quiet
+wait 2400
+screenshot build/shots/explore/e0.png
+press start 10
+wait 90
+screenshot build/shots/explore/e1.png
+press start 10
+wait 90
+screenshot build/shots/explore/e2.png
+press start 10
+wait 120
+screenshot build/shots/explore/e3.png
+dump vram build/dumps/explore/e3_vram.bin
+dump cram build/dumps/explore/e3_cram.bin
+press start 10
+wait 120
+screenshot build/shots/explore/e4.png
+dump vram build/dumps/explore/e4_vram.bin
+dump cram build/dumps/explore/e4_cram.bin
+wait 240
+screenshot build/shots/explore/e5.png
+dump vram build/dumps/explore/e5_vram.bin
+dump cram build/dumps/explore/e5_cram.bin

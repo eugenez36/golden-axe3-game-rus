@@ -1,0 +1,14 @@
+quiet
+watchlog build/dumps/explore/fontram.log
+watch FFE84A 200 fontram
+wait 2400
+press start 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 120
+wait 240
+status

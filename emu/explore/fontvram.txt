@@ -1,0 +1,14 @@
+quiet
+watchlog build/dumps/explore/fontvram.log
+vwatch AF00 B80 font
+wait 2400
+press start 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 120
+wait 240
+status

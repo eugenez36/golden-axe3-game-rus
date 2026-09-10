@@ -1,0 +1,48 @@
+From b0c2d30a1a24d2ca256c1e20afa98e00e34fadcc Mon Sep 17 00:00:00 2001
+From: Eugene Zubovich <eugene.zubovich@suprinno.com>
+Date: Thu, 10 Sep 2026 16:51:31 +0300
+Subject: [PATCH] vdp: add an optional dma_hook callback under HOOK_CPU
+
+ROM-hacking front ends need the source address of every DMA transfer to trace
+where graphics come from; cpu_hook never sees DMA copies. The hook is a plain
+function pointer, NULL by default, compiled only with HOOK_CPU, so it costs
+nothing in normal builds.
+---
+ core/vdp_ctrl.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/core/vdp_ctrl.c b/core/vdp_ctrl.c
+index e312902..88eb73e 100644
+--- a/core/vdp_ctrl.c
++++ b/core/vdp_ctrl.c
+@@ -73,6 +73,14 @@ uint8 hint_pending;               /* 0= Line interrupt is pending */
+ uint8 vint_pending;               /* 1= Frame interrupt is pending */
+ uint16 status;                    /* VDP status flags */
+ uint32 dma_length;                /* DMA remaining length */
++
++#ifdef HOOK_CPU
++/* DMA hook for ROM hacking: the core does not call cpu_hook for DMA copies,
++ * yet the *source* address of a transfer is exactly what one needs to find
++ * where graphics are loaded from. Set by the front end, may be NULL. */
++void (*dma_hook)(unsigned int src, unsigned int dst, unsigned int len,
++                 unsigned int code, unsigned int type);
++#endif
+ uint32 dma_endCycles;             /* DMA end cycle */
+ uint8 dma_type;                   /* DMA mode */
+ 
+@@ -741,6 +749,12 @@ void vdp_dma_update(unsigned int cycles)
+     /* Update DMA length */
+     dma_length -= dma_bytes;
+ 
++#ifdef HOOK_CPU
++    if (dma_hook)
++      dma_hook(((reg[23] & 0x7F) << 17) | (reg[22] << 9) | (reg[21] << 1),
++               addr, dma_bytes, code, reg[23] >> 4);
++#endif
++
+     /* Process DMA operation */
+     dma_func[reg[23] >> 4](dma_bytes);
+ 
+-- 
+2.43.0
+

@@ -1,0 +1,14 @@
+quiet
+watchlog build/dumps/explore/dma.log
+dmalog on
+wait 2400
+press start 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 120
+wait 240
+status

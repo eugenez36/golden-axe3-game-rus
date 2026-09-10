@@ -1,0 +1,5 @@
+# The canonical minimal check: the main menu tilemap and a screenshot.
+# «1 ИГРОК» must appear in the tilemap as tiles 44 55 48 30 52 (see docs/text_format.md).
+include _boot.inc
+dump vram build/dumps/menu_verify_vram.bin
+screenshot build/shots/menu_verify.png 2

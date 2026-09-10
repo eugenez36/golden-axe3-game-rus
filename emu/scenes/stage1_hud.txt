@@ -1,0 +1,3 @@
+# HUD health bar with the HP table as built.
+include _stage1_hud.inc
+screenshot build/shots/stage1_hud.png 2

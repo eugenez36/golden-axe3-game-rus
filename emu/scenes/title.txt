@@ -1,0 +1,16 @@
+# Title screen, then two menu states; VRAM + CRAM for each.
+# The CRAM dumps are the source of assets/palettes/title*.pal.
+quiet
+wait 2100
+screenshot build/shots/title.png
+dump vram build/dumps/title_vram.bin
+dump cram build/dumps/title_cram.bin
+press start 8
+wait 120
+screenshot build/shots/title_menu.png
+dump vram build/dumps/title_menu_vram.bin
+dump cram build/dumps/title_menu_cram.bin
+wait 180
+screenshot build/shots/title_newgame.png
+dump vram build/dumps/title_newgame_vram.bin
+dump cram build/dumps/title_newgame_cram.bin

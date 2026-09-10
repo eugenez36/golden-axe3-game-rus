@@ -1,0 +1,9 @@
+# First NPC dialogue of stage 1: the reference frame for reading lower-case glyphs
+# off the tilemap. Dumps every VDP memory so the frame can be reconstructed.
+include _to_dialogue.inc
+screenshot build/shots/dialogue.png 2
+dump vram build/dumps/dialogue_vram.bin
+dump sat build/dumps/dialogue_sat.bin
+dump cram build/dumps/dialogue_cram.bin
+dump regs build/dumps/dialogue_regs.bin
+dump wram build/dumps/dialogue_wram.bin

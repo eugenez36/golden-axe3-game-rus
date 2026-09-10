@@ -1,0 +1,4 @@
+[submodule "emu/gpgx"]
+	path = emu/gpgx
+	url = https://github.com/eugenez36/Genesis-Plus-GX.git
+	branch = ga3/dma-hook

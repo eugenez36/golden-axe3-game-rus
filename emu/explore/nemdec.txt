@@ -1,0 +1,15 @@
+quiet
+watchlog build/dumps/explore/nemdec.log
+bp 122FC
+bp 1230E
+wait 2400
+press start 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 120
+wait 240
+status

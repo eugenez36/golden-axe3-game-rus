@@ -1,0 +1,8 @@
+# Main menu and the selected-item state.
+include _boot.inc
+screenshot build/shots/menu_main.png 2
+dump vram build/dumps/menu_main_vram.bin
+press start 10
+wait 120
+screenshot build/shots/menu_sel.png 2
+dump vram build/dumps/menu_sel_vram.bin

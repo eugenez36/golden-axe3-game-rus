@@ -1,0 +1,19 @@
+quiet
+watchlog build/dumps/explore/hpwrite.log
+watch FFC8E6 2 hp_p1
+wait 2400
+press start 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 200
+press c 8
+wait 40
+press c 8
+wait 40
+press c 8
+wait 300
+status
