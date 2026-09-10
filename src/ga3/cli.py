@@ -424,6 +424,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--png", action="store_true", help="also render Nemesis previews into build/preview/"
     )
+    p.add_argument(
+        "--rom", default=argparse.SUPPRESS, help="extract from this image instead of the base ROM"
+    )
     p.set_defaults(func=cmd_extract)
 
     p = sub.add_parser("build", help="rebuild build/ga3.bin and build/ga3.ips from assets/")

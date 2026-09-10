@@ -127,19 +127,16 @@ class HeaderHandler(Handler):
             raw = bytes(rom.data[off : off + size])
             if kind == "checksum":
                 doc[key] = "auto"
-                doc["checksum_stored"] = _Hex(struct.unpack(">H", raw)[0])
             elif kind == "u32":
                 doc[key] = "auto" if key == "rom_end" else _Hex(struct.unpack(">I", raw)[0])
-                if key == "rom_end":
-                    doc["rom_end_stored"] = _Hex(struct.unpack(">I", raw)[0])
             elif _is_text(raw):
                 doc[key] = raw.decode("ascii")
             else:
                 doc[key] = {"hex": raw.hex()}
         head = (
             "# Cartridge header, 0x100-0x1FF. Text fields keep their exact width and\n"
-            "# trailing spaces. 'auto' fields are recomputed by `ga3 build`; the\n"
-            "# *_stored keys record what the base ROM holds and are informational.\n"
+            "# trailing spaces. 'auto' fields (checksum, rom_end) are recomputed by\n"
+            "# `ga3 build` after every segment is in place.\n"
         )
         return head + yaml.dump(doc, Dumper=_Dumper, sort_keys=False, allow_unicode=True, width=200)
 
