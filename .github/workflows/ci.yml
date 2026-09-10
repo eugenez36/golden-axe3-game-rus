@@ -18,7 +18,7 @@ jobs:
     name: 🛡️ No ROM in the tree
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Fail on any ROM-like binary (same script as the pre-commit hook)
         run: git ls-files -z | xargs -0 .github/scripts/no-rom-images.sh && echo clean
 
@@ -26,7 +26,7 @@ jobs:
     name: 🐍 Python toolkit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -43,7 +43,7 @@ jobs:
     name: 🗺️ rom_map.yml and derived assets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -74,7 +74,7 @@ jobs:
     name: 🕹️ Headless Genesis Plus GX
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Toolchain
@@ -94,7 +94,7 @@ jobs:
     name: 📜 Docs & branding
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: SVG banner is well-formed
         run: python3 -c "import xml.dom.minidom,glob; [xml.dom.minidom.parse(f) for f in glob.glob('docs/branding/*.svg')]; print('ok')"
       - name: Relative links resolve
