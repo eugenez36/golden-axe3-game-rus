@@ -414,11 +414,17 @@ def cmd_emu(args) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(prog="ga3", description="Golden Axe III ROM-hacking toolkit")
+    ap = argparse.ArgumentParser(
+        prog="ga3",
+        description="Golden Axe III (Mega Drive) ROM-hacking toolkit: take the base ROM apart "
+        "into assets/, rebuild it byte for byte, prove it in the headless emulator.",
+        epilog="Pipeline: extract -> edit assets/ -> build -> verify. "
+        "Offsets live in rom_map.yml; docs in docs/. `ga3 COMMAND --help` for details.",
+    )
     ap.add_argument("--version", action="version", version=f"ga3 {__version__}")
     ap.add_argument("--root", help="project root (default: nearest directory with rom_map.yml)")
     ap.add_argument("--rom", help="ROM image to read instead of baserom/ga3.bin")
-    sub = ap.add_subparsers(dest="cmd", required=True)
+    sub = ap.add_subparsers(dest="cmd", required=True, metavar="COMMAND", title="commands")
 
     p = sub.add_parser("extract", help="take the base ROM apart into assets/")
     p.add_argument("--only", nargs="+", metavar="SEGMENT", help="segment names to extract")

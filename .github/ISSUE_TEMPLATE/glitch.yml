@@ -13,8 +13,8 @@ body:
     attributes:
       label: Area
       options:
-        - text (text_tool, table)
-        - font (font_tool)
+        - text (assets/text, ga3 text, table)
+        - font (assets/gfx/font, ga3 font)
         - nemesis (codec)
         - emulator (headless_gpgx, scripts)
         - gameplay (balance, ramsearch)
@@ -26,8 +26,8 @@ body:
     id: rom
     attributes:
       label: ROM identity
-      description: Output of `romlib.py info` — header checksum and size are enough.
-      placeholder: "GM 00004093-00, checksum 9BB5, 1 MiB"
+      description: Output of `ga3 info` — sha1, header checksum and size.
+      placeholder: "GM 00004093-00, sha1 e9538c05…, checksum 9BB5, 1 MiB"
     validations:
       required: true
   - type: textarea

@@ -186,12 +186,16 @@ def markdown_table(rm: RomMap) -> str:
     ]
     for s in rm.segments:
         notes = []
-        for k in ("tiles", "xor", "format", "fill", "note", "evidence"):
-            if k in s.attrs:
-                v = s.attrs[k]
-                if isinstance(v, int) and not isinstance(v, bool) and k == "fill":
-                    v = f"0x{v:02X}"
-                notes.append(f"{k}={v}")
+        if "tiles" in s.attrs:
+            notes.append(f"{s.attrs['tiles']} tiles" + (", XOR" if s.attrs.get("xor") else ""))
+        if "format" in s.attrs:
+            notes.append(f"format {s.attrs['format']}")
+        if "fill" in s.attrs:
+            notes.append(f"filled with 0x{s.attrs['fill']:02X}")
+        if "note" in s.attrs:
+            notes.append(str(s.attrs["note"]))
+        if "evidence" in s.attrs:
+            notes.append(f"*evidence: {s.attrs['evidence']}*")
         lines.append(
             f"| `{s.start:06X}–{s.end:06X}` | {s.type} | {s.name} | "
             f"{'`' + s.path + '`' if s.path else ''} | {'; '.join(notes)} |"
