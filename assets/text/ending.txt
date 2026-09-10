@@ -4,7 +4,7 @@
 # {XX} is a byte with no glyph in the font (or one that does not round-trip).
 # In-game strings are separated by 0xFF; here each string is one record.
 
-0179F3:24 | И вот наши храбрые воины
+0179F3:24 | Наши воины (Гена и Женя)
 017A0D:23 | уничтожили Принца Тьмы.
 017A26:25 | Замок, возведенный магией
 017A41:24 | зла, превратился в пыль.
