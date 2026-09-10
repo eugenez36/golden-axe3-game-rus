@@ -16,133 +16,165 @@
 
 ---
 
-Тулкит для ромхакинга **Golden Axe III** (Sega Mega Drive, 1993) на базе **русификации
-NEWGAME 2003**. Правит игровой текст и шрифт, перепаковывает Nemesis-графику не хуже
-фирменного упаковщика SEGA, меняет геймплейные таблицы по именам, а не по байтам, и
-доказывает каждую правку внутри настоящей игры через **headless-сборку Genesis Plus GX** —
-без окна и SDL, только сценарии, скриншоты и дампы памяти.
+Тулкит для ромхакинга **Golden Axe III** (Sega Mega Drive, 1993) на базе
+**русификации NEWGAME 2003**. Образ картриджа разобран на дерево редактируемых
+ресурсов — текст, шрифт, Nemesis-графика, листы тайлов, палитры, сэмплы, таблицы,
+листинги кода — и собирается из него обратно **байт в байт**. Каждая правка
+доказывается в настоящей игре через **headless-сборку Genesis Plus GX**: без окна,
+только сценарии, скриншоты и дампы памяти.
 
-Здесь ничего не угадано. Каждый адрес, таблица и кодек сняты с кода 68000 самой игры
-и подтверждены её запуском.
+Здесь ничего не угадано. Каждое смещение живёт в одном файле, `rom_map.yml`,
+вместе с доказательством, которое его туда привело.
 
-## Что уже сделано
+```
+baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ build/ga3.bin + build/ga3.ips
+   (ваш, никогда                 (в репозитории,           (сверяется
+    не коммитится)                ROM «до винтика»)         с roms.sha1)
+```
 
-- **Текст туда и обратно байт в байт.** 202 строки: экспорт → правка → вставка без единого
-  расхождения. Таблица символов снята с тайлмапов игры, а не подобрана на глаз.
-- **Nemesis в обе стороны.** Распаковщик переписан с дизассемблера и проверен по дампу VRAM
-  (3072 из 3072 байт). Упаковщик обгоняет оригинал на всех 14 блоках ROM:
-  **13 808 байт против 14 033**, и всегда проверяет себя обратной распаковкой.
-- **Шрифт правится как текст.** Глифы в виде `#`/`.`-арта. Дорисованы **Ё**, **Ъ** и круглые
-  скобки, которых в русификации не было, — подтверждено скриншотами из игры.
-- **Геймплей по именам.** `balance.py set-hp 60 60 60 60` вместо правки `0x00E492`.
-  Найдено watchpoint'ом на RAM, подтверждено дизассемблером, проверено скриншотом HUD.
-- **Эмулятор как измерительный прибор.** Сценарный ввод, скриншоты, дампы VRAM/CRAM/RAM,
-  watchpoint'ы, брейкпоинты и добавленный в ядро `dma_hook`, без которого не найти источник
-  графики. Поиск величин в RAM по скриншотам, как в читовом движке (HP игрока: r = 1.0000).
+## Что сделано
+
+- **Воспроизводимая сборка.** `make` пересобирает образ из `assets/`, `make verify`
+  сверяет его с `roms.sha1`. Неизменённые ресурсы дают эталонный ROM с точностью
+  до байта.
+- **ROM, разобранный до винтика.** Заголовок и векторы в YAML, 202 строки в пяти
+  текстовых файлах, шрифт как текстовый арт, 14 Nemesis-блоков, 22 индексированных
+  PNG-листа тайлового арта, область PCM, таблица HP, шесть снятых палитр и листинги
+  Capstone для каждого сегмента кода. Что ещё не опознано — измерено, а не спрятано:
+  `ga3 map` печатает покрытие.
+- **Nemesis в обе стороны.** Распаковщик снят с дизассемблера игры и проверен по
+  дампу VRAM (3072 из 3072 байт). Упаковщик обгоняет фирменный на 13 из 14 блоков
+  (13 780 против 14 045 байт) — именно поэтому сборка переиспользует исходные блоки
+  дословно, пока вы их не отредактируете.
+- **Шрифт правится как текст.** Глифы в виде `#`/`.`-арта. Дорисованы **Ё**, **Ъ**
+  и круглые скобки, которых в русификации не было; сборка отказывается от шрифта,
+  не влезающего в свой слот из 840 байт.
+- **Геймплей по именам.** `ga3 balance set-hp 60 60 60 60` правит YAML-таблицу;
+  адрес — забота карты.
+- **Эмулятор как измерительный прибор.** Сценарный ввод, скриншоты, дампы VDP и RAM,
+  watchpoint'ы, брейкпоинты и добавленный в ядро `dma_hook`, без которого не найти
+  источник графики. Поиск величин в RAM по скриншотам, как в читовом движке
+  (HP игрока: r = 1.0000).
+
+## Быстрый старт
+
+> ROM в репозитории нет. Положите собственный дамп в `baserom/ga3.bin`
+> (1 МиБ, SHA-1 `e9538c05…`, см. [baserom/README.md](baserom/README.md)).
+> Полная установка: [INSTALL.md](INSTALL.md).
+
+```bash
+git clone --recurse-submodules https://github.com/eugenez36/golden-axe3-game-rus.git
+cd golden-axe3-game-rus
+make venv && source .venv/bin/activate
+
+make            # build/ga3.bin + build/ga3.ips из assets/
+make verify     # sha1sum -c roms.sha1
+make test       # pytest (тесты, требующие ROM, без него пропускаются)
+
+# что-нибудь поправить
+$EDITOR assets/text/dialogue.txt          # строка; длиннее стать не может
+$EDITOR assets/gfx/font/font.txt          # глиф
+ga3 balance set-hp 60 60 60 60            # таблица HP
+make && ga3 verify --update               # пересобрать, записать новый хеш
+
+# посмотреть в самой игре
+make emu && make regress                  # скриншоты в build/shots/
+ga3 emu emu/scenes/dialogue_pages.txt
+
+# осмотреться
+ga3 map                                   # покрытие: что ещё неизвестно
+ga3 map --check                           # карта против эталонного ROM
+ga3 extract --png                         # превью Nemesis-блоков в build/preview/
+ga3 disasm E482 -n 12                     # код, читающий таблицу HP
+```
 
 ## Как всё связано
 
 ```mermaid
 flowchart LR
-    ROM[("Golden Axe 3 (RUS).bin<br/>эталон, только чтение")] --> romlib[romlib<br/>заголовок · checksum · тайлы · IPS]
-    romlib --> text[text_tool<br/>export / import / verify]
-    romlib --> font[font_tool<br/>арт глифов ⇄ Nemesis-блок]
-    romlib --> nem[nemesis<br/>распаковка / упаковка]
-    romlib --> bal[balance<br/>таблица HP по именам]
-    text & font & nem & bal --> work[("work/ga3.bin")]
-    work --> emu[headless Genesis Plus GX<br/>сценарии · скриншоты · дампы · watchpoint'ы]
-    emu --> verify{{"проверка<br/>diff · round-trip · в игре · паритет VRAM"}}
-    emu --> ram[ramsearch<br/>корреляция RAM со скриншотами]
-    ram -. новые адреса .-> bal
-    work --> ips[["IPS-патч<br/>распространяется без ROM"]]
+    ROM[("baserom/ga3.bin<br/>только чтение, не в git")] --> X[ga3 extract]
+    MAP[["rom_map.yml<br/>каждое смещение, с доказательством"]] --> X
+    MAP --> B
+    X --> A["assets/<br/>text · gfx · palettes · sound · data · header · code/asm"]
+    A --> B[ga3 build]
+    ROM --> B
+    B --> OUT[("build/ga3.bin<br/>build/ga3.ips")]
+    OUT --> V{{"ga3 verify<br/>roms.sha1 · самопроверка IPS"}}
+    OUT --> E["headless Genesis Plus GX<br/>emu/scenes · скриншоты · дампы · watchpoint'ы"]
+    E -. новые адреса .-> MAP
 ```
-
-## Быстрый старт
-
-> ROM в репозитории нет. Положи собственный дамп рядом с инструментами как
-> `Golden Axe 3 (RUS).bin` (1 МиБ, checksum заголовка `9BB5`) и работай на копии.
-
-```bash
-# окружение
-python3 -m venv tools/venv && tools/venv/bin/pip install -r requirements.txt
-cp "Golden Axe 3 (RUS).bin" work/ga3.bin
-
-# что за образ
-python3 tools/romlib.py info work/ga3.bin
-
-# текст: экспорт → правка → проверка → вставка
-python3 tools/text_tool.py export work/ga3.bin -o text/strings.txt
-python3 tools/text_tool.py verify work/ga3.bin text/strings.txt
-python3 tools/text_tool.py import work/ga3.bin text/strings.txt
-
-# шрифт как текстовый арт
-python3 tools/font_tool.py export-art work/ga3.bin -o text/font.txt
-python3 tools/font_tool.py import-art work/ga3.bin text/font.txt
-
-# геймплей
-python3 tools/balance.py show work/ga3.bin
-python3 tools/balance.py set-hp work/ga3.bin 60 60 60 60
-
-# посмотреть в самой игре
-make -C emu/headless
-./emu/headless/headless_gpgx --rom work/ga3.bin --script scripts/menu.txt
-
-# отдать без ROM
-python3 tools/romlib.py ips "Golden Axe 3 (RUS).bin" work/ga3.bin -o out/patch.ips
-```
-
-## Карта ROM
-
-| Область | Содержимое |
-|---|---|
-| `000000–0000FF` | таблица векторов (почти вся `FFFFFFFF`; по `0x40` втиснут код) |
-| `000100–0001FF` | заголовок картриджа |
-| `000200–000283` | таблица из 33 указателей — главный диспетчер |
-| `000200–01C000` | код 68000 |
-| `00E492` | **таблица HP**, 4 байта: 51 · 59 · 67 · 75 |
-| `0122FC` / `01230E` | `NemDec` / `NemDecToRAM` |
-| `014E00–0151A0` | текст меню и опций |
-| `01C000–02C000` | Nemesis-сжатая графика |
-| `01D85E` | **шрифт**: 96 тайлов, Nemesis, без XOR, 839 байт |
-| `080000–0D8000` | несжатый тайловый арт 4bpp |
-| `0E9B00–0EC300` | диалоги, титры, финал |
-| `0FC000–0FFA1F` | PCM-сэмплы |
-| `0FFA20` | точка входа (сдвинута русификаторами с исходных `0x200`) |
-
-Свободного места **914 байт** в трёх дырках. Всё, что длиннее оригинала, потребует
-`Rom.expand()` до 2 МиБ.
-
-## Дорожная карта
-
-- [x] **v0.1 — Текст и шрифт** · round-trip байт в байт, редактор глифов, Ё / Ъ / ( ), титр переводчика
-- [x] **v0.2 — Паритет упаковщика Nemesis** · не хуже оригинала на всех 14 блоках, самопроверка
-- [x] **v0.3 — Headless-эмулятор** · сценарии, скриншоты, дампы, watchpoint'ы, `dma_hook`
-- [ ] **v0.4 — Геймплейные таблицы** · жизни, магия, таймеры (метод готов в `ramsearch.py`)
-- [ ] **v1.0 — Релизный IPS** · проверенный набор патчей с документацией RU + EN
-
-Ход работы — в [milestones](https://github.com/eugenez36/golden-axe3-game-rus/milestones).
 
 ## Состав репозитория
 
 ```
-tools/          Python-тулкит: romlib · table · text_tool · font_tool · nemesis · balance · ramsearch · disasm
-emu/headless/   headless-фронтенд к Genesis Plus GX (только libc и zlib)
-emu/gpgx/       ядро Genesis Plus GX (submodule) + патч dma_hook
-scripts/        сценарии эмулятора: wait · press · screenshot · dump · watch · bp …
-text/           выгруженные строки и арт шрифта
-out/            IPS-патчи и скриншоты (образов ROM нет)
-docs/ru/        инженерный журнал — каждая находка и каждый тупик
+rom_map.yml       единственный дом всех смещений ROM (сегменты в стиле splat)
+roms.sha1         sha1 эталона и сборки; `make verify`
+Makefile          build · extract · verify · test · lint · assets · asm · emu · regress · clean
+pyproject.toml    пакет ga3 и его команда `ga3`
+baserom/          сюда кладётся ваш ROM (игнорируется git)
+assets/           ROM, разобранный на части — что коммитится, см. STYLE.md
+  header/         vectors.yml, header.yml
+  text/           menu · stages · ending · dialogue · misc .txt, encoding.tbl
+  gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (индексированные)
+  palettes/       *.pal, снятые в эмуляторе (источник в ROM пока не найден)
+  sound/pcm/      samples.pcm
+  data/           hp_table.yml
+  code/asm/       листинги Capstone (генерируются)
+build/            всё производное (игнорируется): ROM, IPS, эмулятор, скриншоты, дампы, превью
+src/ga3/          тулкит: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · cli
+tests/            pytest; фикстуры без ROM плюс тесты, требующие ROM
+emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
+docs/             build · text_format · nemesis · font · emulator · rom_map (генерируется) · evidence/ · images/ · ru/journal.md
 ```
 
-Как именно был найден каждый адрес — в **[инженерном журнале](docs/ru/journal.md)**.
+## Карта ROM
+
+Генерируется из `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). Коротко:
+
+| Область | Содержимое |
+|---|---|
+| `000000–000200` | векторы и заголовок (точка входа перенесена русификаторами на `0FFA20`) |
+| `000200–01B780` | код 68000; внутри таблица HP `00E492`, Nemesis-блок `013E76`, текст меню / уровней / концовки и дырка 330 байт в `0116B6` |
+| `01B780–01E3DC` | 13 Nemesis-блоков впритык, шрифт в `01D85E` (840 Б) |
+| `0295EE–029F08` | ещё один Nemesis-блок (208 тайлов) |
+| `080000–0D8000` | 11 264 несжатых тайла 4bpp |
+| `0E9B00–0EC300` | диалоги, титры, концовка |
+| `0FC000–0FFA20` | PCM-сэмплы |
+| `0FFA20–100000` | перенесённый входной стаб |
+
+Свободного места **914 байт** в трёх проверенных дырках. Около половины образа
+пока `unknown`; точную цифру и диапазоны печатает `ga3 map`.
+
+## Дорожная карта
+
+- [x] **v0.1 — Текст и шрифт** · round-trip байт в байт, редактор глифов, Ё / Ъ / ( ), титр переводчика
+- [x] **v0.2 — Паритет упаковщика Nemesis** · меньше оригинала на всех 14 блоках, самопроверка
+- [x] **v0.3 — Headless-эмулятор** · сцены, скриншоты, дампы, watchpoint'ы, `dma_hook`
+- [x] **v0.35 — Воспроизводимая сборка** · `rom_map.yml`, `assets/`, `build/`, `roms.sha1`, тесты, CI
+- [ ] **v0.4 — Геймплейные таблицы** · жизни, магия, таймеры (метод готов в `ga3 ramsearch`)
+- [ ] **v0.5 — Палитры и тайлмапы в ROM** · превратить серые листы тайлов в настоящие цвета
+- [ ] **v1.0 — Релизный IPS** · проверенный патч с документацией RU + EN
+
+Ход работы — в [milestones](https://github.com/eugenez36/golden-axe3-game-rus/milestones).
+
+## Документы
+
+[INSTALL.md](INSTALL.md) · [STYLE.md](STYLE.md) · [CONTRIBUTING.md](CONTRIBUTING.md) ·
+[docs/build.md](docs/build.md) · [docs/text_format.md](docs/text_format.md) ·
+[docs/nemesis.md](docs/nemesis.md) · [docs/font.md](docs/font.md) ·
+[docs/emulator.md](docs/emulator.md) · [docs/evidence](docs/evidence/README.md) ·
+**[инженерный журнал](docs/ru/journal.md)** — как был найден каждый адрес, включая тупики.
 
 ## Правовое
 
 - **ROM здесь не распространяется** и распространяться не будет. Golden Axe III — © SEGA.
   «SEGA», «Mega Drive», «Genesis» и «Golden Axe» — товарные знаки SEGA Corporation.
+- В `assets/` лежат данные, извлечённые из игры в редактируемом виде, чтобы правки
+  читались как diff. Вместе с эталонным ROM они восстанавливают образ; репозиторий сам
+  по себе — нет: код и неопознанные области намеренно не коммитятся (см. [STYLE.md](STYLE.md)).
 - Русификация, с которой работает тулкит, — труд группы **NEWGAME (2003)**.
-- Сам тулкит — [MIT](LICENSE). Ядро эмулятора Genesis Plus GX — Charles MacDonald и Eke-Eke,
-  под собственной **некоммерческой** лицензией — см. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+- Тулкит — [MIT](LICENSE). Genesis Plus GX — Charles MacDonald и Eke-Eke, под собственной
+  **некоммерческой** лицензией; см. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 <div align="center">
 <sub>Собрано hex-редактором, дизассемблером и неприличным количеством скриншотов орка.</sub>

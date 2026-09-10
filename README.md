@@ -16,135 +16,166 @@
 
 ---
 
-A ROM-hacking toolkit for **Golden Axe III** (Sega Mega Drive, 1993) built around the
-**NEWGAME 2003 Russian translation**. It edits game text and the font, re-packs
-Nemesis-compressed graphics at least as tightly as SEGA's own packer, tweaks gameplay
-tables by name instead of by byte, and proves every change inside the real game using
-a **headless Genesis Plus GX** frontend — no window, no SDL, just scripts, screenshots and memory dumps.
+A ROM-hacking toolkit for **Golden Axe III** (Sega Mega Drive, 1993) built around
+the **NEWGAME 2003 Russian translation**. The cartridge image is taken apart into
+an editable tree of assets — text, font, Nemesis graphics, tile sheets, palettes,
+samples, data tables, code listings — and rebuilt **byte for byte** from it.
+Every change is proved inside the real game with a **headless Genesis Plus GX**:
+no window, just scripts, screenshots and memory dumps.
 
-Nothing here is guessed. Every address, table and codec was pulled from the game's own
-68000 code and confirmed by running it.
+Nothing here is guessed. Every offset lives in one file, `rom_map.yml`, with the
+evidence that put it there.
+
+```
+baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ build/ga3.bin + build/ga3.ips
+   (yours, never                 (committed,              (verified against
+    committed)                    the ROM taken apart)     roms.sha1)
+```
 
 ## Highlights
 
-- **Byte-exact text round-trip.** 202 strings export → edit → import with zero diff.
-  The character table was read from the game's tilemaps, not reverse-engineered by eye.
-- **Nemesis codec, both ways.** Decoder lifted from the disassembly and verified against a
-  VRAM dump (3072/3072 bytes). Encoder beats the original on all 14 blocks in the ROM:
-  **13 808 bytes vs 14 033**, and always verifies itself by decoding what it wrote.
-- **Font editing in plain text.** Glyphs as `#`/`.` art. New letters **Ё**, **Ъ** and
-  parentheses added to a translation that never had them — confirmed by in-game screenshots.
-- **Gameplay by name.** `balance.py set-hp 60 60 60 60` instead of poking `0x00E492`.
-  Found with a RAM watchpoint, confirmed by the disassembly, verified with a HUD screenshot.
-- **Headless emulator as a measuring instrument.** Scripted input, screenshots, VRAM/CRAM/RAM
-  dumps, watchpoints, breakpoints and a `dma_hook` added to the core so DMA sources
-  can be traced. A cheat-engine-style RAM correlator finds values from screenshots
-  (player HP: r = 1.0000).
+- **Reproducible build.** `make` rebuilds the image from `assets/`; `make verify`
+  checks it against `roms.sha1`. Unchanged assets give back the reference ROM
+  to the byte.
+- **The ROM, taken apart.** Header and vectors as YAML, 202 strings in five text
+  files, the font as text art, 14 Nemesis blocks, 22 indexed-PNG sheets of tile
+  art, the PCM region, the HP table, six captured palettes and Capstone listings
+  of every code segment. What is still unidentified is measured, not hidden:
+  `ga3 map` prints the coverage.
+- **Nemesis codec, both ways.** Decoder lifted from the game's disassembly and
+  verified against a VRAM dump (3072/3072 bytes). The encoder beats SEGA's on
+  13 of 14 blocks (13 780 vs 14 045 bytes) — which is exactly why the build
+  reuses the original blocks verbatim until you edit them.
+- **Font editing in plain text.** Glyphs as `#`/`.` art. **Ё**, **Ъ** and the
+  parentheses were added to a translation that never had them; the build refuses
+  a font that would not fit its 840-byte slot.
+- **Gameplay by name.** `ga3 balance set-hp 60 60 60 60` edits a YAML table;
+  the address is the map's business.
+- **Emulator as a measuring instrument.** Scripted input, screenshots, VDP and
+  RAM dumps, watchpoints, breakpoints and a `dma_hook` added to the core so DMA
+  sources can be traced. A cheat-engine-style RAM correlator finds values from
+  screenshots (player HP: r = 1.0000).
+
+## Quick start
+
+> The ROM is not part of this repository. Put your own dump at `baserom/ga3.bin`
+> (1 MiB, SHA-1 `e9538c05…`, see [baserom/README.md](baserom/README.md)).
+> Full setup: [INSTALL.md](INSTALL.md).
+
+```bash
+git clone --recurse-submodules https://github.com/eugenez36/golden-axe3-game-rus.git
+cd golden-axe3-game-rus
+make venv && source .venv/bin/activate
+
+make            # build/ga3.bin + build/ga3.ips from assets/
+make verify     # sha1sum -c roms.sha1
+make test       # pytest (ROM-gated tests skip without the ROM)
+
+# edit something
+$EDITOR assets/text/dialogue.txt          # a string; may not grow
+$EDITOR assets/gfx/font/font.txt          # a glyph
+ga3 balance set-hp 60 60 60 60            # the HP table
+make && ga3 verify --update               # rebuild, record the new hash
+
+# see it in the actual game
+make emu && make regress                  # screenshots land in build/shots/
+ga3 emu emu/scenes/dialogue_pages.txt
+
+# look around
+ga3 map                                   # coverage: what is still unknown
+ga3 map --check                           # the map against the base ROM
+ga3 extract --png                         # Nemesis previews in build/preview/
+ga3 disasm E482 -n 12                     # the HP table's reader
+```
 
 ## How it fits together
 
 ```mermaid
 flowchart LR
-    ROM[("Golden Axe 3 (RUS).bin<br/>read-only reference")] --> romlib[romlib<br/>header · checksum · tiles · IPS]
-    romlib --> text[text_tool<br/>export / import / verify]
-    romlib --> font[font_tool<br/>glyph art ⇄ Nemesis block]
-    romlib --> nem[nemesis<br/>decode / encode]
-    romlib --> bal[balance<br/>HP table by name]
-    text & font & nem & bal --> work[("work/ga3.bin")]
-    work --> emu[headless Genesis Plus GX<br/>scripts · screenshots · dumps · watchpoints]
-    emu --> verify{{"verification<br/>diff · round-trip · in-game · VRAM parity"}}
-    emu --> ram[ramsearch<br/>correlate RAM with screenshots]
-    ram -. new addresses .-> bal
-    work --> ips[["IPS patch<br/>distributable, no ROM inside"]]
+    ROM[("baserom/ga3.bin<br/>read-only, not committed")] --> X[ga3 extract]
+    MAP[["rom_map.yml<br/>every offset, with evidence"]] --> X
+    MAP --> B
+    X --> A["assets/<br/>text · gfx · palettes · sound · data · header · code/asm"]
+    A --> B[ga3 build]
+    ROM --> B
+    B --> OUT[("build/ga3.bin<br/>build/ga3.ips")]
+    OUT --> V{{"ga3 verify<br/>roms.sha1 · IPS self-check"}}
+    OUT --> E["headless Genesis Plus GX<br/>emu/scenes · screenshots · dumps · watchpoints"]
+    E -. new addresses .-> MAP
 ```
-
-## Quick start
-
-> The ROM is not part of this repository. Put your own dump next to the tools as
-> `Golden Axe 3 (RUS).bin` (1 MiB, header checksum `9BB5`) and work on a copy.
-
-```bash
-# environment
-python3 -m venv tools/venv && tools/venv/bin/pip install -r requirements.txt
-cp "Golden Axe 3 (RUS).bin" work/ga3.bin
-
-# what is this image?
-python3 tools/romlib.py info work/ga3.bin
-
-# text: export → edit → verify → import
-python3 tools/text_tool.py export work/ga3.bin -o text/strings.txt
-python3 tools/text_tool.py verify work/ga3.bin text/strings.txt
-python3 tools/text_tool.py import work/ga3.bin text/strings.txt
-
-# font: glyphs as text art
-python3 tools/font_tool.py export-art work/ga3.bin -o text/font.txt
-python3 tools/font_tool.py import-art work/ga3.bin text/font.txt
-
-# gameplay
-python3 tools/balance.py show work/ga3.bin
-python3 tools/balance.py set-hp work/ga3.bin 60 60 60 60
-
-# see it in the actual game
-make -C emu/headless
-./emu/headless/headless_gpgx --rom work/ga3.bin --script scripts/menu.txt
-
-# ship it without the ROM
-python3 tools/romlib.py ips "Golden Axe 3 (RUS).bin" work/ga3.bin -o out/patch.ips
-```
-
-## ROM map
-
-| Range | Contents |
-|---|---|
-| `000000–0000FF` | vector table (mostly `FFFFFFFF`; code squeezed in at `0x40`) |
-| `000100–0001FF` | cartridge header |
-| `000200–000283` | 33-entry pointer table — the main dispatcher |
-| `000200–01C000` | 68000 code |
-| `00E492` | **HP table**, 4 bytes: 51 · 59 · 67 · 75 |
-| `0122FC` / `01230E` | `NemDec` / `NemDecToRAM` |
-| `014E00–0151A0` | menu and options text |
-| `01C000–02C000` | Nemesis-compressed graphics |
-| `01D85E` | **font**: 96 tiles, Nemesis, no XOR, 839 bytes |
-| `080000–0D8000` | uncompressed 4bpp tile art |
-| `0E9B00–0EC300` | dialogue, credits, ending |
-| `0FC000–0FFA1F` | PCM samples |
-| `0FFA20` | entry point (moved by the translators from the original `0x200`) |
-
-Free space: **914 bytes** in three holes. Anything longer than the original will need
-`Rom.expand()` to 2 MiB.
-
-## Roadmap
-
-- [x] **v0.1 — Text & Font** · byte-exact round-trip, glyph editor, Ё / Ъ / ( ), translator credits
-- [x] **v0.2 — Nemesis packer parity** · not worse than the original on all 14 blocks, self-verifying
-- [x] **v0.3 — Headless emulator** · scripts, screenshots, dumps, watchpoints, `dma_hook`
-- [ ] **v0.4 — Gameplay tables** · lives, magic, timers (method ready in `ramsearch.py`)
-- [ ] **v1.0 — Release IPS** · verified patch set with RU + EN docs
-
-Progress is tracked in [milestones](https://github.com/eugenez36/golden-axe3-game-rus/milestones).
 
 ## Repository layout
 
 ```
-tools/          Python toolkit: romlib · table · text_tool · font_tool · nemesis · balance · ramsearch · disasm
-emu/headless/   headless frontend for Genesis Plus GX (libc + zlib only)
-emu/gpgx/       Genesis Plus GX core (submodule) + dma_hook patch
-scripts/        emulator run scripts: wait · press · screenshot · dump · watch · bp …
-text/           exported strings and font art
-out/            IPS patches and screenshots (no ROM images)
-docs/ru/        engineering journal — every finding, every dead end, in Russian
+rom_map.yml       the single home of every ROM offset (splat-style segments)
+roms.sha1         sha1 of the base ROM and of the build; `make verify`
+Makefile          build · extract · verify · test · lint · assets · asm · emu · regress · clean
+pyproject.toml    the ga3 package and its `ga3` command
+baserom/          put your ROM here (ignored)
+assets/           the ROM taken apart — see STYLE.md for what is committed
+  header/         vectors.yml, header.yml
+  text/           menu · stages · ending · dialogue · misc .txt, encoding.tbl
+  gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (indexed)
+  palettes/       *.pal captured from the emulator (no ROM source known yet)
+  sound/pcm/      samples.pcm
+  data/           hp_table.yml
+  code/asm/       Capstone listings (generated)
+build/            everything derived (ignored): ROM, IPS, emulator, shots, dumps, previews
+src/ga3/          the toolkit: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · cli
+tests/            pytest; ROM-free fixtures plus ROM-gated tests
+emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
+docs/             build · text_format · nemesis · font · emulator · rom_map (generated) · evidence/ · images/ · ru/journal.md
 ```
 
-The full story of how each address was found lives in the
-**[engineering journal](docs/ru/journal.md)** (Russian).
+## ROM map
+
+Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short version:
+
+| Range | Contents |
+|---|---|
+| `000000–000200` | vectors and header (entry point moved by the translators to `0FFA20`) |
+| `000200–01B780` | 68000 code, with the HP table at `00E492`, a Nemesis block at `013E76`, the menu / stage / ending text and a 330-byte hole at `0116B6` |
+| `01B780–01E3DC` | 13 Nemesis blocks back to back, the font at `01D85E` (840 B) |
+| `0295EE–029F08` | one more Nemesis block (208 tiles) |
+| `080000–0D8000` | 11 264 uncompressed 4bpp tiles |
+| `0E9B00–0EC300` | dialogue, credits, ending text |
+| `0FC000–0FFA20` | PCM samples |
+| `0FFA20–100000` | the relocated entry stub |
+
+Free space: **914 bytes** in three verified holes. About half of the image is
+still `unknown`; `ga3 map` prints the exact figure and the ranges.
+
+## Roadmap
+
+- [x] **v0.1 — Text & Font** · byte-exact round-trip, glyph editor, Ё / Ъ / ( ), translator credit
+- [x] **v0.2 — Nemesis packer parity** · smaller than the original on all 14 blocks, self-verifying
+- [x] **v0.3 — Headless emulator** · scenes, screenshots, dumps, watchpoints, `dma_hook`
+- [x] **v0.35 — Reproducible build** · `rom_map.yml`, `assets/`, `build/`, `roms.sha1`, tests, CI
+- [ ] **v0.4 — Gameplay tables** · lives, magic, timers (method ready in `ga3 ramsearch`)
+- [ ] **v0.5 — Palettes and tilemaps in ROM** · turn the grey tile sheets into real colours
+- [ ] **v1.0 — Release IPS** · verified patch with RU + EN docs
+
+Progress is tracked in [milestones](https://github.com/eugenez36/golden-axe3-game-rus/milestones).
+
+## Documents
+
+[INSTALL.md](INSTALL.md) · [STYLE.md](STYLE.md) · [CONTRIBUTING.md](CONTRIBUTING.md) ·
+[docs/build.md](docs/build.md) · [docs/text_format.md](docs/text_format.md) ·
+[docs/nemesis.md](docs/nemesis.md) · [docs/font.md](docs/font.md) ·
+[docs/emulator.md](docs/emulator.md) · [docs/evidence](docs/evidence/README.md) ·
+**[engineering journal (Russian)](docs/ru/journal.md)** — how each address was found, dead ends included.
 
 ## Legal
 
 - **No ROM is distributed here**, and none ever will be. Golden Axe III is © SEGA.
   "SEGA", "Mega Drive", "Genesis" and "Golden Axe" are trademarks of SEGA Corporation.
+- `assets/` contains data extracted from the game in editable form so that
+  changes can be reviewed as diffs. Together with a base ROM it reproduces the
+  image; the repository alone does not — code and unidentified regions are
+  deliberately not committed (see [STYLE.md](STYLE.md)).
 - The Russian translation this toolkit targets is the work of **NEWGAME (2003)**.
-- The toolkit itself is [MIT](LICENSE). The emulator core, Genesis Plus GX, is by
-  Charles MacDonald and Eke-Eke under its own **non-commercial** license — see
+- The toolkit is [MIT](LICENSE). Genesis Plus GX is by Charles MacDonald and
+  Eke-Eke under its own **non-commercial** license; see
   [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 <div align="center">

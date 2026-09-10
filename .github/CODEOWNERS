@@ -3,5 +3,6 @@
 
 # Codec and emulator core changes deserve a second look — same reviewer for now,
 # split these lines when the party grows.
-tools/nemesis.py        @eugenez36
+src/ga3/nemesis.py      @eugenez36
+rom_map.yml             @eugenez36
 emu/                    @eugenez36

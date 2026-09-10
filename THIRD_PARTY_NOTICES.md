@@ -13,6 +13,12 @@ be committed (see `.gitignore` and the CI guard step). Users must supply their o
 "SEGA", "Mega Drive", "Genesis" and "Golden Axe" are trademarks of SEGA Corporation.
 This project is not affiliated with, endorsed by, or sponsored by SEGA.
 
+`assets/` holds data extracted from the game in editable form (text, glyph art,
+compressed tile blocks, indexed tile sheets, sample data) so that changes can be
+reviewed as diffs. Verbatim copies of the game's code and of unidentified regions
+are deliberately not committed: the repository plus a user-supplied base ROM
+reproduces the image, the repository alone does not (see STYLE.md).
+
 Addresses, tables and structural descriptions of the ROM found in this repository are
 the result of independent analysis for interoperability and preservation purposes.
 
@@ -24,9 +30,11 @@ edits that work; it does not claim authorship of it.
 
 ## Genesis Plus GX — Charles MacDonald, Eke-Eke and contributors
 
-`emu/gpgx/` is the Genesis Plus GX emulator core (upstream:
-<https://github.com/ekeeke/Genesis-Plus-GX>), used unchanged except for a small
-`dma_hook` callback added to `core/vdp_ctrl.c` (see `emu/patches/`). `emu/headless/`
+`emu/gpgx/` is a git submodule pointing at the `ga3/dma-hook` branch of
+<https://github.com/eugenez36/Genesis-Plus-GX>, a fork of the Genesis Plus GX
+emulator core (upstream: <https://github.com/ekeeke/Genesis-Plus-GX>). The fork
+differs from upstream by one commit: a `dma_hook` callback under `#ifdef HOOK_CPU`
+in `core/vdp_ctrl.c` (`emu/patches/0001-dma-hook.patch`, 14 lines). `emu/headless/`
 is an original frontend that links against it.
 
 Genesis Plus GX is distributed under the following license, which applies to the core
@@ -74,13 +82,13 @@ are non-commercial**, even though the Python tools themselves are MIT.
 
 ## Capstone — BSD-3-Clause
 
-`tools/disasm.py` uses the [Capstone](https://www.capstone-engine.org/) disassembly
+`src/ga3/disasm.py` uses the [Capstone](https://www.capstone-engine.org/) disassembly
 framework (Python bindings, `capstone==5.0.9`), © Nguyen Anh Quynh and contributors,
 BSD-3-Clause.
 
 ## Nemesis compression format
 
 Nemesis is SEGA's in-house tile compression scheme. The implementation in
-`tools/nemesis.py` was written from the disassembly of this game's own decoder
+`src/ga3/nemesis.py` was written from the disassembly of this game's own decoder
 (`NemDec` at `0x0122FC`). Public documentation of the format by the Sonic Retro
 community was used as a cross-reference.

@@ -44,20 +44,44 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: pyproject.toml
       - name: Install
-        run: |
-          python -m pip install --upgrade pip ruff
-          [ -f requirements.txt ] && pip install -r requirements.txt || echo "no requirements.txt yet"
+        run: python -m pip install --upgrade pip && pip install -e ".[dev,disasm]"
       - name: Lint
+        run: ruff check src tests && ruff format --check src tests
+      - name: Tests (ROM-gated tests are skipped without baserom/ga3.bin)
+        run: pytest -q -m "not rom"
+
+  assets:
+    name: 🗺️ rom_map.yml and derived assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e .
+      - name: Map loads, covers the image, every committed asset exists
         run: |
-          if [ -d tools ]; then ruff check tools; else echo "tools/ not landed yet — skipping"; fi
-      - name: Byte-compile
+          ga3 map --list
+          python - <<'PY'
+          import sys
+          from ga3 import pipeline as pl
+          proj = pl.open_project(".")
+          missing = [s.path for s in proj.map.segments
+                     if s.path and s.type in {"header","table","text","nemesis","pcm","raw"}
+                     and not proj.paths.asset(s.path).exists()]
+          missing += [s.get("blob") for s in proj.map.segments
+                      if s.get("blob") and not proj.paths.asset(s.get("blob")).exists()]
+          print("missing:", missing); sys.exit(1 if missing else 0)
+          PY
+      - name: Derived files are fresh (encoding.tbl, font.nem, docs/rom_map.md)
+        run: ga3 assets refresh && git diff --exit-code
+      - name: No committed file above 1 MiB
         run: |
-          if [ -d tools ]; then python -m compileall -q tools; else echo "tools/ not landed yet — skipping"; fi
-      - name: Unit tests (ROM-free only)
-        run: |
-          if [ -d tests ]; then pip install pytest && pytest -q -m "not rom"; else echo "no tests/ yet — skipping"; fi
+          big=$(git ls-files | xargs -I{} stat -c '%s %n' {} | awk '$1 > 1048576')
+          if [ -n "$big" ]; then echo "::error::oversized files:"; echo "$big"; exit 1; fi
 
   emulator:
     name: 🕹️ Headless Genesis Plus GX
@@ -68,20 +92,15 @@ jobs:
           submodules: recursive
       - name: Toolchain
         run: sudo apt-get update -qq && sudo apt-get install -y -qq build-essential zlib1g-dev
+      - name: Core carries the dma_hook
+        run: make -C emu/headless check-core GPGX="$PWD/emu/gpgx"
       - name: Build
-        run: |
-          if [ -f emu/headless/Makefile ] && [ -d emu/gpgx/core ]; then
-            make -C emu/headless -j"$(nproc)"
-            ./emu/headless/headless_gpgx --help | head -20
-          else
-            echo "emulator sources not landed yet — skipping"
-          fi
+        run: make emu -j"$(nproc)" && build/emu/headless_gpgx --help 2>&1 | head -5
       - name: Upload binary
-        if: hashFiles('emu/headless/headless_gpgx') != ''
         uses: actions/upload-artifact@v4
         with:
           name: headless_gpgx-linux-x86_64
-          path: emu/headless/headless_gpgx
+          path: build/emu/headless_gpgx
           retention-days: 14
 
   docs:
@@ -95,9 +114,10 @@ jobs:
         run: |
           set -euo pipefail
           fail=0
-          for md in README.md README.ru.md CONTRIBUTING.md THIRD_PARTY_NOTICES.md; do
+          for md in $(git ls-files '*.md'); do
+            dir=$(dirname "$md")
             for link in $(grep -oE '\]\((\./)?[A-Za-z0-9_./-]+\)' "$md" | sed -E 's/\]\((\.\/)?//; s/\)$//'); do
-              [ -e "$link" ] || { echo "::error file=$md::broken link $link"; fail=1; }
+              [ -e "$dir/$link" ] || [ -e "$link" ] || { echo "::error file=$md::broken link $link"; fail=1; }
             done
           done
           exit $fail

@@ -1,7 +1,8 @@
 # Contributing · Как участвовать
 
-Thanks for stopping by the camp. A few rules keep this project honest — and keep SEGA's
-lawyers asleep. Russian version follows below · Русская версия ниже.
+Thanks for stopping by the camp. A few rules keep this project honest — and keep
+SEGA's lawyers asleep. Conventions live in [STYLE.md](STYLE.md); setup in
+[INSTALL.md](INSTALL.md). Russian version follows below · Русская версия ниже.
 
 ---
 
@@ -9,49 +10,52 @@ lawyers asleep. Russian version follows below · Русская версия н�
 
 ### Ground rules
 
-1. **The ROM never enters git.** Not the reference, not a working copy, not a "demo build".
-   `.gitignore` blocks `*.bin`, and CI fails on any `.bin` in the tree. Share changes as
-   **IPS patches** (`romlib.py ips`) or as edits to `text/*.txt`.
-2. **The reference image is read-only.** All work happens on `work/ga3.bin`. If you find
-   yourself wanting to `chmod +w` the reference, stop.
-3. **Nothing is guessed.** An address goes into the docs only when it is backed by one of:
-   a watchpoint / breakpoint hit, the disassembly, or a tilemap/VRAM dump. Say which.
+1. **The ROM never enters git.** Not the reference, not a build, not a "demo".
+   `.gitignore` blocks `*.bin`, the pre-commit hook and CI fail on any ROM-shaped
+   file. Changes are made to the files in `assets/` and reviewed as diffs; the
+   build produces the IPS.
+2. **The base ROM is read-only.** Tools read `baserom/ga3.bin` and write to
+   `build/`. If a command wants to modify the base ROM, it is a bug.
+3. **Nothing is guessed.** An address enters `rom_map.yml` only with an
+   `evidence:` field: a watchpoint / breakpoint hit, a disassembly listing, a
+   tilemap / VRAM dump, or an in-game screenshot after a poke.
 
 ### The four checks
 
-Every change to ROM contents must pass all of these before a PR is opened:
+Every change that alters the built image must pass all of these before a PR:
 
 | # | Check | How |
 |---|---|---|
-| 1 | **Structural** | `romlib.py diff` shows exactly the expected bytes; checksum recomputed |
-| 2 | **Round-trip** | `text_tool.py verify` (text) or re-pack → decode == original (graphics) |
-| 3 | **In-game** | headless run with a script under `scripts/`, screenshot attached to the PR |
-| 4 | **VRAM parity** | for graphics: re-packing unchanged data yields byte-identical VRAM (all 65 536 bytes) |
+| 1 | **Structural** | `make && ga3 diff baserom/ga3.bin build/ga3.bin` shows exactly the expected bytes; `ga3 verify --update` recorded the new hash |
+| 2 | **Round-trip** | `ga3 text verify` (text) · `make assets` leaves no diff (font / tables) · `make test` |
+| 3 | **In-game** | a scene under `emu/scenes/` run with `ga3 emu`, screenshot attached to the PR |
+| 4 | **VRAM parity** | graphics only: repacking unchanged tiles reproduces the same VRAM (covered by `tests/`; extend the fixture if you touch the codec) |
 
-A PR that changes a codec, the character table or the font without check 4 will be
-sent back — that check catches packer bugs no eye can.
+A PR that changes the codec, the character table or the font without check 4
+will be sent back — it catches packer bugs no eye can.
 
 ### Workflow
 
 ```bash
 git checkout -b quest/short-name          # features
 git checkout -b glitch/short-name         # bug fixes
-# ... work on work/ga3.bin ...
-python3 tools/romlib.py ips "Golden Axe 3 (RUS).bin" work/ga3.bin -o out/your-change.ips
-./emu/headless/headless_gpgx --rom work/ga3.bin --script scripts/your-check.txt
+# edit assets/… or src/ga3/…
+make && ga3 verify --update && make test && make lint
+ga3 emu emu/scenes/menu_verify.txt        # or the scene that shows your change
 ```
 
-- Commits: imperative mood, ≤ 72 chars, English or Russian — pick one per commit.
-- PRs are **squash-merged**; the PR title becomes the commit title, so make it good.
+- Commits: imperative, ≤ 72 chars, English. Asset edits and code changes in
+  separate commits when possible, so `git log -- assets/` reads as the
+  translation's history.
+- PRs are **squash-merged**; the PR title becomes the commit subject.
 - Fill in the PR template. The checklist is not decorative.
-- Code style: Python — `ruff` defaults, 4 spaces; C — 2 spaces, C99, no new warnings.
-- Docstrings and journal entries may be in Russian. Public README stays bilingual.
+- New offsets go in `rom_map.yml`, never in code.
 
 ### Reporting a finding
 
-Found a new address, table or routine? Open an issue with the **ROM finding** template
-even if you have no code yet. A verified address with a reproduction script is worth more
-than an unverified patch.
+Found an address, table or routine? Open an issue with the **ROM finding**
+template even without code. A verified address with a reproduction scene is
+worth more than an unverified patch.
 
 ---
 
@@ -59,24 +63,25 @@ than an unverified patch.
 
 ### Правила лагеря
 
-1. **ROM в git не попадает никогда.** Ни эталон, ни рабочая копия, ни «демо-сборка».
-   `.gitignore` режет `*.bin`, CI падает на любом `.bin` в дереве. Правки передаются
-   **IPS-патчами** (`romlib.py ips`) или изменениями в `text/*.txt`.
-2. **Эталон только для чтения.** Вся работа идёт на `work/ga3.bin`. Захотелось
-   `chmod +w` на эталон — остановись.
-3. **Ничего не угадываем.** Адрес попадает в документацию только с подтверждением:
-   срабатывание watchpoint'а / брейкпоинта, дизассемблер или дамп тайлмапа/VRAM. Укажи, каким.
+1. **ROM в git не попадает никогда.** Ни эталон, ни сборка, ни «демо».
+   `.gitignore` режет `*.bin`, pre-commit и CI падают на любом файле, похожем на
+   ROM. Правки вносятся в файлы `assets/` и читаются как diff; IPS порождает сборка.
+2. **Эталон только для чтения.** Инструменты читают `baserom/ga3.bin` и пишут в
+   `build/`. Если команда хочет изменить эталон — это баг.
+3. **Ничего не угадываем.** Адрес попадает в `rom_map.yml` только с полем
+   `evidence:`: срабатывание watchpoint'а / брейкпоинта, листинг дизассемблера,
+   дамп тайлмапа / VRAM или скриншот из игры после poke.
 
 ### Четыре проверки
 
-Любая правка содержимого ROM до открытия PR проходит все четыре:
+Любая правка, меняющая собранный образ, до открытия PR проходит все четыре:
 
 | # | Проверка | Как |
 |---|---|---|
-| 1 | **Структурная** | `romlib.py diff` показывает ровно ожидаемые байты; checksum пересчитана |
-| 2 | **Round-trip** | `text_tool.py verify` (текст) или перепаковка → распаковка == оригинал (графика) |
-| 3 | **В игре** | прогон headless-эмулятора сценарием из `scripts/`, скриншот приложен к PR |
-| 4 | **Паритет VRAM** | для графики: перепаковка без изменений даёт байт-в-байт ту же VRAM (все 65 536 байт) |
+| 1 | **Структурная** | `make && ga3 diff baserom/ga3.bin build/ga3.bin` показывает ровно ожидаемые байты; `ga3 verify --update` записал новый хеш |
+| 2 | **Round-trip** | `ga3 text verify` (текст) · `make assets` не даёт diff (шрифт / таблицы) · `make test` |
+| 3 | **В игре** | сцена из `emu/scenes/`, запущенная через `ga3 emu`; скриншот приложен к PR |
+| 4 | **Паритет VRAM** | только графика: перепаковка неизменённых тайлов даёт ту же VRAM (покрыто `tests/`; расширьте фикстуру, если трогали кодек) |
 
 PR, меняющий кодек, таблицу символов или шрифт без проверки 4, будет возвращён —
 она ловит ошибки упаковщика лучше любых глаз.
@@ -86,18 +91,19 @@ PR, меняющий кодек, таблицу символов или шриф
 ```bash
 git checkout -b quest/короткое-имя        # новые возможности
 git checkout -b glitch/короткое-имя       # исправления
-# ... работа на work/ga3.bin ...
-python3 tools/romlib.py ips "Golden Axe 3 (RUS).bin" work/ga3.bin -o out/your-change.ips
-./emu/headless/headless_gpgx --rom work/ga3.bin --script scripts/your-check.txt
+# правки в assets/… или src/ga3/…
+make && ga3 verify --update && make test && make lint
+ga3 emu emu/scenes/menu_verify.txt        # или сцена, показывающая вашу правку
 ```
 
-- Коммиты: повелительное наклонение, до 72 знаков, русский или английский — один язык на коммит.
-- PR вливаются **squash'ем**; заголовок PR становится заголовком коммита — формулируй как следует.
-- Заполняй шаблон PR. Чеклист там не для красоты.
-- Стиль: Python — `ruff` по умолчанию, 4 пробела; C — 2 пробела, C99, без новых предупреждений.
-- Докстринги и журнал можно писать по-русски. Публичный README остаётся двуязычным.
+- Коммиты: повелительное наклонение, до 72 знаков, английский. Правки ресурсов и
+  кода — по возможности отдельными коммитами, чтобы `git log -- assets/` читался
+  как история перевода.
+- PR вливаются **squash'ем**; заголовок PR становится заголовком коммита.
+- Заполняйте шаблон PR. Чеклист там не для красоты.
+- Новые смещения — в `rom_map.yml`, никогда в код.
 
 ### Сообщить о находке
 
-Нашёл новый адрес, таблицу или подпрограмму? Открой issue по шаблону **ROM finding**,
-даже без кода. Подтверждённый адрес со сценарием воспроизведения ценнее непроверенного патча.
+Нашли адрес, таблицу или подпрограмму? Откройте issue по шаблону **ROM finding**,
+даже без кода. Подтверждённый адрес со сценой воспроизведения ценнее непроверенного патча.
