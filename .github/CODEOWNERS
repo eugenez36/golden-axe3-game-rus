@@ -1,0 +1,7 @@
+# Every file: the keeper of the axe.
+*                       @eugenez36
+
+# Codec and emulator core changes deserve a second look — same reviewer for now,
+# split these lines when the party grows.
+tools/nemesis.py        @eugenez36
+emu/                    @eugenez36

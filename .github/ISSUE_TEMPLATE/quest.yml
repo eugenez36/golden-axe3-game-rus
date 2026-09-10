@@ -1,0 +1,35 @@
+name: ⚔️ Quest
+description: Propose a new capability for the toolkit
+title: "[quest] "
+labels: ["⚔️ quest"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: What should become possible?
+      description: Describe the outcome in game terms first (“change the magic pot count”), then in tool terms.
+    validations:
+      required: true
+  - type: textarea
+    id: knowns
+    attributes:
+      label: What is already known
+      description: Addresses, journal sections, prior attempts, screenshots.
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: Fits which milestone?
+      options:
+        - v0.1 — Text & Font
+        - v0.2 — Nemesis packer parity
+        - v0.3 — Headless emulator
+        - v0.4 — Gameplay tables
+        - v1.0 — Release IPS
+        - none of these
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints acknowledged
+      options:
+        - label: The change must fit the free space (914 bytes) or come with a `Rom.expand()` plan
+        - label: Verification path is clear (which of the four checks apply)

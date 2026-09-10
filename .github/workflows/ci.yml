@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: 🛡️ No ROM in the tree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on any ROM-like binary
+        run: |
+          set -euo pipefail
+          hits=$(git ls-files | grep -iE '\.(bin|gen|smd|32x|md\.bin)$' || true)
+          if [ -n "$hits" ]; then
+            echo "::error::ROM images or raw binaries are committed:"; echo "$hits"; exit 1
+          fi
+          # 1 MiB files with a SEGA header are a ROM regardless of extension
+          for f in $(git ls-files); do
+            [ -f "$f" ] || continue
+            if [ "$(stat -c %s "$f")" -ge 524288 ] && head -c 272 "$f" | grep -aq 'SEGA MEGA DRIVE\|SEGA GENESIS'; then
+              echo "::error::$f looks like a Mega Drive ROM"; exit 1
+            fi
+          done
+          echo "clean"
+
+  python:
+    name: 🐍 Python toolkit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip ruff
+          [ -f requirements.txt ] && pip install -r requirements.txt || echo "no requirements.txt yet"
+      - name: Lint
+        run: |
+          if [ -d tools ]; then ruff check tools; else echo "tools/ not landed yet — skipping"; fi
+      - name: Byte-compile
+        run: |
+          if [ -d tools ]; then python -m compileall -q tools; else echo "tools/ not landed yet — skipping"; fi
+      - name: Unit tests (ROM-free only)
+        run: |
+          if [ -d tests ]; then pip install pytest && pytest -q -m "not rom"; else echo "no tests/ yet — skipping"; fi
+
+  emulator:
+    name: 🕹️ Headless Genesis Plus GX
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Toolchain
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq build-essential zlib1g-dev
+      - name: Build
+        run: |
+          if [ -f emu/headless/Makefile ] && [ -d emu/gpgx/core ]; then
+            make -C emu/headless -j"$(nproc)"
+            ./emu/headless/headless_gpgx --help | head -20
+          else
+            echo "emulator sources not landed yet — skipping"
+          fi
+      - name: Upload binary
+        if: hashFiles('emu/headless/headless_gpgx') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: headless_gpgx-linux-x86_64
+          path: emu/headless/headless_gpgx
+          retention-days: 14
+
+  docs:
+    name: 📜 Docs & branding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: SVG banner is well-formed
+        run: python3 -c "import xml.dom.minidom,glob; [xml.dom.minidom.parse(f) for f in glob.glob('docs/branding/*.svg')]; print('ok')"
+      - name: Relative links resolve
+        run: |
+          set -euo pipefail
+          fail=0
+          for md in README.md README.ru.md CONTRIBUTING.md THIRD_PARTY_NOTICES.md; do
+            for link in $(grep -oE '\]\((\./)?[A-Za-z0-9_./-]+\)' "$md" | sed -E 's/\]\((\.\/)?//; s/\)$//'); do
+              [ -e "$link" ] || { echo "::error file=$md::broken link $link"; fail=1; }
+            done
+          done
+          exit $fail

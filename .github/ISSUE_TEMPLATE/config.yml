@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion / question
+    url: https://github.com/eugenez36/golden-axe3-game-rus/discussions
+    about: Not a bug and not a finding? Ask at the campfire.
+  - name: 📜 Engineering journal
+    url: https://github.com/eugenez36/golden-axe3-game-rus/blob/main/docs/ru/journal.md
+    about: Check whether your question is already answered there (Russian).

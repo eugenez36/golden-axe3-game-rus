@@ -1,0 +1,52 @@
+name: 🗺️ ROM finding
+description: A new address, table, routine or format detail — with proof
+title: "[finding] 0x"
+labels: ["area: rom-map", "🛡️ needs verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A finding is worth recording even without code. The bar: **someone else can confirm it**
+        by running the game. Please no ROM images or raw memory dumps in the issue.
+  - type: input
+    id: address
+    attributes:
+      label: Address / range
+      placeholder: "0x00E492–0x00E495"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What is there
+      description: Table? Routine? Pointer? Format? Sizes and units.
+    validations:
+      required: true
+  - type: dropdown
+    id: method
+    attributes:
+      label: How it was confirmed
+      multiple: true
+      options:
+        - watchpoint hit (watch / vwatch)
+        - breakpoint hit (bp)
+        - disassembly (disasm.py)
+        - DMA log (dmalog / dma_hook)
+        - tilemap / VRAM dump
+        - RAM correlation (ramsearch.py)
+        - in-game screenshot after a poke
+    validations:
+      required: true
+  - type: textarea
+    id: proof
+    attributes:
+      label: Proof
+      description: Emulator script, disassembly listing, or the correlation output.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: usage
+    attributes:
+      label: How the toolkit could use it
+      description: Which tool gains a named parameter, which doc section gets a row.

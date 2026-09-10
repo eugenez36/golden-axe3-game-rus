@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Golden Axe III (RUS) — ROM-hacking toolkit
+#
+#  The game ROM is copyrighted by SEGA and is NEVER committed to this repository.
+#  Anything that *is* a full ROM image (reference, working copy, demo builds)
+#  stays local. IPS patches contain only differences and are fine to publish.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ROM images — every form of them
+Golden\ Axe\ 3\ (RUS).bin
+*.bin
+*.gen
+*.md.bin
+*.smd
+*.32x
+work/
+out/*.bin
+!out/*.ips
+
+# Emulator dumps (VRAM/CRAM/WRAM snapshots are derived from the ROM)
+emu/dumps/*
+!emu/dumps/.gitkeep
+
+# Build products
+emu/headless/headless_gpgx
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# Genesis Plus GX upstream clone — becomes a submodule when code lands
+emu/gpgx/
+
+# Python
+tools/venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# IDEs / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Save states, emulator scratch
+*.gs?
+*.state
+*.srm

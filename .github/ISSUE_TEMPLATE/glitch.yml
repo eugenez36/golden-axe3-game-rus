@@ -1,0 +1,58 @@
+name: 🐛 Glitch
+description: A tool, the emulator frontend or a patch misbehaves
+title: "[glitch] "
+labels: ["🐛 glitch", "🛡️ needs verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Do not attach ROM images or VRAM/RAM dumps** — they contain SEGA's data.
+        IPS patches, scripts, screenshots and text files are welcome.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - text (text_tool, table)
+        - font (font_tool)
+        - nemesis (codec)
+        - emulator (headless_gpgx, scripts)
+        - gameplay (balance, ramsearch)
+        - rom-map / disasm
+        - other
+    validations:
+      required: true
+  - type: input
+    id: rom
+    attributes:
+      label: ROM identity
+      description: Output of `romlib.py info` — header checksum and size are enough.
+      placeholder: "GM 00004093-00, checksum 9BB5, 1 MiB"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands. If the emulator is involved, paste the script.
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: Error text, diff output, or a screenshot from `headless_gpgx`.
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "Ubuntu 24.04 / WSL2, Python 3.12.3, gcc 13"

@@ -1,0 +1,20 @@
+# Line endings: LF everywhere. The upstream emulator source once got CRLF-mangled,
+# turning a 6-line dma_hook patch into a 6600-line diff — never again.
+* text=auto eol=lf
+
+# Binary artefacts
+*.bin  binary
+*.ips  binary
+*.png  binary
+*.gif  binary
+*.jpg  binary
+*.svg  text
+
+# Makefiles need tabs
+Makefile  text eol=lf
+
+# Linguist: keep the language bar honest
+docs/**        linguist-documentation
+*.md           linguist-documentation
+scripts/*.txt  linguist-language=Text
+emu/gpgx/**    linguist-vendored
