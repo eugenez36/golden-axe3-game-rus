@@ -42,7 +42,9 @@ def disasm(data: bytes, start: int, count: int = 40, end: int | None = None) -> 
 
 
 def fmt(rows: list[Row]) -> str:
-    return "\n".join("%06X  %-20s %-8s %s" % (a, raw.hex(" "), mn, ops) for a, raw, mn, ops in rows)
+    return "\n".join(
+        ("%06X  %-20s %-8s %s" % (a, raw.hex(" "), mn, ops)).rstrip() for a, raw, mn, ops in rows
+    )
 
 
 def listing(data: bytes, start: int, end: int, title: str) -> str:

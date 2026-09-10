@@ -106,7 +106,7 @@ def font_to_art(
         lines.append("@ %02X  %s" % (b, note))
         lines.extend(art)
         lines.append("")
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines).rstrip("\n") + "\n"
 
 
 def parse_art(

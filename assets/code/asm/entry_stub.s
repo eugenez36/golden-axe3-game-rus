@@ -95,7 +95,7 @@
 0FFB24  46 fc 27 00          move.w   #$2700, sr
 0FFB28  61 06                bsr.b    $ffb30
 0FFB2A  46 fc 20 00          move.w   #$2000, sr
-0FFB2E  4e 75                rts      
+0FFB2E  4e 75                rts
 0FFB30  48 e7 ff dc          movem.l  d0-d7/a0-a1/a3-a5, -(a7)
 0FFB34  47 f9 00 0f fb f2    lea.l    $ffbf2.l, a3
 0FFB3A  49 f9 00 c0 00 00    lea.l    $c00000.l, a4
@@ -119,7 +119,7 @@
 0FFB6E  3c 3c 00 10          move.w   #$10, d6
 0FFB72  61 06                bsr.b    $ffb7a
 0FFB74  4c df 3b ff          movem.l  (a7)+, d0-d7/a0-a1/a3-a5
-0FFB78  4e 75                rts      
+0FFB78  4e 75                rts
 0FFB7A  3e 06                move.w   d6, d7
 0FFB7C  51 47                subq.w   #$8, d7
 0FFB7E  32 05                move.w   d5, d1
@@ -172,28 +172,28 @@
 0FFBF4  53 4d                subq.w   #$1, a5
 0FFBF6  38 0d                move.w   a5, d4
 0FFBF8  66 c2                bne.b    $ffbbc
-0FFBFA  4e 75                rts      
+0FFBFA  4e 75                rts
 0FFBFC  b9 82                eor.l    d4, d2
 0FFBFE  28 82                move.l   d2, (a4)
 0FFC00  53 4d                subq.w   #$1, a5
 0FFC02  38 0d                move.w   a5, d4
 0FFC04  66 b6                bne.b    $ffbbc
-0FFC06  4e 75                rts      
+0FFC06  4e 75                rts
 0FFC08  28 c4                move.l   d4, (a4)+
 0FFC0A  53 4d                subq.w   #$1, a5
 0FFC0C  38 0d                move.w   a5, d4
 0FFC0E  66 ac                bne.b    $ffbbc
-0FFC10  4e 75                rts      
+0FFC10  4e 75                rts
 0FFC12  b9 82                eor.l    d4, d2
 0FFC14  28 c2                move.l   d2, (a4)+
 0FFC16  53 4d                subq.w   #$1, a5
 0FFC18  38 0d                move.w   a5, d4
 0FFC1A  66 a0                bne.b    $ffbbc
-0FFC1C  4e 75                rts      
+0FFC1C  4e 75                rts
 0FFC1E  10 18                move.b   (a0)+, d0
 0FFC20  0c 00 00 ff          cmpi.b   #$ff, d0
 0FFC24  66 02                bne.b    $ffc28
-0FFC26  4e 75                rts      
+0FFC26  4e 75                rts
 0FFC28  3e 00                move.w   d0, d7
 0FFC2A  10 18                move.b   (a0)+, d0
 0FFC2C  0c 00 00 80          cmpi.b   #$80, d0
@@ -264,7 +264,7 @@
 0FFCD6  32 c5                move.w   d5, (a1)+
 0FFCD8  54 4a                addq.w   #$2, a2
 0FFCDA  51 cf ff d4          dbra     d7, $ffcb0
-0FFCDE  4e 75                rts      
+0FFCDE  4e 75                rts
 0FFCE0  52 78 e4 98          addq.w   #$1, $e498.w
 0FFCE4  72 00                moveq    #$0, d1
 0FFCE6  32 38 e4 98          move.w   $e498.w, d1
@@ -293,7 +293,7 @@
 0FFD20  32 c5                move.w   d5, (a1)+
 0FFD22  54 4a                addq.w   #$2, a2
 0FFD24  51 cf ff da          dbra     d7, $ffd00
-0FFD28  4e 75                rts      
+0FFD28  4e 75                rts
 0FFD2A  ff ff                dc.w     $ffff
 0FFD2C  ff ff                dc.w     $ffff
 0FFD2E  ff ff                dc.w     $ffff

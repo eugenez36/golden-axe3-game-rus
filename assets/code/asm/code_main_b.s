@@ -436,7 +436,7 @@
 011CC0  00 01 20 2c          ori.b    #$2c, d1
 011CC4  00 01 1e 72          ori.b    #$72, d1
 011CC8  00 01 1e 86          ori.b    #$86, d1
-011CCC  4e 75                rts      
+011CCC  4e 75                rts
 011CCE  33 fc 8a 00 00 c0 00 04 move.w   #$8a00, $c00004.l
 011CD6  2f 08                move.l   a0, -(a7)
 011CD8  20 78 f1 4a          movea.l  $f14a.w, a0
@@ -444,7 +444,7 @@
 011CE6  33 d8 00 c0 00 00    move.w   (a0)+, $c00000.l
 011CEC  54 78 f1 4c          addq.w   #$2, $f14c.w
 011CF0  20 5f                movea.l  (a7)+, a0
-011CF2  4e 73                rte      
+011CF2  4e 73                rte
 011CF4  00 7c 07 00          ori.w    #$700, sr
 011CF8  21 fc 00 ff 04 00 f1 4a move.l   #$ff0400, $f14a.w
 011D00  52 78 f0 58          addq.w   #$1, $f058.w
@@ -461,7 +461,7 @@
 011D2C  4e 91                jsr      (a1)
 011D2E  42 78 f0 54          clr.w    $f054.w
 011D32  02 7c f8 ff          andi.w   #$f8ff, sr
-011D36  4e 75                rts      
+011D36  4e 75                rts
 011D38  30 38 f0 8c          move.w   $f08c.w, d0
 011D3C  02 00 00 bf          andi.b   #$bf, d0
 011D40  3c 80                move.w   d0, (a6)
@@ -483,7 +483,7 @@
 011D86  30 38 f0 8c          move.w   $f08c.w, d0
 011D8A  00 00 00 40          ori.b    #$40, d0
 011D8E  3c 80                move.w   d0, (a6)
-011D90  4e 75                rts      
+011D90  4e 75                rts
 011D92  61 00 02 60          bsr.w    $11ff4
 011D96  61 00 01 52          bsr.w    $11eea
 011D9A  60 00 ff 9c          bra.w    $11d38
@@ -611,7 +611,7 @@
 011FE4  2c bc c0 00 00 00    move.l   #$c0000000, (a6)
 011FEA  3d 78 f2 00 ff fc    move.w   $f200.w, -$4(a6)
 011FF0  46 df                move.w   (a7)+, sr
-011FF2  4e 75                rts      
+011FF2  4e 75                rts
 011FF4  38 38 f0 8c          move.w   $f08c.w, d4
 011FF8  08 c4 00 04          bset.b   #$4, d4
 011FFC  33 c4 00 c0 00 04    move.w   d4, $c00004.l
@@ -622,14 +622,14 @@
 012018  4e 91                jsr      (a1)
 01201A  33 f8 f0 8c 00 c0 00 04 move.w   $f08c.w, $c00004.l
 012022  33 fc 00 00 00 a1 11 00 move.w   #$0, $a11100.l
-01202A  4e 75                rts      
-01202C  4e 75                rts      
+01202A  4e 75                rts
+01202C  4e 75                rts
 01202E  02 80 00 00 ff ff    andi.l   #$ffff, d0
 012034  e5 88                lsl.l    #$2, d0
 012036  e4 48                lsr.w    #$2, d0
 012038  08 c0 00 0e          bset.b   #$e, d0
 01203C  48 40                swap     d0
-01203E  4e 75                rts      
+01203E  4e 75                rts
 012040  61 ec                bsr.b    $1202e
 012042  4d f9 00 c0 00 04    lea.l    $c00004.l, a6
 012048  4b ee ff fc          lea.l    -$4(a6), a5
@@ -640,7 +640,7 @@
 012058  51 ce ff fc          dbra     d6, $12056
 01205C  d0 87                add.l    d7, d0
 01205E  51 ca ff f2          dbra     d2, $12052
-012062  4e 75                rts      
+012062  4e 75                rts
 012064  38 3c 00 80          move.w   #$80, d4
 012068  26 49                movea.l  a1, a3
 01206A  36 01                move.w   d1, d3
@@ -648,7 +648,7 @@
 01206E  51 cb ff fc          dbra     d3, $1206c
 012072  d2 c4                adda.w   d4, a1
 012074  51 ca ff f2          dbra     d2, $12068
-012078  4e 75                rts      
+012078  4e 75                rts
 01207A  61 b2                bsr.b    $1202e
 01207C  4d f9 00 c0 00 04    lea.l    $c00004.l, a6
 012082  4b ee ff fc          lea.l    -$4(a6), a5
@@ -659,16 +659,16 @@
 012092  51 ce ff fc          dbra     d6, $12090
 012096  d0 87                add.l    d7, d0
 012098  51 ca ff f2          dbra     d2, $1208c
-01209C  4e 75                rts      
+01209C  4e 75                rts
 01209E  34 d9                move.w   (a1)+, (a2)+
 0120A0  51 cf ff fc          dbra     d7, $1209e
-0120A4  4e 75                rts      
+0120A4  4e 75                rts
 0120A6  41 fa 00 10          lea.l    $120b8(pc), a0
 0120AA  70 00                moveq    #$0, d0
 0120AC  10 18                move.b   (a0)+, d0
 0120AE  35 99 00 00          move.w   (a1)+, (a2, d0.w)
 0120B2  51 cf ff f6          dbra     d7, $120aa
-0120B6  4e 75                rts      
+0120B6  4e 75                rts
 0120B8  02 06 08 0a          andi.b   #$a, d6
 0120BC  0c 0e                .word    $0C0E
 0120BE  16 1c                move.b   (a4)+, d3
@@ -725,7 +725,7 @@
 01216E  1d 41 ff fc          move.b   d1, -$4(a6)
 012172  61 00 00 8c          bsr.w    $12200
 012176  3c bc 8f 02          move.w   #$8f02, (a6)
-01217A  4e 75                rts      
+01217A  4e 75                rts
 01217C  48 a7 e0 00          movem.w  d0-d2, -(a7)
 012180  30 3c 02 00          move.w   #$200, d0
 012184  61 1e                bsr.b    $121a4
@@ -767,11 +767,11 @@
 0121F4  2c 80                move.l   d0, (a6)
 0121F6  61 00 00 08          bsr.w    $12200
 0121FA  3c bc 8f 02          move.w   #$8f02, (a6)
-0121FE  4e 75                rts      
+0121FE  4e 75                rts
 012200  30 16                move.w   (a6), d0
 012202  02 40 00 02          andi.w   #$2, d0
 012206  66 f8                bne.b    $12200
-012208  4e 75                rts      
+012208  4e 75                rts
 01220A  48 a7 e0 00          movem.w  d0-d2, -(a7)
 01220E  30 3c 04 00          move.w   #$400, d0
 012212  61 26                bsr.b    $1223a
@@ -815,12 +815,12 @@
 012284  e5 88                lsl.l    #$2, d0
 012286  30 02                move.w   d2, d0
 012288  02 40 3f ff          andi.w   #$3fff, d0
-01228C  4e 75                rts      
+01228C  4e 75                rts
 01228E  3c 80                move.w   d0, (a6)
 012290  48 40                swap     d0
 012292  31 c0 f0 68          move.w   d0, $f068.w
 012296  3c b8 f0 68          move.w   $f068.w, (a6)
-01229A  4e 75                rts      
+01229A  4e 75                rts
 01229C  72 00                moveq    #$0, d1
 01229E  48 e7 10 04          movem.l  d3/a5, -(a7)
 0122A2  4d f9 00 c0 00 04    lea.l    $c00004.l, a6
@@ -858,7 +858,7 @@
 0122F0  2a 83                move.l   d3, (a5)
 0122F2  51 c8 ff fc          dbra     d0, $122f0
 0122F6  4c df 20 08          movem.l  (a7)+, d3/a5
-0122FA  4e 75                rts      
+0122FA  4e 75                rts
 0122FC  48 e7 ff dc          movem.l  d0-d7/a0-a1/a3-a5, -(a7)
 012300  47 f9 00 01 23 82    lea.l    $12382.l, a3
 012306  49 f9 00 c0 00 00    lea.l    $c00000.l, a4
@@ -926,11 +926,11 @@
 0123A8  38 0d                move.w   a5, d4
 0123AA  66 be                bne.b    $1236a
 0123AC  4c df 3b ff          movem.l  (a7)+, d0-d7/a0-a1/a3-a5
-0123B0  4e 75                rts      
+0123B0  4e 75                rts
 0123B2  10 18                move.b   (a0)+, d0
 0123B4  0c 00 00 ff          cmpi.b   #$ff, d0
 0123B8  66 02                bne.b    $123bc
-0123BA  4e 75                rts      
+0123BA  4e 75                rts
 0123BC  3e 00                move.w   d0, d7
 0123BE  10 18                move.b   (a0)+, d0
 0123C0  0c 00 00 80          cmpi.b   #$80, d0
@@ -971,30 +971,30 @@
 012416  66 06                bne.b    $1241e
 012418  42 46                clr.w    d6
 01241A  10 c5                move.b   d5, (a0)+
-01241C  4e 75                rts      
+01241C  4e 75                rts
 01241E  3c 05                move.w   d5, d6
 012420  e0 6e                lsr.w    d0, d6
 012422  10 c6                move.b   d6, (a0)+
 012424  3c 00                move.w   d0, d6
-012426  4e 75                rts      
+012426  4e 75                rts
 012428  44 46                neg.w    d6
 01242A  67 06                beq.b    $12432
 01242C  50 46                addq.w   #$8, d6
 01242E  ed 6d                lsl.w    d6, d5
 012430  10 c5                move.b   d5, (a0)+
-012432  4e 75                rts      
+012432  4e 75                rts
 012434  1a 18                move.b   (a0)+, d5
 012436  e1 45                asl.w    #$8, d5
 012438  1a 18                move.b   (a0)+, d5
 01243A  7c 10                moveq    #$10, d6
-01243C  4e 75                rts      
+01243C  4e 75                rts
 01243E  3e 06                move.w   d6, d7
 012440  9e 40                sub.w    d0, d7
 012442  32 05                move.w   d5, d1
 012444  ee 69                lsr.w    d7, d1
 012446  d0 40                add.w    d0, d0
 012448  c2 7b 00 16          and.w    $12460(pc, d0.w), d1
-01244C  4e 75                rts      
+01244C  4e 75                rts
 01244E  61 ee                bsr.b    $1243e
 012450  e2 48                lsr.w    #$1, d0
 012452  9c 40                sub.w    d0, d6
@@ -1003,7 +1003,7 @@
 01245A  50 46                addq.w   #$8, d6
 01245C  e1 45                asl.w    #$8, d5
 01245E  1a 18                move.b   (a0)+, d5
-012460  4e 75                rts      
+012460  4e 75                rts
 012462  00 01 00 03          ori.b    #$3, d1
 012466  00 07 00 0f          ori.b    #$f, d7
 01246A  00 1f 00 3f          ori.b    #$3f, (a7)+
@@ -1050,7 +1050,7 @@
 0124C8  1a 18                move.b   (a0)+, d5
 0124CA  e1 4d                lsl.w    #$8, d5
 0124CC  1a 18                move.b   (a0)+, d5
-0124CE  4e 75                rts      
+0124CE  4e 75                rts
 0124D0  67 12                beq.b    $124e4
 0124D2  ee 69                lsr.w    d7, d1
 0124D4  30 0d                move.w   a5, d0
@@ -1086,7 +1086,7 @@
 012520  d9 c4                adda.l   d4, a4
 012522  51 c9 ff e6          dbra     d1, $1250a
 012526  4c df 11 7f          movem.l  (a7)+, d0-d6/a0/a4
-01252A  4e 75                rts      
+01252A  4e 75                rts
 01252C  48 e7 ff 7c          movem.l  d0-d7/a1-a5, -(a7)
 012530  36 40                movea.w  d0, a3
 012532  10 18                move.b   (a0)+, d0
@@ -1160,7 +1160,7 @@
 0125DE  64 02                bcc.b    $125e2
 0125E0  52 48                addq.w   #$1, a0
 0125E2  4c df 3e ff          movem.l  (a7)+, d0-d7/a1-a5
-0125E6  4e 75                rts      
+0125E6  4e 75                rts
 0125E8  43 fa 00 3c          lea.l    $12626(pc), a1
 0125EC  60 04                bra.b    $125f2
 0125EE  43 fa 00 10          lea.l    $12600(pc), a1
@@ -1168,7 +1168,7 @@
 0125F6  7e 12                moveq    #$12, d7
 0125F8  34 d9                move.w   (a1)+, (a2)+
 0125FA  51 cf ff fc          dbra     d7, $125f8
-0125FE  4e 75                rts      
+0125FE  4e 75                rts
 012600  80 14                or.b     (a4), d0
 012602  81 24                or.b     d0, -(a4)
 012604  82 30 83 34 84 07 85 5c or.b     $8407855c(a0, a0.w * 2), d1
@@ -1203,7 +1203,7 @@
 012656  7e 12                moveq    #$12, d7
 012658  3c 99                move.w   (a1)+, (a6)
 01265A  51 cf ff fc          dbra     d7, $12658
-01265E  4e 75                rts      
+01265E  4e 75                rts
 012660  34 3c b0 00          move.w   #$b000, d2
 012664  30 3c 40 00          move.w   #$4000, d0
 012668  61 00 fc 32          bsr.w    $1229c
@@ -1219,7 +1219,7 @@
 012686  00 41 40 00          ori.w    #$4000, d1
 01268A  48 41                swap     d1
 01268C  2c 81                move.l   d1, (a6)
-01268E  4e 75                rts      
+01268E  4e 75                rts
 012690  eb 40                asl.w    #$5, d0
 012692  42 81                clr.l    d1
 012694  32 00                move.w   d0, d1
@@ -1228,11 +1228,11 @@
 01269A  02 41 3f ff          andi.w   #$3fff, d1
 01269E  48 41                swap     d1
 0126A0  2c 81                move.l   d1, (a6)
-0126A2  4e 75                rts      
+0126A2  4e 75                rts
 0126A4  31 f8 f0 56 f0 54    move.w   $f056.w, $f054.w
 0126AA  4a 78 f0 54          tst.w    $f054.w
 0126AE  66 fa                bne.b    $126aa
-0126B0  4e 75                rts      
+0126B0  4e 75                rts
 0126B2  22 38 f0 6c          move.l   $f06c.w, d1
 0126B6  66 06                bne.b    $126be
 0126B8  22 3c 2a 6d 36 5a    move.l   #$2a6d365a, d1
@@ -1247,7 +1247,7 @@
 0126CE  32 00                move.w   d0, d1
 0126D0  48 41                swap     d1
 0126D2  21 c1 f0 6c          move.l   d1, $f06c.w
-0126D6  4e 75                rts      
+0126D6  4e 75                rts
 0126D8  08 39 00 00 00 a1 11 00 btst.b   #$0, $a11100.l
 0126E0  56 f8 f0 7e          sne.b    $f07e.w
 0126E4  67 1e                beq.b    $12704
@@ -1257,17 +1257,17 @@
 0126F4  08 39 00 00 00 a1 11 00 btst.b   #$0, $a11100.l
 0126FC  57 c8 ff f6          dbeq     d0, $126f4
 012700  4c 9f 00 01          movem.w  (a7)+, d0
-012704  4e 75                rts      
+012704  4e 75                rts
 012706  4a 38 f0 7e          tst.b    $f07e.w
 01270A  67 08                beq.b    $12714
 01270C  33 fc 00 00 00 a1 11 00 move.w   #$0, $a11100.l
-012714  4e 75                rts      
+012714  4e 75                rts
 012716  33 fc 00 00 00 a1 12 00 move.w   #$0, $a11200.l
 01271E  61 0c                bsr.b    $1272c
 012720  61 0a                bsr.b    $1272c
 012722  61 08                bsr.b    $1272c
 012724  33 fc 01 00 00 a1 12 00 move.w   #$100, $a11200.l
-01272C  4e 75                rts      
+01272C  4e 75                rts
 01272E  30 78 f0 64          movea.w  $f064.w, a0
 012732  30 08                move.w   a0, d0
 012734  67 3a                beq.b    $12770
@@ -1307,7 +1307,7 @@
 0127A4  e2 4a                lsr.w    #$1, d2
 0127A6  64 d4                bcc.b    $1277c
 0127A8  4c df 01 07          movem.l  (a7)+, d0-d2/a0
-0127AC  4e 75                rts      
+0127AC  4e 75                rts
 0127AE  30 3c 81 00          move.w   #$8100, d0
 0127B2  10 38 f0 8d          move.b   $f08d.w, d0
 0127B6  00 00 00 40          ori.b    #$40, d0
@@ -1322,7 +1322,7 @@
 0127DC  44 40                neg.w    d0
 0127DE  48 40                swap     d0
 0127E0  2d 40 ff fc          move.l   d0, -$4(a6)
-0127E4  4e 75                rts      
+0127E4  4e 75                rts
 0127E6  4d f9 00 c0 00 04    lea.l    $c00004.l, a6
 0127EC  36 00                move.w   d0, d3
 0127EE  31 c0 f0 7c          move.w   d0, $f07c.w
@@ -1335,7 +1335,7 @@
 0127FE  61 00 fa 9e          bsr.w    $1229e
 012802  06 04 00 11          addi.b   #$11, d4
 012806  64 ee                bcc.b    $127f6
-012808  4e 75                rts      
+012808  4e 75                rts
 01280A  48 e7 7c 80          movem.l  d1-d5/a0, -(a7)
 01280E  20 4d                movea.l  a5, a0
 012810  61 12                bsr.b    $12824
@@ -1345,7 +1345,7 @@
 01281A  20 49                movea.l  a1, a0
 01281C  61 1c                bsr.b    $1283a
 01281E  4c df 01 3e          movem.l  (a7)+, d1-d5/a0
-012822  4e 75                rts      
+012822  4e 75                rts
 012824  4d f9 00 c0 00 04    lea.l    $c00004.l, a6
 01282A  34 18                move.w   (a0)+, d2
 01282C  36 18                move.w   (a0)+, d3
@@ -1353,7 +1353,7 @@
 012832  3a 04                move.w   d4, d5
 012834  d8 18                add.b    (a0)+, d4
 012836  da 18                add.b    (a0)+, d5
-012838  4e 75                rts      
+012838  4e 75                rts
 01283A  30 02                move.w   d2, d0
 01283C  61 00 fe 3c          bsr.w    $1267a
 012840  30 04                move.w   d4, d0
@@ -1364,7 +1364,7 @@
 01284E  d4 78 f0 7a          add.w    $f07a.w, d2
 012852  51 cd ff e6          dbra     d5, $1283a
 012856  30 03                move.w   d3, d0
-012858  4e 75                rts      
+012858  4e 75                rts
 01285A  61 00 ff 18          bsr.w    $12774
 01285E  61 aa                bsr.b    $1280a
 012860  61 00 fe 16          bsr.w    $12678
@@ -1416,7 +1416,7 @@
 0128E4  2a 98                move.l   (a0)+, (a5)
 0128E6  51 c8 ff fc          dbra     d0, $128e4
 0128EA  4c df 21 00          movem.l  (a7)+, a0/a5
-0128EE  4e 75                rts      
+0128EE  4e 75                rts
 0128F0  3f 07                move.w   d7, -(a7)
 0128F2  30 10                move.w   (a0), d0
 0128F4  67 0e                beq.b    $12904
@@ -1427,7 +1427,7 @@
 012904  3e 1f                move.w   (a7)+, d7
 012906  41 e8 00 80          lea.l    $80(a0), a0
 01290A  51 cf ff e4          dbra     d7, $128f0
-01290E  4e 75                rts      
+01290E  4e 75                rts
 012910  41 f8 f3 00          lea.l    $f300.w, a0
 012914  7e 0b                moveq    #$b, d7
 012916  4e ba ff d8          jsr      $128f0(pc)
@@ -1451,10 +1451,10 @@
 012958  b4 fc f9 00          cmpa.w   #$f900, a2
 01295C  67 04                beq.b    $12962
 01295E  42 2a ff fb          clr.b    -$5(a2)
-012962  4e 75                rts      
+012962  4e 75                rts
 012964  08 28 00 01 00 02    btst.b   #$1, $2(a0)
 01296A  67 02                beq.b    $1296e
-01296C  4e 75                rts      
+01296C  4e 75                rts
 01296E  22 68 00 0c          movea.l  $c(a0), a1
 012972  72 00                moveq    #$0, d1
 012974  12 19                move.b   (a1)+, d1
@@ -1493,22 +1493,22 @@
 0129D6  65 08                bcs.b    $129e0
 0129D8  5d 4a                subq.w   #$6, a2
 0129DA  51 c9 ff ac          dbra     d1, $12988
-0129DE  4e 75                rts      
+0129DE  4e 75                rts
 0129E0  34 c0                move.w   d0, (a2)+
 0129E2  52 06                addq.b   #$1, d6
 0129E4  51 c9 ff a2          dbra     d1, $12988
-0129E8  4e 75                rts      
+0129E8  4e 75                rts
 0129EA  4a 51                tst.w    (a1)
 0129EC  67 08                beq.b    $129f6
 0129EE  43 e9 00 80          lea.l    $80(a1), a1
 0129F2  51 c8 ff f6          dbra     d0, $129ea
-0129F6  4e 75                rts      
+0129F6  4e 75                rts
 0129F8  3a 48                movea.w  a0, a5
 0129FA  7e 1f                moveq    #$1f, d7
 0129FC  7c 00                moveq    #$0, d6
 0129FE  2a c6                move.l   d6, (a5)+
 012A00  51 cf ff fc          dbra     d7, $129fe
-012A04  4e 75                rts      
+012A04  4e 75                rts
 012A06  48 e7 04 80          movem.l  d5/a0, -(a7)
 012A0A  3a 3c 00 0b          move.w   #$b, d5
 012A0E  41 f8 f3 00          lea.l    $f300.w, a0
@@ -1516,7 +1516,7 @@
 012A16  30 4d                movea.w  a5, a0
 012A18  51 cd ff f8          dbra     d5, $12a12
 012A1C  4c df 01 20          movem.l  (a7)+, d5/a0
-012A20  4e 75                rts      
+012A20  4e 75                rts
 012A22  30 28 00 06          move.w   $6(a0), d0
 012A26  22 68 00 08          movea.l  $8(a0), a1
 012A2A  d2 f1 00 00          adda.w   (a1, d0.w), a1
@@ -1536,10 +1536,10 @@
 012A58  d0 40                add.w    d0, d0
 012A5A  d0 40                add.w    d0, d0
 012A5C  21 71 00 02 00 0c    move.l   $2(a1, d0.w), $c(a0)
-012A62  4e 75                rts      
+012A62  4e 75                rts
 012A64  42 28 00 10          clr.b    $10(a0)
 012A68  21 69 00 02 00 0c    move.l   $2(a1), $c(a0)
-012A6E  4e 75                rts      
+012A6E  4e 75                rts
 012A70  30 28 00 06          move.w   $6(a0), d0
 012A74  22 68 00 08          movea.l  $8(a0), a1
 012A78  d2 f1 00 00          adda.w   (a1, d0.w), a1
@@ -1554,16 +1554,16 @@
 012A96  42 28 00 10          clr.b    $10(a0)
 012A9A  70 00                moveq    #$0, d0
 012A9C  08 e8 00 02 00 02    bset.b   #$2, $2(a0)
-012AA2  4e 75                rts      
+012AA2  4e 75                rts
 012AA4  d0 40                add.w    d0, d0
 012AA6  d0 40                add.w    d0, d0
 012AA8  21 71 00 02 00 0c    move.l   $2(a1, d0.w), $c(a0)
-012AAE  4e 75                rts      
+012AAE  4e 75                rts
 012AB0  08 a8 00 02 00 02    bclr.b   #$2, $2(a0)
 012AB6  7e 00                moveq    #$0, d7
 012AB8  11 47 00 10          move.b   d7, $10(a0)
 012ABC  11 47 00 11          move.b   d7, $11(a0)
-012AC0  4e 75                rts      
+012AC0  4e 75                rts
 012AC2  74 00                moveq    #$0, d2
 012AC4  36 00                move.w   d0, d3
 012AC6  b9 43                eor.w    d4, d3
@@ -1597,7 +1597,7 @@
 012B0A  0c 01 00 40          cmpi.b   #$40, d1
 012B0E  65 04                bcs.b    $12b14
 012B10  12 3c 00 3f          move.b   #$3f, d1
-012B14  4e 75                rts      
+012B14  4e 75                rts
 012B16  47 fa 01 84          lea.l    $12c9c(pc), a3
 012B1A  02 41 00 ff          andi.w   #$ff, d1
 012B1E  d2 41                add.w    d1, d1
@@ -1617,7 +1617,7 @@
 012B40  44 41                neg.w    d1
 012B42  c0 c1                mulu.w   d1, d0
 012B44  e0 88                lsr.l    #$8, d0
-012B46  4e 75                rts      
+012B46  4e 75                rts
 012B48  47 fa 00 4e          lea.l    $12b98(pc), a3
 012B4C  02 41 00 ff          andi.w   #$ff, d1
 012B50  d2 41                add.w    d1, d1
@@ -1649,7 +1649,7 @@
 012B8E  32 3c 00 00          move.w   #$0, d1
 012B92  e0 81                asr.l    #$8, d1
 012B94  c1 41                exg.l    d0, d1
-012B96  4e 75                rts      
+012B96  4e 75                rts
 012B98  00 ff                .word    $00FF
 012B9A  ff ff                dc.w     $ffff
 012B9C  04 00 ff f8          subi.b   #$f8, d0
@@ -1800,19 +1800,19 @@
 012D2C  20 59                movea.l  (a1)+, a0
 012D2E  4e ba f5 cc          jsr      $122fc(pc)
 012D32  51 cf ff f2          dbra     d7, $12d26
-012D36  4e 75                rts      
+012D36  4e 75                rts
 012D38  49 f8 f0 08          lea.l    $f008.w, a4
 012D3C  7e 00                moveq    #$0, d7
 012D3E  3c 3c 00 07          move.w   #$7, d6
 012D42  28 c7                move.l   d7, (a4)+
 012D44  51 ce ff fc          dbra     d6, $12d42
-012D48  4e 75                rts      
+012D48  4e 75                rts
 012D4A  49 f8 f9 00          lea.l    $f900.w, a4
 012D4E  7e 00                moveq    #$0, d7
 012D50  3c 3c 00 9f          move.w   #$9f, d6
 012D54  28 c7                move.l   d7, (a4)+
 012D56  51 ce ff fc          dbra     d6, $12d54
-012D5A  4e 75                rts      
+012D5A  4e 75                rts
 012D5C  49 f8 f2 00          lea.l    $f200.w, a4
 012D60  7e 00                moveq    #$0, d7
 012D62  3c 3c 00 3f          move.w   #$3f, d6
@@ -1857,7 +1857,7 @@
 012E14  7e 4f                moveq    #$4f, d7
 012E16  3a 80                move.w   d0, (a5)
 012E18  51 cf ff fc          dbra     d7, $12e16
-012E1C  4e 75                rts      
+012E1C  4e 75                rts
 012E1E  61 00 f8 b8          bsr.w    $126d8
 012E22  41 f8 f0 80          lea.l    $f080.w, a0
 012E26  43 f9 00 a1 00 03    lea.l    $a10003.l, a1
@@ -1868,13 +1868,13 @@
 012E36  60 00 f8 ce          bra.w    $12706
 012E3A  13 7c 00 40 00 06    move.b   #$40, $6(a1)
 012E40  12 bc 00 40          move.b   #$40, (a1)
-012E44  4e 71                nop      
-012E46  4e 71                nop      
+012E44  4e 71                nop
+012E46  4e 71                nop
 012E48  10 11                move.b   (a1), d0
 012E4A  02 00 00 3f          andi.b   #$3f, d0
 012E4E  12 bc 00 00          move.b   #$0, (a1)
-012E52  4e 71                nop      
-012E54  4e 71                nop      
+012E52  4e 71                nop
+012E54  4e 71                nop
 012E56  12 11                move.b   (a1), d1
 012E58  e5 09                lsl.b    #$2, d1
 012E5A  02 01 00 c0          andi.b   #$c0, d1
@@ -1887,22 +1887,22 @@
 012E6A  c0 01                and.b    d1, d0
 012E6C  10 c0                move.b   d0, (a0)+
 012E6E  12 bc 00 40          move.b   #$40, (a1)
-012E72  4e 71                nop      
-012E74  4e 71                nop      
+012E72  4e 71                nop
+012E74  4e 71                nop
 012E76  10 11                move.b   (a1), d0
 012E78  12 bc 00 00          move.b   #$0, (a1)
-012E7C  4e 71                nop      
-012E7E  4e 71                nop      
+012E7C  4e 71                nop
+012E7E  4e 71                nop
 012E80  10 11                move.b   (a1), d0
 012E82  02 00 00 0f          andi.b   #$f, d0
 012E86  66 2a                bne.b    $12eb2
 012E88  12 bc 00 40          move.b   #$40, (a1)
-012E8C  4e 71                nop      
-012E8E  4e 71                nop      
+012E8C  4e 71                nop
+012E8E  4e 71                nop
 012E90  10 11                move.b   (a1), d0
 012E92  12 bc 00 00          move.b   #$0, (a1)
-012E96  4e 71                nop      
-012E98  4e 71                nop      
+012E96  4e 71                nop
+012E98  4e 71                nop
 012E9A  12 11                move.b   (a1), d1
 012E9C  12 bc 00 40          move.b   #$40, (a1)
 012EA0  46 00                not.b    d0
@@ -1913,7 +1913,7 @@
 012EAC  10 c1                move.b   d1, (a0)+
 012EAE  c0 01                and.b    d1, d0
 012EB0  10 c0                move.b   d0, (a0)+
-012EB2  4e 75                rts      
+012EB2  4e 75                rts
 012EB4  00 00 01 00          ori.b    #$0, d0
 012EB8  00 04 01 00          ori.b    #$0, d4
 012EBC  00 09                .word    $0009
@@ -2506,7 +2506,7 @@
 0134BE  42 b8 f0 14          clr.l    $f014.w
 0134C2  42 78 f1 0c          clr.w    $f10c.w
 0134C6  42 78 f1 0e          clr.w    $f10e.w
-0134CA  4e 75                rts      
+0134CA  4e 75                rts
 0134CC  4d f9 00 c0 00 04    lea.l    $c00004.l, a6
 0134D2  08 f8 00 07 f1 1e    bset.b   #$7, $f11e.w
 0134D8  66 02                bne.b    $134dc
@@ -2524,13 +2524,13 @@
 013500  42 b8 f0 14          clr.l    $f014.w
 013504  61 00 f5 00          bsr.w    $12a06
 013508  02 7c f8 ff          andi.w   #$f8ff, sr
-01350C  4e 75                rts      
+01350C  4e 75                rts
 01350E  3e 1a                move.w   (a2)+, d7
 013510  20 5a                movea.l  (a2)+, a0
 013512  22 5a                movea.l  (a2)+, a1
 013514  4e b9 00 01 25 2c    jsr      $1252c.l
 01351A  51 cf ff f4          dbra     d7, $13510
-01351E  4e 75                rts      
+01351E  4e 75                rts
 013520  3a 18                move.w   (a0)+, d5
 013522  24 58                movea.l  (a0)+, a2
 013524  20 18                move.l   (a0)+, d0
@@ -2540,7 +2540,7 @@
 01352C  14 18                move.b   (a0)+, d2
 01352E  4e b9 00 01 20 42    jsr      $12042.l
 013534  51 cd ff ec          dbra     d5, $13522
-013538  4e 75                rts      
+013538  4e 75                rts
 01353A  3e 18                move.w   (a0)+, d7
 01353C  24 58                movea.l  (a0)+, a2
 01353E  22 58                movea.l  (a0)+, a1
@@ -2550,19 +2550,19 @@
 013546  14 18                move.b   (a0)+, d2
 013548  4e b9 00 01 20 64    jsr      $12064.l
 01354E  51 cf ff ec          dbra     d7, $1353c
-013552  4e 75                rts      
+013552  4e 75                rts
 013554  4e b9 00 01 26 78    jsr      $12678.l
 01355A  7e 0f                moveq    #$f, d7
 01355C  3d 42 ff fc          move.w   d2, -$4(a6)
 013560  51 cf ff fa          dbra     d7, $1355c
-013564  4e 75                rts      
+013564  4e 75                rts
 013566  41 f9 00 ff 05 c0    lea.l    $ff05c0.l, a0
 01356C  70 01                moveq    #$1, d0
 01356E  3e 3c 00 df          move.w   #$df, d7
 013572  31 00                move.w   d0, -(a0)
 013574  52 40                addq.w   #$1, d0
 013576  51 cf ff fa          dbra     d7, $13572
-01357A  4e 75                rts      
+01357A  4e 75                rts
 01357C  41 f9 00 ff 04 00    lea.l    $ff0400.l, a0
 013582  22 38 f0 14          move.l   $f014.w, d1
 013586  3e 3c 00 df          move.w   #$df, d7
@@ -2570,7 +2570,7 @@
 01358C  54 48                addq.w   #$2, a0
 01358E  d2 80                add.l    d0, d1
 013590  51 cf ff f8          dbra     d7, $1358a
-013594  4e 75                rts      
+013594  4e 75                rts
 013596  41 f9 00 ff 03 80    lea.l    $ff0380.l, a0
 01359C  70 00                moveq    #$0, d0
 01359E  3e 3c 00 df          move.w   #$df, d7
@@ -2586,7 +2586,7 @@
 0135BC  93 b8 f1 28          sub.l    d1, $f128.w
 0135C0  22 1f                move.l   (a7)+, d1
 0135C2  51 cf ff de          dbra     d7, $135a2
-0135C6  4e 75                rts      
+0135C6  4e 75                rts
 0135C8  41 f9 00 ff 00 00    lea.l    $ff0000.l, a0
 0135CE  4a 78 f1 30          tst.w    $f130.w
 0135D2  6b 02                bmi.b    $135d6
@@ -2603,7 +2603,7 @@
 0135F8  20 a8 ff fc          move.l   -$4(a0), (a0)
 0135FC  59 48                subq.w   #$4, a0
 0135FE  51 cf ff f8          dbra     d7, $135f8
-013602  4e 75                rts      
+013602  4e 75                rts
 013604  48 e7 81 40          movem.l  d0/d7/a1, -(a7)
 013608  30 38 f0 0c          move.w   $f00c.w, d0
 01360C  54 49                addq.w   #$2, a1
@@ -2612,7 +2612,7 @@
 013614  58 49                addq.w   #$4, a1
 013616  51 cf ff fa          dbra     d7, $13612
 01361A  4c df 02 81          movem.l  (a7)+, d0/d7/a1
-01361E  4e 75                rts      
+01361E  4e 75                rts
 013620  48 e7 01 c0          movem.l  d7/a0-a1, -(a7)
 013624  41 f9 00 ff 00 00    lea.l    $ff0000.l, a0
 01362A  54 49                addq.w   #$2, a1
@@ -2622,7 +2622,7 @@
 013634  58 49                addq.w   #$4, a1
 013636  51 cf ff f8          dbra     d7, $13630
 01363A  4c df 03 80          movem.l  (a7)+, d7/a0-a1
-01363E  4e 75                rts      
+01363E  4e 75                rts
 013640  48 e7 c1 c0          movem.l  d0-d1/d7/a0-a1, -(a7)
 013644  41 f9 00 ff 00 00    lea.l    $ff0000.l, a0
 01364A  54 49                addq.w   #$2, a1
@@ -2635,7 +2635,7 @@
 01365C  58 49                addq.w   #$4, a1
 01365E  51 cf ff f4          dbra     d7, $13654
 013662  4c df 03 83          movem.l  (a7)+, d0-d1/d7/a0-a1
-013666  4e 75                rts      
+013666  4e 75                rts
 013668  72 00                moveq    #$0, d1
 01366A  12 38 f1 85          move.b   $f185.w, d1
 01366E  12 30 10 00          move.b   (a0, d1.w), d1
@@ -2648,7 +2648,7 @@
 013684  62 06                bhi.b    $1368c
 013686  42 40                clr.w    d0
 013688  42 38 f1 85          clr.b    $f185.w
-01368C  4e 75                rts      
+01368C  4e 75                rts
 01368E  41 fa 00 2a          lea.l    $136ba(pc), a0
 013692  30 3c c6 14          move.w   #$c614, d0
 013696  61 00 e9 96          bsr.w    $1202e
@@ -2661,7 +2661,7 @@
 0136AA  51 ce ff f4          dbra     d6, $136a0
 0136AE  06 80 01 00 00 00    addi.l   #$1000000, d0
 0136B4  51 cf ff e6          dbra     d7, $1369c
-0136B8  4e 75                rts      
+0136B8  4e 75                rts
 0136BA  20 20                move.l   -(a0), d0
 0136BC  20 50                movea.l  (a0), a0
 0136BE  52 4f                addq.w   #$1, a7
@@ -2697,20 +2697,20 @@
 013700  66 08                bne.b    $1370a
 013702  30 3c 00 07          move.w   #$7, d0
 013706  c0 28 00 02          and.b    $2(a0), d0
-01370A  4e 75                rts      
+01370A  4e 75                rts
 01370C  30 3c 00 f3          move.w   #$f3, d0
 013710  22 78 02 70          movea.l  $270.w, a1
 013714  4e 91                jsr      (a1)
-013716  4e 75                rts      
+013716  4e 75                rts
 013718  61 00 ef 98          bsr.w    $126b2
 01371C  02 80 00 00 ff ff    andi.l   #$ffff, d0
 013722  80 c2                divu.w   d2, d0
 013724  48 40                swap     d0
-013726  4e 75                rts      
+013726  4e 75                rts
 013728  44 78 f1 44          neg.w    $f144.w
 01372C  30 38 f1 44          move.w   $f144.w, d0
 013730  d1 6a ff fe          add.w    d0, -$2(a2)
-013734  4e 75                rts      
+013734  4e 75                rts
 013736  61 00 e8 f6          bsr.w    $1202e
 01373A  2c 80                move.l   d0, (a6)
 01373C  41 fb 10 14          lea.l    $13752(pc, d1.w), a0
@@ -2719,7 +2719,7 @@
 013746  d2 18                add.b    (a0)+, d1
 013748  3d 41 ff fc          move.w   d1, -$4(a6)
 01374C  51 cf ff f4          dbra     d7, $13742
-013750  4e 75                rts      
+013750  4e 75                rts
 013752  31 48 20 32          move.w   a0, $2032(a0)
 013756  48 20                nbcd.b   -(a0)
 013758  52 30 4d 00          addq.b   #$1, (a0, d4.l * 4)
@@ -2727,13 +2727,13 @@
 013760  7e 07                moveq    #$7, d7
 013762  3d 58 ff fc          move.w   (a0)+, -$4(a6)
 013766  51 cf ff fa          dbra     d7, $13762
-01376A  4e 75                rts      
+01376A  4e 75                rts
 01376C  61 00 00 10          bsr.w    $1377e
 013770  72 00                moveq    #$0, d1
 013772  7e 07                moveq    #$7, d7
 013774  3d 41 ff fc          move.w   d1, -$4(a6)
 013778  51 cf ff fa          dbra     d7, $13774
-01377C  4e 75                rts      
+01377C  4e 75                rts
 01377E  32 38 f1 60          move.w   $f160.w, d1
 013782  e9 49                lsl.w    #$4, d1
 013784  d0 c1                adda.w   d1, a0
@@ -2745,7 +2745,7 @@
 013796  52 51                addq.w   #$1, (a1)
 013798  61 00 e8 94          bsr.w    $1202e
 01379C  2c 80                move.l   d0, (a6)
-01379E  4e 75                rts      
+01379E  4e 75                rts
 0137A0  45 f8 f2 40          lea.l    $f240.w, a2
 0137A4  52 78 f1 0e          addq.w   #$1, $f10e.w
 0137A8  30 38 f1 0e          move.w   $f10e.w, d0
@@ -2774,12 +2774,12 @@
 0137EE  b0 10                cmp.b    (a0), d0
 0137F0  65 04                bcs.b    $137f6
 0137F2  42 38 f1 0d          clr.b    $f10d.w
-0137F6  4e 75                rts      
+0137F6  4e 75                rts
 0137F8  7e 3f                moveq    #$3f, d7
 0137FA  43 f8 f2 00          lea.l    $f200.w, a1
 0137FE  45 f8 f2 80          lea.l    $f280.w, a2
 013802  61 02                bsr.b    $13806
-013804  4e 75                rts      
+013804  4e 75                rts
 013806  52 78 f1 0a          addq.w   #$1, $f10a.w
 01380A  72 00                moveq    #$0, d1
 01380C  32 38 f1 0a          move.w   $f10a.w, d1
@@ -2810,7 +2810,7 @@
 013846  32 c5                move.w   d5, (a1)+
 013848  54 4a                addq.w   #$2, a2
 01384A  51 cf ff d4          dbra     d7, $13820
-01384E  4e 75                rts      
+01384E  4e 75                rts
 013850  3e 3c 0b ff          move.w   #$bff, d7
 013854  0c 11 00 cc          cmpi.b   #$cc, (a1)
 013858  66 04                bne.b    $1385e
@@ -2825,7 +2825,7 @@
 01386E  12 82                move.b   d2, (a1)
 013870  52 49                addq.w   #$1, a1
 013872  51 cf ff e0          dbra     d7, $13854
-013876  4e 75                rts      
+013876  4e 75                rts
 013878  2f 00                move.l   d0, -(a7)
 01387A  70 00                moveq    #$0, d0
 01387C  02 81 00 00 ff ff    andi.l   #$ffff, d1
@@ -2841,12 +2841,12 @@
 01389C  80 01                or.b     d1, d0
 01389E  22 00                move.l   d0, d1
 0138A0  20 1f                move.l   (a7)+, d0
-0138A2  4e 75                rts      
+0138A2  4e 75                rts
 0138A4  80 01                or.b     d1, d0
 0138A6  e9 48                lsl.w    #$4, d0
 0138A8  48 41                swap     d1
 0138AA  02 81 00 00 ff ff    andi.l   #$ffff, d1
-0138B0  4e 75                rts      
+0138B0  4e 75                rts
 0138B2  55 48                subq.w   #$2, a0
 0138B4  32 3c f0 0f          move.w   #$f00f, d1
 0138B8  74 00                moveq    #$0, d2
@@ -2877,7 +2877,7 @@
 0138EC  51 cd ff de          dbra     d5, $138cc
 0138F0  51 ce ff cc          dbra     d6, $138be
 0138F4  51 cf ff c6          dbra     d7, $138bc
-0138F8  4e 75                rts      
+0138F8  4e 75                rts
 0138FA  45 e9 00 80          lea.l    $80(a1), a2
 0138FE  32 38 f1 40          move.w   $f140.w, d1
 013902  34 3c 07 ff          move.w   #$7ff, d2
@@ -2906,7 +2906,7 @@
 013938  43 ec 00 80          lea.l    $80(a4), a1
 01393C  45 e9 00 80          lea.l    $80(a1), a2
 013940  51 cf ff c8          dbra     d7, $1390a
-013944  4e 75                rts      
+013944  4e 75                rts
 013946  32 3c 00 0b          move.w   #$b, d1
 01394A  24 48                movea.l  a0, a2
 01394C  26 49                movea.l  a1, a3
@@ -2918,7 +2918,7 @@
 01395A  41 e8 00 80          lea.l    $80(a0), a0
 01395E  43 e9 00 80          lea.l    $80(a1), a1
 013962  51 cf ff e6          dbra     d7, $1394a
-013966  4e 75                rts      
+013966  4e 75                rts
 013968  32 3c 00 0c          move.w   #$c, d1
 01396C  24 48                movea.l  a0, a2
 01396E  26 49                movea.l  a1, a3
@@ -2930,7 +2930,7 @@
 01397C  41 e8 ff 80          lea.l    -$80(a0), a0
 013980  43 e9 00 80          lea.l    $80(a1), a1
 013984  51 cf ff e6          dbra     d7, $1396c
-013988  4e 75                rts      
+013988  4e 75                rts
 01398A  32 3c f0 0f          move.w   #$f00f, d1
 01398E  74 00                moveq    #$0, d2
 013990  53 47                subq.w   #$1, d7
@@ -2956,7 +2956,7 @@
 0139BC  51 ce ff d6          dbra     d6, $13994
 0139C0  90 fc 00 1c          suba.w   #$1c, a0
 0139C4  51 cf ff cc          dbra     d7, $13992
-0139C8  4e 75                rts      
+0139C8  4e 75                rts
 0139CA  32 38 f1 40          move.w   $f140.w, d1
 0139CE  34 3c 07 ff          move.w   #$7ff, d2
 0139D2  36 3c f8 00          move.w   #$f800, d3
@@ -2978,7 +2978,7 @@
 0139F6  41 ea 00 80          lea.l    $80(a2), a0
 0139FA  43 eb 00 80          lea.l    $80(a3), a1
 0139FE  51 cf ff d6          dbra     d7, $139d6
-013A02  4e 75                rts      
+013A02  4e 75                rts
 013A04  32 38 f1 40          move.w   $f140.w, d1
 013A08  34 3c 07 ff          move.w   #$7ff, d2
 013A0C  36 3c f8 00          move.w   #$f800, d3
@@ -3001,7 +3001,7 @@
 013A32  41 ea 00 80          lea.l    $80(a2), a0
 013A36  43 eb 00 80          lea.l    $80(a3), a1
 013A3A  51 cf ff d4          dbra     d7, $13a10
-013A3E  4e 75                rts      
+013A3E  4e 75                rts
 013A40  32 38 f1 40          move.w   $f140.w, d1
 013A44  34 3c 07 ff          move.w   #$7ff, d2
 013A48  36 3c f8 00          move.w   #$f800, d3
@@ -3019,15 +3019,15 @@
 013A62  32 c0                move.w   d0, (a1)+
 013A64  51 cd ff e8          dbra     d5, $13a4e
 013A68  51 cf ff e2          dbra     d7, $13a4c
-013A6C  4e 75                rts      
+013A6C  4e 75                rts
 013A6E  48 e7 60 40          movem.l  d1-d2/a1, -(a7)
 013A72  43 fa 00 26          lea.l    $13a9a(pc), a1
 013A76  11 51 00 06          move.b   (a1), $6(a0)
 013A7A  70 00                moveq    #$0, d0
 013A7C  72 08                moveq    #$8, d1
 013A7E  10 99                move.b   (a1)+, (a0)
-013A80  4e 71                nop      
-013A82  4e 71                nop      
+013A80  4e 71                nop
+013A82  4e 71                nop
 013A84  14 10                move.b   (a0), d2
 013A86  c4 19                and.b    (a1)+, d2
 013A88  67 02                beq.b    $13a8c
@@ -3036,7 +3036,7 @@
 013A8E  66 ee                bne.b    $13a7e
 013A90  42 28 00 06          clr.b    $6(a0)
 013A94  4c df 02 06          movem.l  (a7)+, d1-d2/a1
-013A98  4e 75                rts      
+013A98  4e 75                rts
 013A9A  40 0c                .word    $400C
 013A9C  40 03                negx.b   d3
 013A9E  00 0c                .word    $000C
@@ -3070,7 +3070,7 @@
 013AFE  65 06                bcs.b    $13b06
 013B00  14 38 f1 83          move.b   $f183.w, d2
 013B04  52 42                addq.w   #$1, d2
-013B06  4e 75                rts      
+013B06  4e 75                rts
 013B08  00 01 3b 9a          ori.b    #$9a, d1
 013B0C  00 01 3d 5e          ori.b    #$5e, d1
 013B10  00 01 42 26          ori.b    #$26, d1
@@ -3079,7 +3079,7 @@
 013B1C  00 01 5b 2c          ori.b    #$2c, d1
 013B20  00 01 3b 28          ori.b    #$28, d1
 013B24  00 01 77 10          ori.b    #$10, d1
-013B28  4e 75                rts      
+013B28  4e 75                rts
 013B2A  00 7c 07 00          ori.w    #$700, sr
 013B2E  4d f9 00 c0 00 04    lea.l    $c00004.l, a6
 013B34  41 f9 00 01 d8 5e    lea.l    $1d85e.l, a0
@@ -3106,7 +3106,7 @@
 013B86  51 ce ff fa          dbra     d6, $13b82
 013B8A  51 cf ff e0          dbra     d7, $13b6c
 013B8E  02 7c f8 ff          andi.w   #$f8ff, sr
-013B92  4e 75                rts      
+013B92  4e 75                rts
 013B94  47 41                .word    $4741
 013B96  45 33                dc.w     $4533
 013B98  41 00                dc.w     $4100
@@ -3186,7 +3186,7 @@
 013CDC  02 00 00 bf          andi.b   #$bf, d0
 013CE0  3c 80                move.w   d0, (a6)
 013CE2  58 78 f0 4c          addq.w   #$4, $f04c.w
-013CE6  4e 75                rts      
+013CE6  4e 75                rts
 013CE8  53 41                subq.w   #$1, d1
 013CEA  30 01                move.w   d1, d0
 013CEC  02 40 00 03          andi.w   #$3, d0
@@ -3212,7 +3212,7 @@
 013D2A  3c 3c 00 07          move.w   #$7, d6
 013D2E  28 c7                move.l   d7, (a4)+
 013D30  51 ce ff fc          dbra     d6, $13d2e
-013D34  4e 75                rts      
+013D34  4e 75                rts
 013D36  0e c0                .word    $0EC0
 013D38  0e a0                .word    $0EA0
 013D3A  0e 80                .word    $0E80
@@ -3247,7 +3247,7 @@
 013D90  02 00 00 bf          andi.b   #$bf, d0
 013D94  3c 80                move.w   d0, (a6)
 013D96  58 78 f0 4c          addq.w   #$4, $f04c.w
-013D9A  4e 75                rts      
+013D9A  4e 75                rts
 013D9C  31 fc 0e ee f2 0c    move.w   #$eee, $f20c.w
 013DA2  41 fa 00 2c          lea.l    $13dd0(pc), a0
 013DA6  30 3c c5 10          move.w   #$c510, d0
