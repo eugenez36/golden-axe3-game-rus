@@ -23,7 +23,7 @@ SOFTWARE.
 ---
 
 This license covers the toolkit source code and documentation written for this
-repository (tools/, emu/headless/, scripts/, docs/). It does NOT cover:
+repository (src/, tests/, emu/headless/, emu/scenes/, docs/). It does NOT cover:
 
   * the Golden Axe III game ROM or any data extracted from it — © SEGA;
   * the Russian translation of the game — © NEWGAME, 2003;

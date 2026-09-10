@@ -20,9 +20,7 @@ from typing import Any
 import yaml
 
 PASSTHROUGH_TYPES = frozenset({"code", "data", "free", "unknown"})
-ASSET_TYPES = frozenset(
-    {"header", "table", "text", "tiles4bpp", "nemesis", "palette", "pcm", "raw"}
-)
+ASSET_TYPES = frozenset({"header", "table", "text", "tiles4bpp", "nemesis", "pcm", "raw"})
 ALL_TYPES = PASSTHROUGH_TYPES | ASSET_TYPES
 
 

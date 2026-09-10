@@ -19,21 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fail on any ROM-like binary
-        run: |
-          set -euo pipefail
-          hits=$(git ls-files | grep -iE '\.(bin|gen|smd|32x|md\.bin)$' || true)
-          if [ -n "$hits" ]; then
-            echo "::error::ROM images or raw binaries are committed:"; echo "$hits"; exit 1
-          fi
-          # 1 MiB files with a SEGA header are a ROM regardless of extension
-          for f in $(git ls-files); do
-            [ -f "$f" ] || continue
-            if [ "$(stat -c %s "$f")" -ge 524288 ] && head -c 272 "$f" | grep -aq 'SEGA MEGA DRIVE\|SEGA GENESIS'; then
-              echo "::error::$f looks like a Mega Drive ROM"; exit 1
-            fi
-          done
-          echo "clean"
+      - name: Fail on any ROM-like binary (same script as the pre-commit hook)
+        run: git ls-files -z | xargs -0 .github/scripts/no-rom-images.sh && echo clean
 
   python:
     name: 🐍 Python toolkit

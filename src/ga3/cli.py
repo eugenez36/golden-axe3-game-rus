@@ -22,7 +22,8 @@ from .rom import Rom, apply_ips, diff_report, make_ips
 
 
 def _hex(s: str) -> int:
-    return int(s, 16) if not s.lower().startswith("0x") else int(s, 16)
+    """Hex with or without a 0x prefix (every ROM address on the CLI is hex)."""
+    return int(s, 16)
 
 
 def _proj(args) -> pl.Project:
@@ -546,7 +547,6 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_disasm)
 
     ramsearch.add_cli(sub)
-    sub.choices["ramsearch"].set_defaults(func=lambda a: a.func(a))  # dispatch to ramcmd func
 
     p = sub.add_parser("emu", help="run a headless emulator script against the build")
     p.add_argument("script")

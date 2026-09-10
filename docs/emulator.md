@@ -44,7 +44,7 @@ spaces, at most three are read.
 | `bp ADDR` | dump A0–A6 / D0–D3 whenever ADDR executes |
 | `dmalog on\|off` | log every DMA transfer with its source |
 | `clearwatch` | remove RAM and VRAM watchpoints (breakpoints stay) |
-| `poke8 / poke16 ADDR VAL` | patch Work RAM (hex) |
+| `poke8 / poke16 ADDR VAL` | patch Work RAM (hex, 68000 address; the byte swap is handled) |
 | `state save\|load PATH` | savestate |
 | `reset`, `status`, `echo`, `quiet` | |
 

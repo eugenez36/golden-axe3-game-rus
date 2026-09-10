@@ -1,6 +1,6 @@
-# HUD health bar with HP forced to 0x18 for player 1 (poke, no ROM change).
+# HUD health bar with player 1 HP forced to 0x18 (RAM poke, no ROM change).
 include _to_stage1.inc
-wait 10
+wait 200
 poke8 C8E6 18
-include _stage1_hud_tail.inc
+include _stage1_hits.inc
 screenshot build/shots/stage1_hud_hp18.png 2

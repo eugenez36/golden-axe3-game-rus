@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -225,7 +224,3 @@ def check_map(proj: Project, rom: Rom, log=print) -> list[str]:
             if not p.exists() and not (seg.type == "tiles4bpp" and p.is_dir()):
                 problems.append(f"{seg}: asset {seg.path} has not been extracted")
     return problems
-
-
-def warn(msg: str) -> None:
-    print(f"warning: {msg}", file=sys.stderr)

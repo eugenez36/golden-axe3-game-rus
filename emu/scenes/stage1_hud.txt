@@ -1,3 +1,5 @@
 # HUD health bar with the HP table as built.
-include _stage1_hud.inc
+include _to_stage1.inc
+wait 200
+include _stage1_hits.inc
 screenshot build/shots/stage1_hud.png 2

@@ -16,6 +16,8 @@
 #   tiles4bpp  uncompressed 4bpp tiles              -> assets/gfx/tiles/*.png (indexed)
 #   pcm        raw sample data                      -> assets/sound/pcm/*.pcm
 #   free       filler verified to hold `fill`; candidate space for relocated data
+#   (a `palette` type will follow once a palette is located in the ROM; today they
+#    come from emulator CRAM captures listed under `palettes:` below)
 #
 # `evidence` says how an address was proven (CONTRIBUTING rule 3).
 # Nemesis `end` values are the exact block size plus the base ROM's 0–2 bytes

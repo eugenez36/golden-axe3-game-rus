@@ -229,14 +229,3 @@ def apply_ips(orig: bytes, ips: bytes) -> bytes:
     if pos + 3 <= len(ips):  # optional truncation length
         out = out[: int.from_bytes(ips[pos : pos + 3], "big")]
     return bytes(out)
-
-
-def write_ips(orig_path: str, patched_path: str, out_path: str) -> str:
-    with open(orig_path, "rb") as f:
-        a = f.read()
-    with open(patched_path, "rb") as f:
-        b = f.read()
-    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
-    with open(out_path, "wb") as f:
-        f.write(make_ips(a, b))
-    return out_path

@@ -10,9 +10,9 @@
 
 ## The four checks
 
-- [ ] **Structural** — `romlib.py diff` shows only the expected bytes, checksum recomputed
-- [ ] **Round-trip** — `text_tool.py verify` passes / re-pack → decode equals original
-- [ ] **In-game** — headless run script: `scripts/…` · screenshot below
+- [ ] **Structural** — `ga3 diff baserom/ga3.bin build/ga3.bin` shows only the expected bytes; `ga3 verify --update` run
+- [ ] **Round-trip** — `ga3 text verify` passes / `make assets` leaves no diff / `make test` green
+- [ ] **In-game** — scene run with `ga3 emu emu/scenes/…` · screenshot below
 - [ ] **VRAM parity** — re-packing unchanged data gives byte-identical VRAM (graphics only; tick N/A otherwise)
 
 ## Proof
@@ -21,6 +21,6 @@
 
 ## Housekeeping
 
-- [ ] No `.bin` in the diff — the ROM stays out of git
+- [ ] No `.bin` in the diff — the ROM stays out of git; new offsets went into `rom_map.yml` with `evidence:`
 - [ ] Journal updated (`docs/ru/journal.md`) if an address, table or dead end was found
 - [ ] Labels set: `area: …` + `🛡️ needs verification` or `🕹️ verified in-game`

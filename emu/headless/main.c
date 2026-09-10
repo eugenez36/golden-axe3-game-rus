@@ -645,13 +645,15 @@ static int run_script(const char *path, int depth)
     }
     else if (!strcmp(cmd, "poke8"))
     {
+      /* poke8 ADDR VAL -- Work RAM is byte-swapped in GPGX (READ_BYTE = BASE[ADDR ^ 1]),
+       * so the 68000 address must be XORed with 1 to hit the right byte */
       if (a1 && a2) { unsigned int ad = parse_addr(a1);
-        work_ram[ad & 0xFFFF] = (uint8)strtoul(a2, NULL, 16); }
+        work_ram[(ad & 0xFFFF) ^ 1] = (uint8)strtoul(a2, NULL, 16); }
     }
     else if (!strcmp(cmd, "poke16"))
     {
       if (a1 && a2) { unsigned int ad = parse_addr(a1), v = (unsigned)strtoul(a2, NULL, 16);
-        work_ram[ad & 0xFFFF] = v >> 8; work_ram[(ad + 1) & 0xFFFF] = v & 0xFF; }
+        work_ram[(ad & 0xFFFF) ^ 1] = v >> 8; work_ram[((ad + 1) & 0xFFFF) ^ 1] = v & 0xFF; }
     }
     else if (!strcmp(cmd, "state"))
     {

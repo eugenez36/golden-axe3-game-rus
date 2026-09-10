@@ -12,7 +12,6 @@
 *.gen
 *.smd
 *.32x
-*.md.bin
 baserom/*
 !baserom/README.md
 
