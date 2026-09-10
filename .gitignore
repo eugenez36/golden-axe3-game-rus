@@ -1,40 +1,33 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  Golden Axe III (RUS) — ROM-hacking toolkit
 #
-#  The game ROM is copyrighted by SEGA and is NEVER committed to this repository.
-#  Anything that *is* a full ROM image (reference, working copy, demo builds)
-#  stays local. IPS patches contain only differences and are fine to publish.
+#  The game ROM is copyrighted by SEGA and is NEVER committed. It lives in
+#  baserom/ (ignored) and everything derived from it lands in build/ (ignored).
+#  assets/ holds the editable, human-readable form of the image; verbatim byte
+#  copies of code and unidentified regions are extracted for browsing only.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ROM images — every form of them
-Golden\ Axe\ 3\ (RUS).bin
+# ROM images, any extension, anywhere
 *.bin
 *.gen
-*.md.bin
 *.smd
 *.32x
-work/
-out/*.bin
-!out/*.ips
+*.md.bin
+baserom/*
+!baserom/README.md
 
-# Emulator dumps (VRAM/CRAM/WRAM snapshots are derived from the ROM)
-emu/dumps/*
-!emu/dumps/.gitkeep
+# Everything derived: built ROM and IPS, emulator binary and objects,
+# screenshots, memory dumps, previews, generated WAVs
+build/
 
-# Build products
-emu/headless/headless_gpgx
-*.o
-*.a
-*.so
-*.dll
-*.exe
-
-# Genesis Plus GX upstream clone — becomes a submodule when code lands
-emu/gpgx/
+# Extracted but not committed (see STYLE.md "what is committed")
+assets/code/*.m68k
+assets/raw/
+assets/gfx/nemesis/*.4bpp
 
 # Python
-tools/venv/
 .venv/
+venv/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -42,14 +35,14 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 
-# IDEs / OS
+# Editors / OS
 .idea/
 .vscode/
 *.swp
 .DS_Store
 Thumbs.db
 
-# Save states, emulator scratch
+# Emulator scratch
 *.gs?
 *.state
 *.srm

@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ga3"
+version = "0.4.0"
+description = "ROM-hacking toolkit for Golden Axe III (Sega Mega Drive) — NEWGAME 2003 Russian translation"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+authors = [{ name = "Eugene Zubovich" }]
+keywords = ["sega", "mega-drive", "genesis", "romhacking", "nemesis", "golden-axe"]
+classifiers = [
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Games/Entertainment",
+  "Topic :: System :: Emulators",
+]
+dependencies = [
+  "PyYAML>=6.0",
+  "Pillow>=10",
+]
+
+[project.optional-dependencies]
+disasm = ["capstone==5.0.9"]
+dev = ["pytest>=8", "ruff>=0.6", "pre-commit>=3"]
+
+[project.scripts]
+ga3 = "ga3.cli:main"
+
+[project.urls]
+Repository = "https://github.com/eugenez36/golden-axe3-game-rus"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["UP031"]  # %-formatting of hex offsets ("%06X") reads better than :06X in this domain
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "rom: requires baserom/ga3.bin with the expected sha1 (skipped when absent)",
+]

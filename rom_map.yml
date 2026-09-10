@@ -1,0 +1,116 @@
+# rom_map.yml — the single home of every ROM offset in this project.
+#
+# Segments are listed in ascending order, `end` is exclusive, and every
+# integer is written with a 0x prefix (the loader rejects anything else).
+# Gaps between segments are reported as `unknown` by `ga3 map`; driving that
+# number down is the reverse-engineering backlog.
+#
+# Types
+#   header     vector table / cartridge header      -> assets/header/*.yml
+#   code       68000 code (extracted for browsing, taken from the base ROM on build)
+#   data       misc data, same treatment as code
+#   table      small numeric table                  -> assets/data/*.yml
+#   text       strings in the font's byte layout    -> assets/text/*.txt
+#   nemesis    Nemesis-compressed tiles             -> assets/gfx/nemesis/*.nem (+ .4bpp)
+#              format: font_art -> path is text art, blob is the derived .nem
+#   tiles4bpp  uncompressed 4bpp tiles              -> assets/gfx/tiles/*.png (indexed)
+#   pcm        raw sample data                      -> assets/sound/pcm/*.pcm
+#   free       filler verified to hold `fill`; candidate space for relocated data
+#
+# `evidence` says how an address was proven (CONTRIBUTING rule 3).
+# Nemesis `end` values are the exact block size plus the base ROM's 0–2 bytes
+# of zero word-alignment padding, measured with `ga3 nemesis size`.
+
+rom:
+  title: "Golden Axe 3 (RUS) — NEWGAME 2003"
+  serial: "GM 00004093-00"
+  size: 0x100000
+  sha1: e9538c0542b4a05050f5b68d279cddb06559ae20
+  md5: eae35fbc0f915048cead589db377407f
+  header_checksum: 0x9BB5
+  entry_point: 0x0FFA20          # translators moved it from the stock 0x200
+
+palettes:                        # CRAM captured in the emulator; no ROM source known (DMA from RAM)
+  title:            { path: palettes/title.pal,            source: "emu/scenes/title.txt, title screen" }
+  title_menu:       { path: palettes/title_menu.pal,       source: "emu/scenes/title.txt, menu after START" }
+  title_newgame:    { path: palettes/title_newgame.pal,    source: "emu/scenes/title.txt, second menu state" }
+  stage1_intro:     { path: palettes/stage1_intro.pal,     source: "emu/explore/enter.txt, e3 (attract walk)" }
+  stage1:           { path: palettes/stage1.pal,           source: "emu/explore/enter.txt, e4" }
+  stage1_dialogue:  { path: palettes/stage1_dialogue.pal,  source: "emu/scenes/dialogue.txt, first NPC dialogue" }
+
+segments:
+  - { name: vectors,       start: 0x000000, end: 0x000100, type: header, path: header/vectors.yml,
+      note: "mostly FFFFFFFF; code squeezed into unused vectors from 0x40" }
+  - { name: header,        start: 0x000100, end: 0x000200, type: header, path: header/header.yml }
+  - { name: dispatcher,    start: 0x000200, end: 0x000284, type: code,   path: code/dispatcher.m68k,
+      note: "33 long pointers, the main dispatcher" }
+  - { name: code_boot,     start: 0x000284, end: 0x00E492, type: code,   path: code/code_boot.m68k }
+  - { name: hp_table,      start: 0x00E492, end: 0x00E496, type: table,  path: data/hp_table.yml,
+      format: u8, fields: [slot_0, slot_1, slot_2, slot_3], max_hud: 0x36,
+      note: "start and maximum HP of the four playable characters; slot->character order still to be proven",
+      evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E484 move.b $e492(pc,d0.w),d0" }
+  - { name: code_main_a,   start: 0x00E496, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
+      note: "includes the healing cap at 00E49C and HP pair update at 010544" }
+  - { name: free_0116B6,   start: 0x0116B6, end: 0x011800, type: free,   fill: 0xFF,
+      note: "330 bytes" }
+  - { name: code_main_b,   start: 0x011800, end: 0x013E76, type: code,   path: code/code_main_b.m68k,
+      note: "NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2" }
+  - { name: nem_013E76,    start: 0x013E76, end: 0x014013, type: nemesis, path: gfx/nemesis/nem_013E76.nem,
+      tiles: 50, xor: false }
+  - { name: code_main_c,   start: 0x014013, end: 0x014E00, type: code,   path: code/code_main_c.m68k }
+  - { name: text_menu,     start: 0x014E00, end: 0x0151A0, type: text,   path: text/menu.txt, min_len: 4,
+      note: "menu and options strings embedded in menu data" }
+  - { name: code_main_d,   start: 0x0151A0, end: 0x016C00, type: code,   path: code/code_main_d.m68k }
+  - { name: text_stages,   start: 0x016C00, end: 0x016E00, type: text,   path: text/stages.txt, min_len: 4,
+      note: "stage name list" }
+  - { name: code_main_e,   start: 0x016E00, end: 0x0179F2, type: code,   path: code/code_main_e.m68k,
+      note: "0179E4 move.l #$179F2 loads the ending text block" }
+  - { name: text_ending,   start: 0x0179F2, end: 0x017AF3, type: text,   path: text/ending.txt, min_len: 4,
+      note: "ending screens: indent byte, text, FE between the two lines of a screen, FF ends a screen; 15-space slot at 017AE3",
+      evidence: "disasm 0179E4; journal §Куда вписать титр переводчика" }
+  - { name: code_main_f,   start: 0x017AF3, end: 0x01B780, type: code,   path: code/code_main_f.m68k,
+      note: "01B6D6-01B780 is 170 bytes of FF, probably alignment padding (unverified free space)" }
+  - { name: nem_01B780,    start: 0x01B780, end: 0x01BDA0, type: nemesis, path: gfx/nemesis/nem_01B780.nem,
+      tiles: 120, xor: true }
+  - { name: nem_01BDA0,    start: 0x01BDA0, end: 0x01C48A, type: nemesis, path: gfx/nemesis/nem_01BDA0.nem,
+      tiles: 119, xor: true }
+  - { name: nem_01C48A,    start: 0x01C48A, end: 0x01CCCC, type: nemesis, path: gfx/nemesis/nem_01C48A.nem,
+      tiles: 120, xor: true, note: "2 bytes of zero padding" }
+  - { name: nem_01CCCC,    start: 0x01CCCC, end: 0x01D0D6, type: nemesis, path: gfx/nemesis/nem_01CCCC.nem,
+      tiles: 81, xor: false }
+  - { name: nem_01D0D6,    start: 0x01D0D6, end: 0x01D3A8, type: nemesis, path: gfx/nemesis/nem_01D0D6.nem,
+      tiles: 81, xor: false, note: "1 byte of zero padding" }
+  - { name: nem_01D3A8,    start: 0x01D3A8, end: 0x01D552, type: nemesis, path: gfx/nemesis/nem_01D3A8.nem,
+      tiles: 31, xor: true, note: "1 byte of zero padding" }
+  - { name: nem_01D552,    start: 0x01D552, end: 0x01D6D2, type: nemesis, path: gfx/nemesis/nem_01D552.nem,
+      tiles: 21, xor: true }
+  - { name: nem_01D6D2,    start: 0x01D6D2, end: 0x01D85E, type: nemesis, path: gfx/nemesis/nem_01D6D2.nem,
+      tiles: 40, xor: true }
+  - { name: font,          start: 0x01D85E, end: 0x01DBA6, type: nemesis, format: font_art,
+      path: gfx/font/font.txt, blob: gfx/nemesis/font.nem,
+      tiles: 96, xor: false, first_byte: 0x20, bg: 0x0C, ink: 0x06,
+      note: "96 glyphs; text byte == tile index; slot is exactly 840 bytes",
+      evidence: "vwatch AF00 B80 -> dma_src 01D85E; decoded block == VRAM dump, 3072/3072 bytes" }
+  - { name: unk_font_tail, start: 0x01DBA6, end: 0x01DBAC, type: data,   path: code/unk_font_tail.m68k,
+      note: "6 bytes 44 18 FD 63 E8 00 between the font and the next block; not padding" }
+  - { name: nem_01DBAC,    start: 0x01DBAC, end: 0x01DD16, type: nemesis, path: gfx/nemesis/nem_01DBAC.nem,
+      tiles: 20, xor: false, note: "1 byte of zero padding" }
+  - { name: nem_01DD16,    start: 0x01DD16, end: 0x01E26F, type: nemesis, path: gfx/nemesis/nem_01DD16.nem,
+      tiles: 78, xor: true }
+  - { name: nem_01E29A,    start: 0x01E29A, end: 0x01E3DC, type: nemesis, path: gfx/nemesis/nem_01E29A.nem,
+      tiles: 18, xor: true }
+  - { name: nem_0295EE,    start: 0x0295EE, end: 0x029F08, type: nemesis, path: gfx/nemesis/nem_0295EE.nem,
+      tiles: 208, xor: false }
+  - { name: free_05AEAA,   start: 0x05AEAA, end: 0x05AFCE, type: free,   fill: 0x00, note: "292 bytes" }
+  - { name: free_05B30A,   start: 0x05B30A, end: 0x05B42E, type: free,   fill: 0x00, note: "292 bytes" }
+  - { name: art_main,      start: 0x080000, end: 0x0D8000, type: tiles4bpp, path: gfx/tiles,
+      prefix: art, sheet_tiles: 512, cols: 32, palette: gray,
+      note: "11520 uncompressed tiles in 23 sheets; palette unknown, rendered with a grey ramp" }
+  - { name: text_dialogue, start: 0x0E9B00, end: 0x0EC300, type: text,   path: text/dialogue.txt, min_len: 4,
+      note: "NPC dialogue, credits and ending text" }
+  - { name: text_misc,     start: 0x0FB000, end: 0x0FB500, type: text,   path: text/misc.txt, min_len: 4,
+      note: "misc strings; several records are printable garbage — edit with care" }
+  - { name: pcm,           start: 0x0FC000, end: 0x0FFA20, type: pcm,    path: sound/pcm/samples.pcm,
+      note: "PCM sample data; sample table and rate unknown" }
+  - { name: entry_stub,    start: 0x0FFA20, end: 0x100000, type: code,   path: code/entry_stub.m68k,
+      note: "the translators' relocated entry point", evidence: "reset vector at 0x4 = 000FFA20" }

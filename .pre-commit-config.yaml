@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]  # Capstone listings of the main code block reach ~750 KiB
+      - id: end-of-file-fixer
+        exclude: '\.(nem|4bpp|pcm|m68k|raw|ips|png)$|^emu/patches/'
+      - id: trailing-whitespace
+        exclude: '^assets/text/|\.(nem|4bpp|pcm|m68k|raw|ips|png|md)$|^emu/patches/'
+      - id: check-yaml
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        exclude: '^emu/patches/'
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: no-rom-images
+        name: refuse ROM images
+        language: system
+        entry: bash -c 'for f in "$@"; do case "$f" in *.bin|*.gen|*.smd|*.32x) echo "ROM image: $f"; exit 1;; esac; if [ "$(stat -c %s "$f")" -ge 524288 ] && head -c 272 "$f" | grep -aq "SEGA MEGA DRIVE\|SEGA GENESIS"; then echo "Mega Drive ROM: $f"; exit 1; fi; done' --
+        files: '.*'

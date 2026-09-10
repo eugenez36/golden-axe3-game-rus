@@ -1,20 +1,36 @@
 # Line endings: LF everywhere. The upstream emulator source once got CRLF-mangled,
-# turning a 6-line dma_hook patch into a 6600-line diff — never again.
+# turning a 12-line dma_hook patch into a 6600-line diff — never again.
 * text=auto eol=lf
 
-# Binary artefacts
-*.bin  binary
-*.ips  binary
-*.png  binary
-*.gif  binary
-*.jpg  binary
-*.svg  text
+# Binary asset formats (the *.bin rule in .gitignore is reserved for ROM images)
+*.nem   binary
+*.4bpp  binary
+*.pcm   binary
+*.m68k  binary
+*.raw   binary
+*.ips   binary
+*.png   binary
+*.gif   binary
+*.jpg   binary
+
+# Text asset formats
+*.pal   text
+*.tbl   text
+*.svg   text
+*.s     text
+*.yml   text
+
+# Patches carry upstream's CRLF on purpose
+emu/patches/*.patch -text
 
 # Makefiles need tabs
 Makefile  text eol=lf
 
 # Linguist: keep the language bar honest
-docs/**        linguist-documentation
-*.md           linguist-documentation
-scripts/*.txt  linguist-language=Text
-emu/gpgx/**    linguist-vendored
+docs/**                 linguist-documentation
+*.md                    linguist-documentation
+assets/code/asm/*.s     linguist-generated
+assets/**               -linguist-detectable
+emu/scenes/**           linguist-language=Text
+emu/explore/**          linguist-language=Text
+emu/gpgx/**             linguist-vendored
