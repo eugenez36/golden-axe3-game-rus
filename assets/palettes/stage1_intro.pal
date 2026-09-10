@@ -1,0 +1,75 @@
+; stage1_intro: 4 CRAM palettes x 16 colours, captured in Genesis Plus GX (headless)
+; source: emu/explore/enter.txt, snapshot e3 (attract-mode walk into stage 1)
+; RGB uses GPGX's 'normal' brightness ramp; the 0x-word (----BBB-GGG-RRR-) is authoritative.
+; No ROM offset is known for this palette: CRAM is DMA'd from Work RAM.
+[palette 0]
+#000000  0x0000  ; 0
+#FFCEAC  0x0ACE  ; 1
+#FFAC74  0x06AE  ; 2
+#CE7457  0x046C  ; 3
+#905734  0x0248  ; 4
+#743434  0x0226  ; 5
+#FFFFFF  0x0EEE  ; 6
+#90ACAC  0x0AA8  ; 7
+#577474  0x0664  ; 8
+#000000  0x0000  ; 9
+#0057CE  0x0C40  ; 10
+#003457  0x0420  ; 11
+#005774  0x0640  ; 12
+#FFAC00  0x00AE  ; 13
+#FF3434  0x022E  ; 14
+#900000  0x0008  ; 15
+
+[palette 1]
+#000000  0x0000  ; 0
+#FFFFFF  0x0EEE  ; 1
+#000000  0x0000  ; 2
+#000000  0x0000  ; 3
+#90FFFF  0x0EE8  ; 4
+#00CEFF  0x0EC0  ; 5
+#00ACFF  0x0EA0  ; 6
+#000000  0x0000  ; 7
+#000000  0x0000  ; 8
+#000000  0x0000  ; 9
+#000000  0x0000  ; 10
+#000000  0x0000  ; 11
+#000000  0x0000  ; 12
+#000000  0x0000  ; 13
+#000000  0x0000  ; 14
+#000000  0x0000  ; 15
+
+[palette 2]
+#749090  0x0886  ; 0
+#FFCEAC  0x0ACE  ; 1
+#FFAC74  0x06AE  ; 2
+#CE7457  0x046C  ; 3
+#905734  0x0248  ; 4
+#743434  0x0226  ; 5
+#FFFFFF  0x0EEE  ; 6
+#90ACAC  0x0AA8  ; 7
+#577474  0x0664  ; 8
+#000000  0x0000  ; 9
+#AC7400  0x006A  ; 10
+#005734  0x0240  ; 11
+#340000  0x0002  ; 12
+#00AC57  0x04A0  ; 13
+#900000  0x0008  ; 14
+#AC3400  0x002A  ; 15
+
+[palette 3]
+#000000  0x0000  ; 0
+#FFFFFF  0x0EEE  ; 1
+#CECECE  0x0CCC  ; 2
+#ACACAC  0x0AAA  ; 3
+#909090  0x0888  ; 4
+#747474  0x0666  ; 5
+#575757  0x0444  ; 6
+#343434  0x0222  ; 7
+#FFFFFF  0x0EEE  ; 8
+#343434  0x0222  ; 9
+#000000  0x0000  ; 10
+#0000FF  0x0E00  ; 11
+#00FF00  0x00E0  ; 12
+#FF7400  0x006E  ; 13
+#FFFF00  0x00EE  ; 14
+#FF7400  0x006E  ; 15

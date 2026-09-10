@@ -1,0 +1,9 @@
+# hp_table: 4 x u8, ROM 00E492-00E496
+# start and maximum HP of the four playable characters; slot->character order still to be proven
+# evidence: watch FFC8E6 -> writer 00E48C; disasm 00E484 move.b $e492(pc,d0.w),d0
+format: u8
+values:
+  slot_0: 51
+  slot_1: 59
+  slot_2: 67
+  slot_3: 75

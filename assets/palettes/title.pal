@@ -1,0 +1,75 @@
+; title: 4 CRAM palettes x 16 colours, captured in Genesis Plus GX (headless)
+; source: emu/scenes/title.txt, title screen (frame ~2100)
+; RGB uses GPGX's 'normal' brightness ramp; the 0x-word (----BBB-GGG-RRR-) is authoritative.
+; No ROM offset is known for this palette: CRAM is DMA'd from Work RAM.
+[palette 0]
+#FFFFFF  0x0EEE  ; 0
+#FFFFFF  0x0EEE  ; 1
+#FFFFFF  0x0EEE  ; 2
+#FFFFFF  0x0EEE  ; 3
+#FFFFFF  0x0EEE  ; 4
+#ACACAC  0x0AAA  ; 5
+#ACACAC  0x0AAA  ; 6
+#ACACAC  0x0AAA  ; 7
+#ACACAC  0x0AAA  ; 8
+#ACACAC  0x0AAA  ; 9
+#ACACAC  0x0AAA  ; 10
+#ACACAC  0x0AAA  ; 11
+#ACACAC  0x0AAA  ; 12
+#ACACAC  0x0AAA  ; 13
+#ACACAC  0x0AAA  ; 14
+#ACACAC  0x0AAA  ; 15
+
+[palette 1]
+#ACACAC  0x0AAA  ; 0
+#FFFFFF  0x0EEE  ; 1
+#FFFFFF  0x0EEE  ; 2
+#FFFFFF  0x0EEE  ; 3
+#FFFFAC  0x0AEE  ; 4
+#FFFFAC  0x0AEE  ; 5
+#FFFFAC  0x0AEE  ; 6
+#FFFFAC  0x0AEE  ; 7
+#FFFFAC  0x0AEE  ; 8
+#FFCEAC  0x0ACE  ; 9
+#FFFFFF  0x0EEE  ; 10
+#ACACAC  0x0AAA  ; 11
+#ACACAC  0x0AAA  ; 12
+#ACACAC  0x0AAA  ; 13
+#ACACAC  0x0AAA  ; 14
+#ACACAC  0x0AAA  ; 15
+
+[palette 2]
+#FFFFFF  0x0EEE  ; 0
+#FFFFFF  0x0EEE  ; 1
+#FFFFFF  0x0EEE  ; 2
+#FFFFFF  0x0EEE  ; 3
+#FFFFFF  0x0EEE  ; 4
+#FFFFFF  0x0EEE  ; 5
+#FFFFFF  0x0EEE  ; 6
+#FFFFFF  0x0EEE  ; 7
+#FFFFFF  0x0EEE  ; 8
+#FFFFFF  0x0EEE  ; 9
+#FFFFFF  0x0EEE  ; 10
+#FFFFFF  0x0EEE  ; 11
+#FFFFFF  0x0EEE  ; 12
+#FFFFFF  0x0EEE  ; 13
+#FFFFFF  0x0EEE  ; 14
+#FFFFFF  0x0EEE  ; 15
+
+[palette 3]
+#FFFFFF  0x0EEE  ; 0
+#FFFFFF  0x0EEE  ; 1
+#FFFFFF  0x0EEE  ; 2
+#FFFFFF  0x0EEE  ; 3
+#FFFFFF  0x0EEE  ; 4
+#FFFFFF  0x0EEE  ; 5
+#FFFFFF  0x0EEE  ; 6
+#FFFFFF  0x0EEE  ; 7
+#FFFFFF  0x0EEE  ; 8
+#FFFFFF  0x0EEE  ; 9
+#FFFFFF  0x0EEE  ; 10
+#FFFFFF  0x0EEE  ; 11
+#FFFFFF  0x0EEE  ; 12
+#FFFFFF  0x0EEE  ; 13
+#FFFFFF  0x0EEE  ; 14
+#FFFFFF  0x0EEE  ; 15

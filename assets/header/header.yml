@@ -1,0 +1,20 @@
+# Cartridge header, 0x100-0x1FF. Text fields keep their exact width and
+# trailing spaces. 'auto' fields are recomputed by `ga3 build`; the
+# *_stored keys record what the base ROM holds and are informational.
+console: 'SEGA MEGA DRIVE '
+copyright: (C)SEGA 1993.MAY
+domestic_name: 'GOLDEN AXE 3                                    '
+overseas_name: 'GOLDEN AXE 3                                    '
+serial: GM 00004093-00
+checksum: auto
+checksum_stored: 0x00009BB5
+io_support: 'J               '
+rom_start: 0x00000000
+rom_end: auto
+rom_end_stored: 0x000FFFFF
+ram_start: 0x00FF0000
+ram_end: 0x00FFFFFF
+sram_info: '            '
+modem_info: '            '
+notes: '                                        '
+region: 'J E             '

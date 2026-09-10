@@ -1,0 +1,16 @@
+# text_ending: game text, ROM range 0179F2-017AF3
+# Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
+# A string may not grow: the ROM is full and edits are in place.
+# {XX} is a byte with no glyph in the font (or one that does not round-trip).
+# In-game strings are separated by 0xFF; here each string is one record.
+
+0179F3:24 | И вот наши храбрые воины
+017A0D:23 | уничтожили Принца Тьмы.
+017A26:25 | Замок, возведенный магией
+017A41:24 | зла, превратился в пыль.
+017A5B:36 | Золотой Топор теперь в безопасности.
+017A81:26 | И в королевстве воцарились
+017A9D:12 | мир и покой.
+017AAB:31 | Прошли годы и эта история стала
+017ACC:21 | волшебной легендой...
+017AE3:15 |                

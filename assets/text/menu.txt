@@ -1,0 +1,18 @@
+# text_menu: game text, ROM range 014E00-0151A0
+# Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
+# A string may not grow: the ROM is full and edits are in place.
+# {XX} is a byte with no glyph in the font (or one that does not round-trip).
+# In-game strings are separated by 0xFF; here each string is one record.
+
+014E0B:4 | ДЕгО
+014E2F:10 |          ф
+014E5B:4 | Яа,ф
+014ED8:22 | Ег   2ООЗ NЕWGАМЕ   Кч
+014F8C:29 | 1 ИГРОКВДВОЕМ ДУЭЛЬ  ОПЦИИ  ф
+014FE2:5 | а,Егф
+014FFB:5 | мЕгКч
+015088:7 | ВДВОЕМ 
+01512E:7 |  ОПЦИИ 
+015138:10 | СЛОЖНОСТЬ 
+015145:7 | КНОПКИ 
+015166:4 | МЕНю

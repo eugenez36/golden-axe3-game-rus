@@ -1,0 +1,75 @@
+; stage1_dialogue: 4 CRAM palettes x 16 colours, captured in Genesis Plus GX (headless)
+; source: emu/scenes/dialogue.txt, first NPC dialogue (identical to e5_cram)
+; RGB uses GPGX's 'normal' brightness ramp; the 0x-word (----BBB-GGG-RRR-) is authoritative.
+; No ROM offset is known for this palette: CRAM is DMA'd from Work RAM.
+[palette 0]
+#000000  0x0000  ; 0
+#FFCEAC  0x0ACE  ; 1
+#FFAC74  0x06AE  ; 2
+#CE7457  0x046C  ; 3
+#905734  0x0248  ; 4
+#743434  0x0226  ; 5
+#FFFFFF  0x0EEE  ; 6
+#90ACAC  0x0AA8  ; 7
+#577474  0x0664  ; 8
+#000000  0x0000  ; 9
+#0057CE  0x0C40  ; 10
+#003457  0x0420  ; 11
+#005774  0x0640  ; 12
+#FFAC00  0x00AE  ; 13
+#FF3434  0x022E  ; 14
+#900000  0x0008  ; 15
+
+[palette 1]
+#000000  0x0000  ; 0
+#FFCEAC  0x0ACE  ; 1
+#FFAC74  0x06AE  ; 2
+#CE7457  0x046C  ; 3
+#905734  0x0248  ; 4
+#743434  0x0226  ; 5
+#FFFFFF  0x0EEE  ; 6
+#90ACAC  0x0AA8  ; 7
+#577474  0x0664  ; 8
+#000000  0x0000  ; 9
+#000000  0x0000  ; 10
+#005734  0x0240  ; 11
+#000000  0x0000  ; 12
+#00AC57  0x04A0  ; 13
+#579090  0x0884  ; 14
+#90CEAC  0x0AC8  ; 15
+
+[palette 2]
+#000000  0x0000  ; 0
+#AC90FF  0x0E8A  ; 1
+#9074AC  0x0A68  ; 2
+#000000  0x0000  ; 3
+#FFFF74  0x06EE  ; 4
+#FFAC00  0x00AE  ; 5
+#FF5700  0x004E  ; 6
+#900000  0x0008  ; 7
+#74CE74  0x06C6  ; 8
+#579057  0x0484  ; 9
+#007400  0x0060  ; 10
+#000000  0x0000  ; 11
+#FF0000  0x000E  ; 12
+#CECECE  0x0CCC  ; 13
+#909090  0x0888  ; 14
+#000000  0x0000  ; 15
+
+[palette 3]
+#ACCECE  0x0CCA  ; 0
+#FFCECE  0x0CCE  ; 1
+#FF9074  0x068E  ; 2
+#743400  0x0026  ; 3
+#000000  0x0000  ; 4
+#FFFF90  0x08EE  ; 5
+#CEAC74  0x06AC  ; 6
+#907400  0x0068  ; 7
+#575734  0x0244  ; 8
+#AC90AC  0x0A8A  ; 9
+#907490  0x0868  ; 10
+#745757  0x0446  ; 11
+#907474  0x0668  ; 12
+#AC9090  0x088A  ; 13
+#747400  0x0066  ; 14
+#ACCECE  0x0CCA  ; 15
