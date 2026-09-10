@@ -1,2 +1,0 @@
-# Python toolkit dependencies (tools/venv is not committed)
-capstone==5.0.9
