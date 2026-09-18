@@ -28,7 +28,7 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `000100–000200` | header | header | `header/header.yml` |  |
 | `000200–000284` | code | dispatcher | `code/dispatcher.m68k` | 33 long pointers, the main dispatcher |
 | `000284–00E492` | code | code_boot | `code/code_boot.m68k` |  |
-| `00E492–00E496` | table | hp_table | `data/hp_table.yml` | format u8; start and maximum HP of the four playable characters; slot->character order still to be proven; *evidence: watch FFC8E6 -> writer 00E48C; disasm 00E484 move.b $e492(pc,d0.w),d0* |
+| `00E492–00E496` | table | hp_table | `data/hp_table.yml` | format u8; start and maximum HP of the four playable characters; slot->character order still to be proven; *evidence: watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0* |
 | `00E496–0116B6` | code | code_main_a | `code/code_main_a.m68k` | includes the healing cap at 00E49C and HP pair update at 010544 |
 | `0116B6–011800` | free | free_0116B6 |  | filled with 0xFF; 330 bytes |
 | `011800–013E76` | code | code_main_b | `code/code_main_b.m68k` | NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2 |
@@ -61,7 +61,7 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `05AFCE–05B30A` | unknown | unk_05AFCE |  |  |
 | `05B30A–05B42E` | free | free_05B30A |  | filled with 0x00; 292 bytes |
 | `05B42E–080000` | unknown | unk_05B42E |  |  |
-| `080000–0D8000` | tiles4bpp | art_main | `gfx/tiles` | 11520 uncompressed tiles in 23 sheets; palette unknown, rendered with a grey ramp |
+| `080000–0D8000` | tiles4bpp | art_main | `gfx/tiles` | 11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp |
 | `0D8000–0E9B00` | unknown | unk_0D8000 |  |  |
 | `0E9B00–0EC300` | text | text_dialogue | `text/dialogue.txt` | NPC dialogue, credits and ending text |
 | `0EC300–0FB000` | unknown | unk_0EC300 |  |  |

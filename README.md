@@ -44,7 +44,7 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
   `ga3 map` prints the coverage.
 - **Nemesis codec, both ways.** Decoder lifted from the game's disassembly and
   verified against a VRAM dump (3072/3072 bytes). The encoder beats SEGA's on
-  13 of 14 blocks (13 780 vs 14 045 bytes) — which is exactly why the build
+  all 14 blocks (13 780 vs 14 045 bytes) — which is exactly why the build
   reuses the original blocks verbatim until you edit them.
 - **Font editing in plain text.** Glyphs as `#`/`.` art. **Ё**, **Ъ** and the
   parentheses were added to a translation that never had them; the build refuses
@@ -109,7 +109,7 @@ flowchart LR
 ```
 rom_map.yml       the single home of every ROM offset (splat-style segments)
 roms.sha1         sha1 of the base ROM and of the build; `make verify`
-Makefile          build · extract · verify · test · lint · assets · asm · emu · regress · clean
+Makefile          venv · build · extract · verify · test · lint · assets · asm · emu · regress · clean · distclean · help
 pyproject.toml    the ga3 package and its `ga3` command
 baserom/          put your ROM here (ignored)
 assets/           the ROM taken apart — see STYLE.md for what is committed
@@ -121,10 +121,10 @@ assets/           the ROM taken apart — see STYLE.md for what is committed
   data/           hp_table.yml
   code/asm/       Capstone listings (generated)
 build/            everything derived (ignored): ROM, IPS, emulator, shots, dumps, previews
-src/ga3/          the toolkit: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · cli
+src/ga3/          the toolkit: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · balance · disasm · ramsearch · cli
 tests/            pytest; ROM-free fixtures plus ROM-gated tests
 emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
-docs/             build · text_format · nemesis · font · emulator · rom_map (generated) · evidence/ · images/ · ru/journal.md
+docs/             README (index) · build · text_format · nemesis · font · emulator · rom_map (generated) · evidence/ · images/ · branding/ · ru/journal.md
 ```
 
 ## ROM map
@@ -135,7 +135,7 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 |---|---|
 | `000000–000200` | vectors and header (entry point moved by the translators to `0FFA20`) |
 | `000200–01B780` | 68000 code, with the HP table at `00E492`, a Nemesis block at `013E76`, the menu / stage / ending text and a 330-byte hole at `0116B6` |
-| `01B780–01E3DC` | 13 Nemesis blocks back to back, the font at `01D85E` (840 B) |
+| `01B780–01E3DC` | 12 Nemesis blocks nearly back to back (a 6-byte data stub after the font, 43 unknown bytes at `01E26F`), the font at `01D85E` (840 B) |
 | `0295EE–029F08` | one more Nemesis block (208 tiles) |
 | `080000–0D8000` | 11 264 uncompressed 4bpp tiles |
 | `0E9B00–0EC300` | dialogue, credits, ending text |

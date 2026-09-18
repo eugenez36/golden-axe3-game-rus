@@ -15,6 +15,11 @@ build/emu/headless_gpgx --rom build/ga3.bin --script emu/scenes/title.txt
 make regress                               # every scene in emu/scenes/
 ```
 
+Command line: `--rom FILE` (required), `--script FILE` (`-` reads stdin),
+`--frames N` (run this many frames when there is no script), `--png FILE`
+(screenshot at the end), `--scale N`, `--quiet`. `ga3 emu SCRIPT` supplies
+`--rom build/ga3.bin` and passes anything after the script through.
+
 ## The core
 
 `emu/gpgx` is a git submodule on the `ga3/dma-hook` branch of
@@ -79,8 +84,10 @@ CRAM is stored in GPGX's packed 9-bit little-endian form;
    screenshot each time.
 2. Measure the health bar length on the screenshots.
 3. `ga3 ramsearch corr 'build/dumps/explore/hp/w*.bin' 51,51,50,…` — `FFC8E6`
-   correlates at r = 1.0.
-4. `emu/explore/hpwatch.txt` (`watch FFC8E6 2`) names the writer: `00E48C`.
+   correlates at r = 1.0 (`--limit`, `--min-distinct` and `--threshold` go
+   after the mode; `value` and `decreasing` are the other modes).
+4. `emu/explore/hpwatch.txt` (`watch FFC8E6 2`) lists the writers: `00EA20`
+   during play, and `00E48C` once at start — the one that reads the table.
 5. `ga3 disasm E482 -n 12` shows `move.b $e492(pc,d0.w),d0` — the table.
 
 Lives, magic and timers have not been found yet; the method is the same.

@@ -6,7 +6,8 @@ covered by that license.
 
 ## Golden Axe III (game ROM) — © SEGA
 
-The game, its code, graphics, music, text and the `Golden Axe 3 (RUS).bin` image are the
+The game, its code, graphics, music, text and the cartridge image (`baserom/ga3.bin` in this
+tree, supplied by the user) are the
 property of SEGA Corporation. **The ROM is not included in this repository** and must never
 be committed (see `.gitignore` and the CI guard step). Users must supply their own dump.
 

@@ -42,7 +42,9 @@ source .venv/bin/activate
 ga3 --version
 ```
 
-`make` targets use `.venv/bin/…` directly, so activating is optional.
+`make` targets use `.venv/bin/…` directly, so activating is optional. Every
+`ga3` command finds the project by walking up to `rom_map.yml`; from elsewhere
+pass `--root PATH` or set `GA3_ROOT`.
 
 ## 4. The base ROM
 
@@ -79,4 +81,5 @@ toolchain reproduces the committed build byte for byte.
 | `sha1 … does not match rom_map.yml` | a different dump or a patched image; use `ga3 extract --rom PATH` only if you know why |
 | `emu/gpgx/core not found` | `git submodule update --init` |
 | `vdp_ctrl.c lacks the dma_hook` | the submodule is on upstream instead of `ga3/dma-hook`; `git -C emu/gpgx checkout ga3/dma-hook` |
-| `Pillow is required` | `pip install -e ".[dev]"` inside the venv |
+| `Pillow is required` | Pillow is a core dependency, so the venv is stale: `make venv` (or `pip install -e .` inside it) |
+| `sha1 differs from rom_map.yml` (a note, not an error) | you passed `--rom PATH`; the image is used as is, only the default `baserom/ga3.bin` is verified |

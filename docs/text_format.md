@@ -23,8 +23,11 @@ Pitfalls:
 
 - Digits `0` and `3` are the same glyphs as «О» and «З»; the font has no
   separate digits. `encode()` maps both characters to the same byte.
-- Some glyphs are duplicated («ж» is `0x26` and `0x3B`). Bytes that would not
-  survive a round trip are exported as `{XX}` so the file stays exact.
+- Ж (`0x26`) and ж (`0x3B`) are distinct upper- and lower-case glyphs; no
+  byte of the table shares its character with another. The reverse table keeps
+  the first byte for a character, so if a glyph ever got a second byte,
+  `decode_lossless()` would export the other one as `{XX}` and the file would
+  still round-trip exactly. `{XX}` must be two hex digits.
 - `0x71` is «й» (the «и» glyph plus a breve) and `0x50` is «ю»; at 8×8 they
   are easy to confuse, which produces «магическию» instead of «магический».
 - `0x4F` Ъ, `0x51` Ё, `0x2A` `(` and `0x2B` `)` were drawn by this project.
@@ -71,8 +74,9 @@ happen to be printable — edit the meaningful part only.
 `FE` separates the two lines of a screen, `FF` ends the screen. (The journal
 originally described these the other way round; the observed layout is above.)
 Lines are packed tight: `0179F3` occupies exactly its 24 bytes and `FE`
-follows immediately. A 15-space string at `017AE3` is the one place with room
-for a translator's credit without moving anything.
+follows immediately. The translator credit lives at `0179F3` (`ending.txt`); a
+15-space string at `017AE3` is the other slot with room for a line without
+moving anything.
 
 ## Growing text
 

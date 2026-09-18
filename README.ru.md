@@ -43,7 +43,7 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
   Capstone для каждого сегмента кода. Что ещё не опознано — измерено, а не спрятано:
   `ga3 map` печатает покрытие.
 - **Nemesis в обе стороны.** Распаковщик снят с дизассемблера игры и проверен по
-  дампу VRAM (3072 из 3072 байт). Упаковщик обгоняет фирменный на 13 из 14 блоков
+  дампу VRAM (3072 из 3072 байт). Упаковщик обгоняет фирменный на всех 14 блоках
   (13 780 против 14 045 байт) — именно поэтому сборка переиспользует исходные блоки
   дословно, пока вы их не отредактируете.
 - **Шрифт правится как текст.** Глифы в виде `#`/`.`-арта. Дорисованы **Ё**, **Ъ**
@@ -109,7 +109,7 @@ flowchart LR
 ```
 rom_map.yml       единственный дом всех смещений ROM (сегменты в стиле splat)
 roms.sha1         sha1 эталона и сборки; `make verify`
-Makefile          build · extract · verify · test · lint · assets · asm · emu · regress · clean
+Makefile          venv · build · extract · verify · test · lint · assets · asm · emu · regress · clean · distclean · help
 pyproject.toml    пакет ga3 и его команда `ga3`
 baserom/          сюда кладётся ваш ROM (игнорируется git)
 assets/           ROM, разобранный на части — что коммитится, см. STYLE.md
@@ -121,10 +121,10 @@ assets/           ROM, разобранный на части — что ком�
   data/           hp_table.yml
   code/asm/       листинги Capstone (генерируются)
 build/            всё производное (игнорируется): ROM, IPS, эмулятор, скриншоты, дампы, превью
-src/ga3/          тулкит: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · cli
+src/ga3/          тулкит: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · balance · disasm · ramsearch · cli
 tests/            pytest; фикстуры без ROM плюс тесты, требующие ROM
 emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
-docs/             build · text_format · nemesis · font · emulator · rom_map (генерируется) · evidence/ · images/ · ru/journal.md
+docs/             README (оглавление) · build · text_format · nemesis · font · emulator · rom_map (генерируется) · evidence/ · images/ · branding/ · ru/journal.md
 ```
 
 ## Карта ROM
@@ -135,7 +135,7 @@ docs/             build · text_format · nemesis · font · emulator · rom_map
 |---|---|
 | `000000–000200` | векторы и заголовок (точка входа перенесена русификаторами на `0FFA20`) |
 | `000200–01B780` | код 68000; внутри таблица HP `00E492`, Nemesis-блок `013E76`, текст меню / уровней / концовки и дырка 330 байт в `0116B6` |
-| `01B780–01E3DC` | 13 Nemesis-блоков впритык, шрифт в `01D85E` (840 Б) |
+| `01B780–01E3DC` | 12 Nemesis-блоков почти впритык (6 байт данных после шрифта, 43 неизвестных байта в `01E26F`), шрифт в `01D85E` (840 Б) |
 | `0295EE–029F08` | ещё один Nemesis-блок (208 тайлов) |
 | `080000–0D8000` | 11 264 несжатых тайла 4bpp |
 | `0E9B00–0EC300` | диалоги, титры, концовка |
