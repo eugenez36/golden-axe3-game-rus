@@ -66,7 +66,7 @@ def test_committed_font_nem_matches_vram_dump(fixtures):
     """The committed block must decode to the glyphs the game actually uploads."""
     nem = (ROOT / "assets/gfx/nemesis/font.nem").read_bytes()
     vram = (fixtures / "font_vram.4bpp").read_bytes()
-    decoded = nemesis.decompress(nem + b"\0\0", 0)
+    decoded = nemesis.decompress_blob(nem)
     # the VRAM dump predates the four new glyphs; every other tile is identical
     art_rom = font.parse_art(font.font_to_art(decoded))
     art_vram = font.parse_art(font.font_to_art(vram))

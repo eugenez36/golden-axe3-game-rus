@@ -1,4 +1,3 @@
-import os
 import random
 import struct
 
@@ -126,4 +125,47 @@ def test_gpgx_cram_unpack():
 
 
 def test_gray16_has_16_entries():
-    assert len(tiles.GRAY16) == 16 and os.environ is not None
+    assert len(tiles.GRAY16) == 16
+
+
+def _ips_records(patch: bytes) -> list[tuple[int, int]]:
+    pos, out = 5, []
+    while patch[pos : pos + 3] != b"EOF":
+        off = int.from_bytes(patch[pos : pos + 3], "big")
+        size = int.from_bytes(patch[pos + 3 : pos + 5], "big")
+        out.append((off, size))
+        pos += 5 + (size or 3)
+    return out
+
+
+def test_ips_chunk_boundary_never_spells_eof():
+    # a 128 KiB edit whose second 64 KiB chunk would start exactly at 0x454F46 ("EOF")
+    a = bytes(0x470000)
+    b = bytearray(a)
+    lo, hi = 0x444F47, 0x464F46
+    b[lo:hi] = bytes((i & 0x7F) | 1 for i in range(hi - lo))
+    patch = make_ips(a, bytes(b))
+    assert all(off != 0x454F46 for off, _ in _ips_records(patch))
+    assert apply_ips(a, patch) == bytes(b)
+
+
+def test_ips_shrink_uses_the_truncation_extension():
+    a = bytes(_image(0x400))
+    b = bytearray(a[:0x300])
+    b[0x10] ^= 0xFF
+    patch = make_ips(a, bytes(b))
+    assert patch.endswith(b"EOF\x00\x03\x00")
+    assert apply_ips(a, patch) == bytes(b)
+    assert diff(a, bytes(b))[-1] == (0x300, a[0x300:], b"")
+
+
+def test_apply_ips_rejects_truncated_patches():
+    a = bytes(_image(0x200))
+    b = bytearray(a)
+    b[0x40:0x50] = b"\xaa" * 16
+    good = make_ips(a, bytes(b))
+    for cut in (6, 9, 12, len(good) - 2):
+        with pytest.raises(ValueError, match="truncated IPS"):
+            apply_ips(a, good[:cut])
+    with pytest.raises(ValueError, match="missing PATCH"):
+        apply_ips(a, b"PATCX" + good[5:])

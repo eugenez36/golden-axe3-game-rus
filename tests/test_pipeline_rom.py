@@ -49,7 +49,7 @@ def test_nemesis_parity_on_all_blocks(project, baserom):
         assert len(raw) == seg.get("tiles") * 32
         assert size <= seg.size <= size + 2
         ours = nemesis.compress(raw, xor_mode=seg.get("xor"), slack=False)
-        assert nemesis.decompress(ours + b"\0\0", 0) == raw
+        assert nemesis.decompress_blob(ours) == raw
         assert len(ours) <= size, f"{seg}: ours {len(ours)} > original {size}"
         total_rom += size
         total_ours += len(ours)

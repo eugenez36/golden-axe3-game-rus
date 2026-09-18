@@ -18,10 +18,16 @@ from __future__ import annotations
 
 from . import table
 
-TEXT_BYTES = frozenset(table.BYTE_TO_CHAR) - {0x00}
+TEXT_BYTES = frozenset(table.BYTE_TO_CHAR)
 DEFAULT_MIN_LEN = 4  # shorter runs are noise
 
 Row = tuple[int, int, str]  # (offset, length, text)
+
+
+def _padded(txt: str, ln: int) -> bytes:
+    """A record encoded and space-padded to its slot. Raises ValueError on unknown characters."""
+    enc = table.encode(txt)
+    return enc + b"\x20" * (ln - len(enc))
 
 
 def find_strings(data: bytes, lo: int, hi: int, min_len: int = DEFAULT_MIN_LEN) -> list[Row]:
@@ -98,14 +104,19 @@ def check(rows: list[Row], start: int | None = None, end: int | None = None) -> 
 
 
 def count_changed(rows: list[Row], data: bytes) -> int:
-    """How many records differ from what the image holds."""
+    """How many records differ from what the image holds.
+
+    A record that cannot be encoded counts as changed: whatever it says, it is
+    not what the image holds (``check`` reports the reason separately).
+    """
     changed = 0
     for off, ln, txt in rows:
         try:
-            enc = table.encode(txt)
+            enc = _padded(txt, ln)
         except ValueError:
+            changed += 1
             continue
-        if enc + b"\x20" * (ln - len(enc)) != bytes(data[off : off + ln]):
+        if enc != bytes(data[off : off + ln]):
             changed += 1
     return changed
 
@@ -120,7 +131,7 @@ def insert_strings(data: bytearray, rows: list[Row], start: int, end: int) -> in
         raise ValueError("text insertion refused:\n  " + "\n  ".join(problems))
     changed = 0
     for off, ln, txt in rows:
-        enc = table.encode(txt) + b"\x20" * (ln - len(table.encode(txt)))
+        enc = _padded(txt, ln)
         if enc != bytes(data[off : off + ln]):
             data[off : off + ln] = enc
             changed += 1
