@@ -7,6 +7,8 @@ modules stay usable without it.
 
 from __future__ import annotations
 
+import os
+
 TILE_SIZE = 32
 TILE_W = TILE_H = 8
 
@@ -88,6 +90,8 @@ def render_tiles(
 
 
 def dump_tiles(data: bytes, off: int, count: int, path: str, **kw) -> str:
+    """Render to a PNG file, creating the directory if needed."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     render_tiles(data, off, count, **kw).save(path)
     return path
 
@@ -169,7 +173,10 @@ def import_indexed(path: str, count: int | None = None) -> bytes:
         raise ValueError(f"{path}: size {img.width}x{img.height} is not a multiple of 8")
     px = img.load()
     cols, rows_n = img.width // TILE_W, img.height // TILE_H
-    total = cols * rows_n if count is None else count
+    available = cols * rows_n
+    total = available if count is None else count
+    if total > available:
+        raise ValueError(f"{path}: holds {available} tiles, {total} requested")
     out = bytearray()
     for i in range(total):
         tx, ty = (i % cols) * TILE_W, (i // cols) * TILE_H

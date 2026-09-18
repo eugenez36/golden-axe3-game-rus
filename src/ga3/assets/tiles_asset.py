@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .. import tiles as tilemod
-from ..palette import load_pal
+from ..palette import resolve_ref
 from ..rom import Rom
 from ..rom_map import Segment
 from .base import BuildError, Handler, Paths
@@ -37,16 +37,12 @@ class TilesHandler(Handler):
     def _sheet_path(self, seg: Segment, paths: Paths, idx: int) -> Path:
         return paths.asset(seg.path) / f"{seg.get('prefix', 'sheet')}_{idx:02d}.png"
 
-    def _palette(self, seg: Segment, paths: Paths, rm_palettes: dict | None = None):
-        ref = seg.get("palette")
-        if not ref or ref == "gray":
-            return None
-        name, _, idx = ref.partition("/")
-        pal_file = paths.asset(f"palettes/{name}.pal")
-        if not pal_file.exists():
-            return None
-        pals = load_pal(str(pal_file))
-        return pals[int(idx or 0)]
+    def _palette(self, seg: Segment, paths: Paths):
+        """The display palette for the sheets; an unknown name falls back to the grey ramp."""
+        return resolve_ref(seg.get("palette"), paths.asset("palettes"), missing_ok=True)
+
+    def sources(self, seg: Segment, paths: Paths) -> list[Path]:
+        return [self._sheet_path(seg, paths, i) for i in range(len(self._sheets(seg)))]
 
     def extract(self, rom: Rom, seg: Segment, paths: Paths) -> list[Path]:
         if seg.size % tilemod.TILE_SIZE:

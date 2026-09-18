@@ -11,11 +11,14 @@ rendering reference, not as build inputs.
 
 from __future__ import annotations
 
+import os
 import struct
+from pathlib import Path
 
 VDP_LEVELS = (0, 52, 87, 116, 144, 172, 206, 255)
 
 RGB = tuple[int, int, int]
+_HEX = frozenset("0123456789abcdefABCDEF")
 
 
 def pal_decode(data: bytes, off: int = 0, count: int = 16) -> list[RGB]:
@@ -142,3 +145,52 @@ def parse_pal(text: str) -> list[list[RGB]]:
 def load_pal(path: str) -> list[list[RGB]]:
     with open(path, encoding="utf-8") as fh:
         return parse_pal(fh.read())
+
+
+def resolve_ref(
+    ref: str | None,
+    pal_dir: str | os.PathLike | None,
+    data: bytes | None = None,
+    missing_ok: bool = False,
+) -> list[RGB] | None:
+    """Turn a palette reference into 16 colours.
+
+    ``NAME[/INDEX]`` names ``<pal_dir>/NAME.pal`` (INDEX picks one of its
+    palettes, default 0). Otherwise the reference is a hex ROM offset into
+    ``data`` (``0x``/``$`` prefix, or bare hex digits when no such ``.pal``
+    exists -- a file always wins over a look-alike such as ``cafe``). ``None``,
+    ``""`` and ``gray`` mean "no palette". With ``missing_ok`` an unresolvable
+    reference yields ``None`` instead of raising ``ValueError``.
+    """
+    if not ref or ref == "gray":
+        return None
+    name, _, idx = ref.partition("/")
+    if pal_dir is not None:
+        pal_file = Path(pal_dir) / f"{name}.pal"
+        if pal_file.exists():
+            pals = load_pal(str(pal_file))
+            i = int(idx or 0)
+            if not 0 <= i < len(pals):
+                raise ValueError(
+                    f"{pal_file.name} has {len(pals)} palette(s); index {i} is out of range"
+                )
+            return pals[i]
+    if ref.lower().startswith("0x"):
+        digits = ref[2:]
+    elif ref.startswith("$"):
+        digits = ref[1:]
+    else:
+        digits = ref
+    if digits and set(digits) <= _HEX:
+        if data is None:
+            if missing_ok:
+                return None
+            raise ValueError(f"palette {ref!r}: an image is needed to read a palette by offset")
+        off = int(digits, 16)
+        if off + 32 > len(data):
+            raise ValueError(f"palette offset {off:06X} lies past the end of the image")
+        return pal_decode(data, off)
+    if missing_ok:
+        return None
+    where = f" in {pal_dir}" if pal_dir is not None else ""
+    raise ValueError(f"palette {ref!r}: no {name}.pal{where} and not a hex ROM offset")

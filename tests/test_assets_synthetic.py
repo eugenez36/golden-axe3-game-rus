@@ -286,3 +286,67 @@ def test_verify_records_and_checks_hashes(synthetic_extracted):
     log.clear()
     assert pl.verify(s.project, log=log.append) is False
     assert any("does not reproduce" in ln for ln in log)
+
+
+# ---------------------------------------------------------------- check_assets / notes / verify
+
+
+def test_check_assets_reports_missing_sheet_pcm_and_blob(synthetic_extracted):
+    s = synthetic_extracted
+    assert pl.check_assets(s.project) == []
+    s.asset("gfx/tiles/art_01.png").unlink()
+    s.asset("sound/pcm/samples.pcm").unlink()
+    s.asset("gfx/nemesis/font.nem").unlink()
+    s.asset("code/boot.m68k").unlink()  # passthrough: optional, must not be reported
+    problems = pl.check_assets(s.project)
+    assert [p.split("missing ")[1] for p in problems] == [
+        "assets/gfx/nemesis/font.nem",
+        "assets/gfx/tiles/art_01.png",
+        "assets/sound/pcm/samples.pcm",
+    ]
+    assert any("art_01.png" in p for p in pl.check_map(s.project, s.rom))
+
+
+def test_table_hud_warning_only_for_changed_values(synthetic_extracted):
+    s = synthetic_extracted
+    assert "hp_table" not in _notes(s)  # 59/67/75 exceed max_hud but come from the base ROM
+    p = s.asset("data/hp_table.yml")
+    p.write_text(p.read_text(encoding="utf-8").replace("slot_1: 59", "slot_1: 60"), "utf-8")
+    note = _notes(s)["hp_table"]
+    assert note.startswith("changed") and "slot_1=60 exceed" in note and "slot_2" not in note
+
+
+def test_tiles_build_rejects_short_sheet(synthetic_extracted):
+    Image = pytest.importorskip("PIL.Image")
+    s = synthetic_extracted
+    sheet = s.asset("gfx/tiles/art_01.png")
+    Image.open(sheet).crop((0, 0, 16, 8)).save(sheet)  # 2 of the 4 tiles
+    with pytest.raises(pl.PipelineError, match="holds 2 tiles, 4 requested"):
+        _build(s)
+
+
+def test_verify_update_does_not_mask_failures(synthetic_extracted):
+    s = synthetic_extracted
+    _build(s)
+    assert pl.verify(s.project, update=True, log=lambda *_: None) is True
+    s.project.build_ips.write_bytes(b"PATCH\x00\x02\x00\x00\x01\xffEOF")
+    log: list[str] = []
+    assert pl.verify(s.project, update=True, log=log.append) is False
+    assert any("not updating" in ln for ln in log)
+    s.project.build_ips.unlink()
+    s.project.build_rom.unlink()
+    assert pl.verify(s.project, update=True, log=lambda *_: None) is False  # MISSING stays fatal
+
+
+def test_verify_update_records_a_changed_build(synthetic_extracted):
+    s = synthetic_extracted
+    _build(s)
+    pl.verify(s.project, update=True, log=lambda *_: None)
+    p = s.asset("data/hp_table.yml")
+    p.write_text(p.read_text(encoding="utf-8").replace("slot_0: 51", "slot_0: 50"), "utf-8")
+    _build(s)
+    assert pl.verify(s.project, log=lambda *_: None) is False
+    log: list[str] = []
+    assert pl.verify(s.project, update=True, log=log.append) is True
+    assert any(ln.strip().startswith("UPDATE") for ln in log)
+    assert pl.verify(s.project, log=lambda *_: None) is True

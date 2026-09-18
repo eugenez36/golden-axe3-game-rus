@@ -113,6 +113,9 @@ class FontArtHandler(NemesisHandler):
             raise BuildError(f"{seg}: font_art segments need a 'blob' path for the .nem")
         return paths.asset(blob)
 
+    def sources(self, seg: Segment, paths: Paths) -> list[Path]:
+        return [paths.asset(seg.path), self._blob_path(seg, paths)]
+
     def extract(self, rom: Rom, seg: Segment, paths: Paths) -> list[Path]:
         first, bg, ink = self._params(seg)
         size = nemesis.block_size(rom.data, seg.start)

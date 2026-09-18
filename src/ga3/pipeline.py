@@ -52,19 +52,26 @@ class Project:
 
 
 def find_root(start: str | os.PathLike | None = None) -> Path:
-    """Walk up from ``start`` (or $GA3_ROOT / cwd) to the directory holding rom_map.yml."""
+    """Walk up from ``start`` (default: the working directory) to the directory holding rom_map.yml.
+
+    ``$GA3_ROOT`` short-circuits the walk when no explicit start is given.
+    """
     env = os.environ.get("GA3_ROOT")
-    if env:
-        return Path(env).resolve()
+    if start is None and env:
+        root = Path(env).resolve()
+        if not (root / MAP_FILE).exists():
+            raise PipelineError(f"GA3_ROOT={env} has no {MAP_FILE}")
+        return root
     p = Path(start or os.getcwd()).resolve()
     for cand in (p, *p.parents):
         if (cand / MAP_FILE).exists():
             return cand
-    raise PipelineError(f"{MAP_FILE} not found in {p} or any parent (set GA3_ROOT)")
+    raise PipelineError(f"{MAP_FILE} not found in {p} or any parent (pass --root or set GA3_ROOT)")
 
 
 def open_project(root: str | os.PathLike | None = None) -> Project:
-    r = find_root(root) if root is None else Path(root).resolve()
+    """The project containing ``root`` (or the working directory)."""
+    r = find_root(root)
     romap = rm.load(r / MAP_FILE)
     return Project(r, romap, Paths(root=r, assets=r / "assets", build=r / "build"))
 
@@ -149,15 +156,19 @@ def sha1_of(path: Path) -> str:
 
 
 def read_sha_file(path: Path) -> dict[str, str]:
-    out = {}
+    """``sha1sum`` output -> {name: digest}; accepts the binary-mode ``*name`` marker and tabs."""
+    out: dict[str, str] = {}
     if not path.exists():
         return out
-    for line in path.read_text().splitlines():
-        line = line.strip()
+    for lineno, raw in enumerate(path.read_text().splitlines(), 1):
+        line = raw.strip()
         if not line or line.startswith("#"):
             continue
-        digest, _, name = line.partition("  ")
-        out[name.strip().lstrip("*")] = digest.strip()
+        parts = line.split(None, 1)
+        if len(parts) != 2:
+            raise PipelineError(f"{path}:{lineno}: expected '<sha1>  <file>', got {raw!r}")
+        digest, name = parts
+        out[name.strip().lstrip("*")] = digest
     return out
 
 
@@ -169,45 +180,76 @@ def write_sha_file(path: Path, entries: dict[str, str]) -> None:
 
 
 def verify(proj: Project, update: bool = False, log=print) -> bool:
-    ok = True
+    """Check the base ROM and the build against ``roms.sha1`` and the IPS against the build.
+
+    ``update`` records new or changed hashes -- but only when nothing else is
+    wrong: a missing file or an IPS that does not reproduce the build still fails.
+    """
+    problems = 0
     entries = read_sha_file(proj.sha_file)
     checks = {BASEROM_REL: proj.baserom, BUILD_ROM_REL: proj.build_rom}
     actual: dict[str, str] = {}
     for name, path in checks.items():
         if not path.exists():
             log(f"  MISSING  {name}")
-            ok = False
+            problems += 1
             continue
         actual[name] = sha1_of(path)
         want = entries.get(name)
-        if want is None:
-            log(f"  NEW      {name}  {actual[name]}")
-            ok = ok and update
-        elif want == actual[name]:
+        if want == actual[name]:
             log(f"  OK       {name}")
+        elif want is None:
+            log(f"  NEW      {name}  {actual[name]}")
+            problems += 0 if update else 1
+        elif update:
+            log(f"  UPDATE   {name}  {want[:12]}... -> {actual[name][:12]}...")
         else:
             log(f"  FAIL     {name}  expected {want}  got {actual[name]}")
-            ok = False
+            problems += 1
     if proj.build_rom.exists() and proj.build_ips.exists() and proj.baserom.exists():
-        rebuilt = apply_ips(proj.baserom.read_bytes(), proj.build_ips.read_bytes())
-        if rebuilt == proj.build_rom.read_bytes():
-            log(f"  OK       {BUILD_IPS_REL} reproduces the build")
+        try:
+            rebuilt = apply_ips(proj.baserom.read_bytes(), proj.build_ips.read_bytes())
+        except ValueError as exc:
+            log(f"  FAIL     {BUILD_IPS_REL}: {exc}")
+            problems += 1
         else:
-            log(f"  FAIL     {BUILD_IPS_REL} does not reproduce the build")
-            ok = False
+            if rebuilt == proj.build_rom.read_bytes():
+                log(f"  OK       {BUILD_IPS_REL} reproduces the build")
+            else:
+                log(f"  FAIL     {BUILD_IPS_REL} does not reproduce the build")
+                problems += 1
     if update and actual:
-        merged = dict(entries)
-        merged.update(actual)
-        write_sha_file(proj.sha_file, merged)
-        log(f"updated {proj.sha_file.relative_to(proj.root)}")
-        ok = True
-    return ok
+        if problems:
+            log(f"not updating {SHA_FILE}: {problems} problem(s) above")
+        else:
+            merged = dict(entries)
+            merged.update(actual)
+            write_sha_file(proj.sha_file, merged)
+            log(f"updated {proj.sha_file.relative_to(proj.root)}")
+    return problems == 0
 
 
 # ---------------------------------------------------------------- map checks
 
 
-def check_map(proj: Project, rom: Rom, log=print) -> list[str]:
+def check_assets(proj: Project) -> list[str]:
+    """Committed files that ``build`` would need but the tree lacks. Needs no ROM."""
+    problems: list[str] = []
+    for seg in proj.map.segments:
+        h = handler_for(seg)
+        if not h.committed:
+            continue
+        try:
+            missing = [p for p in h.sources(seg, proj.paths) if not p.exists()]
+        except BuildError as exc:
+            problems.append(str(exc))
+            continue
+        problems.extend(f"{seg}: missing {os.path.relpath(p, proj.root)}" for p in missing)
+    return problems
+
+
+def check_map(proj: Project, rom: Rom) -> list[str]:
+    """Consistency of rom_map.yml with the base ROM, plus ``check_assets``."""
     problems: list[str] = []
     if len(rom.data) != proj.map.size:
         problems.append(f"base ROM is {len(rom.data)} bytes, rom_map.yml says 0x{proj.map.size:X}")
@@ -217,10 +259,10 @@ def check_map(proj: Project, rom: Rom, log=print) -> list[str]:
     entry = proj.map.rom.get("entry_point")
     if entry is not None and rom.u32(4) != entry:
         problems.append(f"reset vector 0x{rom.u32(4):08X} != entry_point 0x{entry:06X}")
+    serial = proj.map.rom.get("serial")
+    if serial is not None and rom.serial != serial:
+        problems.append(f"header serial {rom.serial!r} != rom_map.yml {serial!r}")
     for seg in proj.map.segments:
         problems.extend(handler_for(seg).check(rom, seg))
-        if seg.path and seg.type in rm.ASSET_TYPES:
-            p = proj.paths.asset(seg.path)
-            if not p.exists() and not (seg.type == "tiles4bpp" and p.is_dir()):
-                problems.append(f"{seg}: asset {seg.path} has not been extracted")
+    problems.extend(check_assets(proj))
     return problems

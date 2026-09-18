@@ -1,14 +1,13 @@
 """Small numeric tables as YAML (e.g. the HP table at 0x00E492).
 
 Map attributes: ``format`` (u8 | u16 | u32, big-endian), optional ``fields``
-(names, one per entry) and ``max_hud`` (warn when a value exceeds what the
-HUD can draw).
+(names, one per entry) and ``max_hud`` (warn when an *edited* value exceeds
+what the HUD can draw; the base ROM's own values are not nagged about).
 """
 
 from __future__ import annotations
 
 import struct
-import sys
 from pathlib import Path
 
 import yaml
@@ -73,15 +72,20 @@ class TableHandler(Handler):
             if not isinstance(v, int) or not 0 <= v <= limit:
                 raise BuildError(f"{seg}: {f}={v!r} is not an integer in 0..{limit}")
             out.append(v)
+        blob = struct.pack(f">{len(out)}{FMT[fmt]}", *out)
+        old = bytes(rom.data[seg.start : seg.end])
+        self.place(rom, seg, blob, pad=None)
+        if blob == old:
+            return None
+        note = "changed"
         max_hud = seg.get("max_hud")
         if max_hud is not None:
-            for f, v in zip(fields, out, strict=True):
-                if v > max_hud:
-                    print(
-                        f"  warning: {seg.name}.{f}={v} exceeds what the HUD can draw ({max_hud})",
-                        file=sys.stderr,
-                    )
-        blob = struct.pack(f">{len(out)}{FMT[fmt]}", *out)
-        changed = blob != bytes(rom.data[seg.start : seg.end])
-        self.place(rom, seg, blob, pad=None)
-        return "changed" if changed else None
+            before = struct.unpack(f">{len(out)}{FMT[fmt]}", old)
+            over = [
+                f"{f}={v}"
+                for f, v, o in zip(fields, out, before, strict=True)
+                if v != o and v > max_hud
+            ]
+            if over:
+                note += f"; warning: {', '.join(over)} exceed what the HUD can draw ({max_hud})"
+        return note

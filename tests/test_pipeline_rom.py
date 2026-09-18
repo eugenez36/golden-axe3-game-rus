@@ -18,7 +18,7 @@ def test_header_fixes_are_noops(baserom):
 
 
 def test_map_check_passes(project, baserom):
-    assert pl.check_map(project, baserom, log=lambda *_: None) == []
+    assert pl.check_map(project, baserom) == []
 
 
 def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):

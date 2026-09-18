@@ -1,3 +1,5 @@
+"""The ``Handler`` interface, project ``Paths`` and the atomic writers every asset type shares."""
+
 from __future__ import annotations
 
 import os
@@ -57,6 +59,14 @@ class Handler:
     def check(self, rom: Rom, seg: Segment) -> list[str]:
         """Consistency problems between the map entry and the base ROM (for ``ga3 map --check``)."""
         return []
+
+    def sources(self, seg: Segment, paths: Paths) -> list[Path]:
+        """Files ``build`` needs for this segment -- what has to be committed.
+
+        Handlers with several files per segment override this; passthrough
+        handlers (``committed = False``) are never asked.
+        """
+        return [paths.asset(seg.path)] if seg.path else []
 
     @staticmethod
     def place(rom: Rom, seg: Segment, blob: bytes, pad: int | None = 0x00) -> None:
