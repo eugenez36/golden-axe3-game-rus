@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .. import tiles as tilemod
+from .. import tiles
 from ..palette import resolve_ref
 from ..rom import Rom
 from ..rom_map import Segment
@@ -25,7 +25,7 @@ class TilesHandler(Handler):
 
     def _sheets(self, seg: Segment) -> list[tuple[int, int]]:
         per = seg.get("sheet_tiles", DEFAULT_SHEET)
-        total = seg.size // tilemod.TILE_SIZE
+        total = seg.size // tiles.TILE_SIZE
         out = []
         i = 0
         while i < total:
@@ -45,14 +45,14 @@ class TilesHandler(Handler):
         return [self._sheet_path(seg, paths, i) for i in range(len(self._sheets(seg)))]
 
     def extract(self, rom: Rom, seg: Segment, paths: Paths) -> list[Path]:
-        if seg.size % tilemod.TILE_SIZE:
+        if seg.size % tiles.TILE_SIZE:
             raise BuildError(f"{seg}: size {seg.size} is not a multiple of 32")
         cols = seg.get("cols", DEFAULT_COLS)
         palette = self._palette(seg, paths)
         written = []
         for idx, (first, n) in enumerate(self._sheets(seg)):
-            img = tilemod.render_indexed(
-                rom.data, seg.start + first * tilemod.TILE_SIZE, n, cols, palette
+            img = tiles.render_indexed(
+                rom.data, seg.start + first * tiles.TILE_SIZE, n, cols, palette
             )
             path = self._sheet_path(seg, paths, idx)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,7 +67,7 @@ class TilesHandler(Handler):
             if not path.exists():
                 raise BuildError(f"{seg}: missing sheet {path}")
             try:
-                out += tilemod.import_indexed(str(path), count=n)
+                out += tiles.import_indexed(str(path), count=n)
             except ValueError as exc:
                 raise BuildError(str(exc)) from None
         changed = bytes(out) != bytes(rom.data[seg.start : seg.end])

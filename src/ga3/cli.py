@@ -13,9 +13,19 @@ import os
 import sys
 from pathlib import Path
 
-from . import __version__, font, nemesis, palette, ramsearch, rom_map, table, text, tiles
-from . import balance as balmod
-from . import pipeline as pl
+from . import (
+    __version__,
+    balance,
+    font,
+    nemesis,
+    palette,
+    pipeline,
+    ramsearch,
+    rom_map,
+    table,
+    text,
+    tiles,
+)
 from .assets import handler_for
 from .assets.base import write_bytes, write_text
 from .assets.nemesis_asset import FontArtHandler
@@ -27,19 +37,19 @@ def _hex(s: str) -> int:
     return int(s, 16)
 
 
-def _proj(args) -> pl.Project:
-    return pl.open_project(getattr(args, "root", None))
+def _proj(args) -> pipeline.Project:
+    return pipeline.open_project(getattr(args, "root", None))
 
 
-def _try_proj(args) -> pl.Project | None:
+def _try_proj(args) -> pipeline.Project | None:
     """The project, or None when the command runs outside any project tree."""
     try:
         return _proj(args)
-    except pl.PipelineError:
+    except pipeline.PipelineError:
         return None
 
 
-def _open_image(args, proj: pl.Project | None, strict: bool | None = None) -> Rom:
+def _open_image(args, proj: pipeline.Project | None, strict: bool | None = None) -> Rom:
     """The image a command works on: ``--file``, then ``--rom``, then the base ROM.
 
     ``strict=None`` verifies the sha1 against rom_map.yml only for the default
@@ -53,11 +63,11 @@ def _open_image(args, proj: pl.Project | None, strict: bool | None = None) -> Ro
     if proj is None:
         if rom_arg:
             return Rom.load(rom_arg)
-        raise pl.PipelineError(
+        raise pipeline.PipelineError(
             "no rom_map.yml found: run inside the project or pass --root, --rom or --file"
         )
     check = strict if strict is not None else not rom_arg
-    rom = pl.load_baserom(proj, rom_arg, strict=check)
+    rom = pipeline.load_baserom(proj, rom_arg, strict=check)
     if rom_arg and not check:
         want = proj.map.rom.get("sha1")
         if want and rom.sha1() != want:
@@ -87,14 +97,14 @@ def cmd_extract(args) -> int:
     rom = _open_image(args, proj)
     only = set(args.only) if args.only else None
     print(f"extracting from {rom.path} (sha1 {rom.sha1()[:12]}...) into {proj.paths.assets}")
-    files = pl.extract_all(proj, rom, only)
+    files = pipeline.extract_all(proj, rom, only)
     print(f"{len(files)} file(s) written")
     if args.png:
         _previews(proj, rom)
     return 0
 
 
-def _previews(proj: pl.Project, rom: Rom) -> None:
+def _previews(proj: pipeline.Project, rom: Rom) -> None:
     for seg in proj.map.by_type("nemesis"):
         raw = nemesis.decompress(rom.data, seg.start)
         out = proj.paths.preview(Path(seg.path).with_suffix(".png").name)
@@ -106,13 +116,13 @@ def cmd_build(args) -> int:
     proj = _proj(args)
     base = _open_image(args, proj)
     out = Path(args.out).resolve() if args.out else None
-    pl.build(proj, base, out=out, ips=not args.no_ips)
+    pipeline.build(proj, base, out=out, ips=not args.no_ips)
     return 0
 
 
 def cmd_verify(args) -> int:
     proj = _proj(args)
-    ok = pl.verify(proj, update=args.update)
+    ok = pipeline.verify(proj, update=args.update)
     print("verify: OK" if ok else "verify: FAILED")
     return 0 if ok else 1
 
@@ -123,9 +133,9 @@ def cmd_map(args) -> int:
         print(rom_map.markdown_table(proj.map), end="")
         return 0
     if args.check:
-        return _report_problems("map check", pl.check_map(proj, _open_image(args, proj)))
+        return _report_problems("map check", pipeline.check_map(proj, _open_image(args, proj)))
     if args.check_assets:
-        return _report_problems("asset check", pl.check_assets(proj))
+        return _report_problems("asset check", pipeline.check_assets(proj))
     print(rom_map.coverage_report(proj.map))
     if args.list:
         for s in proj.map.segments:
@@ -159,7 +169,7 @@ def cmd_assets(args) -> int:
     return 0
 
 
-def _rom_map_doc(proj: pl.Project) -> str:
+def _rom_map_doc(proj: pipeline.Project) -> str:
     cov = proj.map.coverage()
     total = proj.map.size
     info = proj.map.rom
@@ -307,7 +317,7 @@ def cmd_text(args) -> int:
     proj = _proj(args)
     rom = _open_image(args, proj, strict=False)
     if args.textcmd == "export":
-        pl.extract_all(proj, rom, {s.name for s in proj.map.by_type("text")})
+        pipeline.extract_all(proj, rom, {s.name for s in proj.map.by_type("text")})
         return 0
     # verify
     rc = 0
@@ -368,7 +378,7 @@ def cmd_balance(args) -> int:
     proj = _proj(args)
     seg = proj.map.by_name("hp_table")
     path = proj.paths.asset(seg.path)
-    values = balmod.read_hp(path)
+    values = balance.read_hp(path)
     if args.balcmd == "show":
         print(f"HP table ({seg.path}, ROM {seg.start:06X}):")
         for k, v in values.items():
@@ -377,9 +387,9 @@ def cmd_balance(args) -> int:
     new = [int(v, 0) for v in args.values]
     if len(new) != len(values):
         return _fail(f"expected {len(values)} values")
-    for w in balmod.validate_hp(new, seg.get("max_hud")):
+    for w in balance.validate_hp(new, seg.get("max_hud")):
         print("  warning: " + w, file=sys.stderr)
-    balmod.write_hp(path, dict(zip(values.keys(), new, strict=True)))
+    balance.write_hp(path, dict(zip(values.keys(), new, strict=True)))
     print(f"HP: {list(values.values())} -> {new}  (written to {seg.path}; run `ga3 build`)")
     return 0
 

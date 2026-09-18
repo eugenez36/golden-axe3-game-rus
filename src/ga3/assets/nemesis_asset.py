@@ -1,15 +1,18 @@
 """Nemesis-compressed graphics, including the font (``format: font_art``).
 
-Byte identity rule: our packer is *smaller* than SEGA's on 13 of the 14 blocks
-in this ROM, so recompressing unchanged tiles would change the image. The
+Byte identity rule: our packer is *smaller* than SEGA's on all 14 blocks of
+this ROM, so recompressing unchanged tiles would change the image. The
 committed ``.nem`` is therefore written back verbatim whenever it still
 decodes to the current tiles; only edited blocks are recompressed. The slot is
 padded with 0x00 up to ``seg.end`` (the base ROM word-aligns blocks the same way).
 
 Files:
-  ``<path>``            committed compressed block, exact size (``.nem``)
-  ``<path>.4bpp``       decoded tiles next to it (gitignored) -- edit these or
-                        a PNG rendered from them, then ``ga3 build``
+  ``NAME.nem``   committed compressed block, exact size (the map's ``path``)
+  ``NAME.4bpp``  decoded tiles next to it (gitignored; same stem, other suffix)
+                 -- edit these or a PNG rendered from them, then ``ga3 build``.
+                 When the ``.4bpp`` exists it is the source of truth for the
+                 tiles: a stale one wins over an edited ``.nem``, so delete it
+                 (or re-run ``ga3 extract``) after editing the ``.nem`` directly.
   font: ``path`` is the text-art file (source of truth), ``blob`` the ``.nem``.
 """
 
@@ -17,8 +20,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .. import font as fontmod
-from .. import nemesis
+from .. import font, nemesis
 from ..rom import Rom
 from ..rom_map import Segment
 from ..tiles import TILE_SIZE
@@ -30,10 +32,10 @@ def _blob_for(raw: bytes, nem_path: Path, xor_attr, seg: Segment) -> tuple[bytes
     if nem_path.exists():
         nem = nem_path.read_bytes()
         try:
-            if nemesis.decompress(nem + b"\x00\x00", 0) == raw:
+            if nemesis.decompress_blob(nem) == raw:
                 return nem, "verbatim"
-        except (ValueError, IndexError, KeyError):
-            pass
+        except ValueError:
+            pass  # a damaged .nem is simply recompressed from the tiles
     xor = None if xor_attr is None else bool(xor_attr)
     blob = nemesis.compress(raw, xor_mode=xor, slack=False)
     if len(blob) > seg.size:
@@ -62,9 +64,9 @@ class NemesisHandler(Handler):
         nem_path = paths.asset(seg.path)
         raw_path = self._raw_path(seg, paths)
         if raw_path.exists():
-            raw = raw_path.read_bytes()
+            raw, source = raw_path.read_bytes(), raw_path.name
         elif nem_path.exists():
-            raw = nemesis.decompress(nem_path.read_bytes() + b"\x00\x00", 0)
+            raw, source = nemesis.decompress_blob(nem_path.read_bytes()), nem_path.name
         else:
             raise BuildError(f"{seg}: neither {nem_path.name} nor {raw_path.name} exists")
         tiles = seg.get("tiles")
@@ -72,14 +74,14 @@ class NemesisHandler(Handler):
             raise BuildError(f"{seg}: expected {tiles} tiles, got {len(raw) // TILE_SIZE}")
         blob, note = _blob_for(raw, nem_path, seg.get("xor"), seg)
         self.place(rom, seg, blob, pad=0x00)
-        return None if note == "verbatim" else note
+        return None if note == "verbatim" else f"{note}, tiles from {source}"
 
     def check(self, rom: Rom, seg: Segment) -> list[str]:
         problems = []
         try:
             meta = nemesis.info(rom.data, seg.start)
             size = nemesis.block_size(rom.data, seg.start)
-        except Exception as exc:  # noqa: BLE001 - report, do not crash the check
+        except Exception as exc:  # report anything, do not crash the check
             return [f"{seg}: cannot decode: {exc}"]
         if seg.get("tiles") is not None and meta["tiles"] != seg.get("tiles"):
             problems.append(
@@ -102,9 +104,9 @@ class FontArtHandler(NemesisHandler):
 
     def _params(self, seg: Segment):
         return (
-            seg.get("first_byte", fontmod.DEFAULT_FIRST_BYTE),
-            seg.get("bg", fontmod.DEFAULT_BG),
-            seg.get("ink", fontmod.DEFAULT_INK),
+            seg.get("first_byte", font.DEFAULT_FIRST_BYTE),
+            seg.get("bg", font.DEFAULT_BG),
+            seg.get("ink", font.DEFAULT_INK),
         )
 
     def _blob_path(self, seg: Segment, paths: Paths) -> Path:
@@ -120,7 +122,7 @@ class FontArtHandler(NemesisHandler):
         first, bg, ink = self._params(seg)
         size = nemesis.block_size(rom.data, seg.start)
         raw = nemesis.decompress(rom.data, seg.start)
-        art = fontmod.font_to_art(raw, first, bg, ink)
+        art = font.font_to_art(raw, first, bg, ink)
         return [
             write_text(paths.asset(seg.path), art),
             write_bytes(self._blob_path(seg, paths), bytes(rom.data[seg.start : seg.start + size])),
@@ -131,9 +133,9 @@ class FontArtHandler(NemesisHandler):
         art_path = paths.asset(seg.path)
         if not art_path.exists():
             raise BuildError(f"{seg}: missing font art {art_path}")
-        glyphs = fontmod.parse_art_file(str(art_path), bg, ink)
+        glyphs = font.parse_art_file(str(art_path), bg, ink)
         tiles = seg.get("tiles") or (len(glyphs))
-        return fontmod.art_to_font(glyphs, tiles, first)
+        return font.art_to_font(glyphs, tiles, first)
 
     def build(self, rom: Rom, seg: Segment, paths: Paths) -> str | None:
         raw = self.raw_from_art(seg, paths)

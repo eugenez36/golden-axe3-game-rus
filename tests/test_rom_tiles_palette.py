@@ -169,3 +169,13 @@ def test_apply_ips_rejects_truncated_patches():
             apply_ips(a, good[:cut])
     with pytest.raises(ValueError, match="missing PATCH"):
         apply_ips(a, b"PATCX" + good[5:])
+
+
+def test_pal_encode_is_the_inverse_of_pal_decode():
+    words = b"".join(
+        struct.pack(">H", (b << 9) | (g << 5) | (r << 1))
+        for r, g, b in [(i % 8, (i * 3) % 8, (i * 5) % 8) for i in range(16)]
+    )
+    assert palette.pal_encode(palette.pal_decode(words)) == words
+    # off-ramp RGB snaps to the nearest VDP level
+    assert palette.pal_encode([(50, 90, 250)]) == struct.pack(">H", (7 << 9) | (2 << 5) | (1 << 1))
