@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,11 +7,15 @@ name = "ga3"
 version = "0.3.5"
 description = "ROM-hacking toolkit for Golden Axe III (Sega Mega Drive) — NEWGAME 2003 Russian translation"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 authors = [{ name = "Eugene Zubovich" }]
 keywords = ["sega", "mega-drive", "genesis", "romhacking", "nemesis", "golden-axe"]
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3.12",
   "Topic :: Games/Entertainment",
   "Topic :: System :: Emulators",
@@ -23,7 +27,8 @@ dependencies = [
 
 [project.optional-dependencies]
 disasm = ["capstone==5.0.9"]
-dev = ["pytest>=8", "ruff>=0.6", "pre-commit>=3"]
+# keep the ruff pin in step with .pre-commit-config.yaml (see CONTRIBUTING.md)
+dev = ["pytest>=8", "ruff>=0.16.6,<0.17", "pre-commit>=3"]
 
 [project.scripts]
 ga3 = "ga3.cli:main"
@@ -48,6 +53,8 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra --strict-markers"
 markers = [
   "rom: requires baserom/ga3.bin with the expected sha1 (skipped when absent)",
 ]
