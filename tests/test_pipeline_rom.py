@@ -11,10 +11,10 @@ pytestmark = pytest.mark.rom
 
 
 def test_header_fixes_are_noops(baserom):
-    before = bytes(baserom.data)
-    baserom.fix_rom_end()
-    baserom.fix_checksum()
-    assert bytes(baserom.data) == before
+    rom = Rom(bytes(baserom.data))  # the session fixture stays pristine
+    rom.fix_rom_end()
+    rom.fix_checksum()
+    assert bytes(rom.data) == bytes(baserom.data)
 
 
 def test_map_check_passes(project, baserom):
