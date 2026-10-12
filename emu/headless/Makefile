@@ -40,7 +40,9 @@ DEFINES  := -DLSB_FIRST -DBYTE_ORDER=LITTLE_ENDIAN \
             -DHOOK_CPU \
             -DHAVE_ZLIB \
             -DMAXROMSIZE=33554432 \
-            -DHAVE_OVERCLOCK
+            -DHAVE_OVERCLOCK \
+            -DM68K_OVERCLOCK_SHIFT=20 \
+            -DZ80_OVERCLOCK_SHIFT=20
 
 # -fcommon:        cpuhook.h declares cpu_hook without extern -- gcc >= 10 would see duplicate definitions
 # -include zlib.h: sram.c / sms_cart.c call crc32 without a declaration, truncating uLong to int
@@ -55,6 +57,9 @@ LDLIBS   := -lz -lm
 TARGET   := $(BUILD)/headless_gpgx
 
 all: $(TARGET)
+
+# objects follow the flags and defines above: editing this file rebuilds them
+$(OBJECTS): Makefile
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(@D)

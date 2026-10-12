@@ -51,6 +51,7 @@ static int16  soundbuffer[2048 * 2];
 static uint16 pad_state[2];      /* INPUT_* masks for port A and port B */
 static long   frame_counter;
 static int    verbose = 1;
+static void   apply_overclock(void);
 
 struct watch {
   unsigned int lo, hi;
@@ -676,6 +677,7 @@ static int run_script(const char *path, int depth)
     else if (!strcmp(cmd, "reset"))
     {
       system_reset();
+      apply_overclock();
       if (verbose) fprintf(stderr, "[sys ] reset at frame %ld\n", frame_counter);
     }
     else if (!strcmp(cmd, "echo"))
@@ -772,12 +774,28 @@ static void config_default(void)
 
 /* ------------------------------------------------------------------ main */
 
+/* 68000 clock in percent of the real one; 100 keeps every cycle count exact. */
+static int overclock = 100;
+
+/* The core scales each instruction's cycle count by cycle_ratio >> M68K_OVERCLOCK_SHIFT,
+   as the libretro frontend does; a reset puts the ratio back to 1.0. */
+static void apply_overclock(void)
+{
+  config.overclock = overclock;
+  if (overclock != 100 && (system_hw & SYSTEM_PBC) == SYSTEM_MD)
+    m68k.cycle_ratio = (100 << M68K_OVERCLOCK_SHIFT) / overclock;
+}
+
 static void usage(const char *argv0)
 {
   fprintf(stderr,
     "headless Genesis Plus GX -- run a ROM without a window\n"
     "\n"
-    "  %s --rom FILE [--script FILE] [--frames N] [--png FILE] [--scale N] [--quiet]\n"
+    "  %s --rom FILE [--script FILE] [--frames N] [--png FILE] [--scale N]\n"
+    "       [--overclock PCT] [--quiet]\n"
+    "\n"
+    "  --overclock PCT  run the 68000 at PCT percent of its clock (100..400, default 100):\n"
+    "                   the same as Genesis Plus GX's System Overclock core option\n"
     "\n"
     "Script commands (# starts a comment; --script - reads stdin):\n"
     "  include PATH           run another script (relative to the including file, depth <= %d)\n"
@@ -818,6 +836,7 @@ int main(int argc, char **argv)
     else if (!strcmp(argv[i], "--png") && i + 1 < argc)    png = argv[++i];
     else if (!strcmp(argv[i], "--scale") && i + 1 < argc)  scale = atoi(argv[++i]);
     else if (!strcmp(argv[i], "--quiet"))                  verbose = 0;
+    else if (!strcmp(argv[i], "--overclock") && i + 1 < argc) overclock = atoi(argv[++i]);
     else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) { usage(argv[0]); return 0; }
     else { fprintf(stderr, "unknown argument: %s\n", argv[i]); usage(argv[0]); return 2; }
   }
@@ -825,6 +844,11 @@ int main(int argc, char **argv)
   if (!rom)
   {
     usage(argv[0]);
+    return 2;
+  }
+  if (overclock < 100 || overclock > 400)
+  {
+    fprintf(stderr, "--overclock must be 100..400 (percent), got %d\n", overclock);
     return 2;
   }
 
@@ -842,6 +866,7 @@ int main(int argc, char **argv)
   audio_init(SOUND_FREQUENCY, 0);
   system_init();
   system_reset();
+  apply_overclock();
 
   if (verbose)
     fprintf(stderr, "[sys ] %s, region %d, %s\n",
