@@ -52,7 +52,12 @@ places take hit points away and now jump to the patch:
 | `00F8BC` | `a0`                      | the caster in `$DC4E`: 0 player 1, 1 player 2 (magic)    |
 | `00C7F8` | `a0` (object being freed) | the mark: counts an enemy that fell after a player's hit |
 
-Each subtracts as before and marks the enemy with the player who hit it (a
+Each subtracts as before — and decides death as the game does: the game's
+`bpl` clears HP when the result has bit 7 set; the patch uses `bhi` (HP was
+above the damage, unsigned), which agrees for every HP the game allows
+(0–`0x7F`) and every damage up to `0x80`. (An earlier `bgt` read an overflow,
+HP 75 hit for 128, as a living hero with HP 203.) Each also marks the enemy
+with the player who hit it (a
 byte at `+0x15D` of the object, which the game itself never writes and clears
 with the object). The kill goes to the marked player, up to 999, in their word
 at `FFC3E0` (player 1) / `FFC3E2` (player 2):

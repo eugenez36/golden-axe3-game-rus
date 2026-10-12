@@ -317,3 +317,27 @@ def test_map_attaches_patch_definitions_and_rejects_bad_ones():
     del bad["section"]
     with pytest.raises(rom_map.RomMapError, match="needs section"):
         rom_map.parse(doc([bad], {"p": {}}))
+
+
+def test_kill_counter_keeps_the_games_death_test_for_any_damage():
+    """After sub.b on the victim's HP every hook branches with bhi (unsigned).
+
+    The game clears HP when sub.b leaves bit 7 set (bpl). bgt would read an
+    overflow -- HP 75, damage 128 (power 0xFF plus the carried half) -- as a
+    living hero with HP 203; bhi matches bpl for every HP the game allows.
+    """
+    pytest.importorskip("capstone")
+    from ga3 import disasm
+    from ga3.assets.patch_asset import assembled
+
+    proj = _real_project()
+    seg = next(
+        s
+        for s in proj.map.by_type("patch")
+        if s.get("patch") == "kill_counter" and s.get("section") == "count"
+    )
+    body, _todo, _labels = assembled(seg, proj.paths)
+    rows = disasm.disasm(bytes(seg.start) + body, seg.start, end=seg.start + len(body))
+    subs = [i for i, r in enumerate(rows) if r[2] == "sub.b" and r[3].endswith("$142(a0)")]
+    assert len(subs) == 3  # melee a0, melee a1, magic
+    assert all(rows[i + 1][2] in ("bhi.b", "bhi.s") for i in subs)
