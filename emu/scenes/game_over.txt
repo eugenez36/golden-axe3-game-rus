@@ -1,0 +1,109 @@
+# Game over: stage 1, player 1 is left at 1 HP for each of the three lives
+# and walks into the enemies; no continue is taken. The map screen that
+# follows shows the score and the rank (AAA, AA, A ... F, value at FFF180),
+# then «ТЫ ПОГИБ». Before the fix the rank was labelled «ЭТАП» (stage).
+include _to_stage1.inc
+wait 400
+hold right 120
+poke8 FFC8E6 01
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+poke8 FFC8E6 01
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+poke8 FFC8E6 01
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+poke8 FFC8E6 01
+hold left 10
+wait 90
+hold left 10
+wait 90
+screenshot build/shots/game_over_map.png 2
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+screenshot build/shots/game_over_dead.png 2
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
+hold left 10
+wait 90
