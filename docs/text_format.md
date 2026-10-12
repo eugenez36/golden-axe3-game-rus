@@ -125,9 +125,9 @@ moving anything.
 
 ## Growing text
 
-Not possible in place. Free space is 818 bytes in three holes
-(`011716`, `05AEAA`, `05B30A`; the first 96 bytes at `0116B6` now hold the
-menu-version routine and the relocated main-menu items) plus a probable
-170-byte filler at `01B6D6`.
+Not possible in place. Of the 914 free bytes in three holes (`0116B6`,
+`05AEAA`, `05B30A`) only 28 are left: the patches hold the rest (see
+[patches.md](patches.md)). A probable 170-byte filler at `01B6D6` is not yet
+verified.
 Relocating a string means finding and rewriting its pointer; no pointer table
 has been mapped yet. `Rom.expand()` to 2 MiB exists for when that day comes.

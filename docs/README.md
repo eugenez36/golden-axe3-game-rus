@@ -7,6 +7,7 @@
 | [font.md](font.md) | you draw or change a glyph |
 | [nemesis.md](nemesis.md) | you touch compressed graphics or the codec; the 14-block table and how the packer matches SEGA's |
 | [emulator.md](emulator.md) | you write a scene or hunt for an address with watchpoints |
+| [patches.md](patches.md) | you change the game's code: patch slots, hooks, the 68000 assembler, the kill counter |
 | [rom_map.md](rom_map.md) | you need the full segment table (generated from `rom_map.yml`, do not edit) |
 | [evidence/](evidence/README.md) | you want to see the logs and screenshots behind a map entry |
 | [ru/journal.md](ru/journal.md) | you want the whole story in Russian: how each address was found, dead ends included |
