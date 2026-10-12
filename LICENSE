@@ -22,12 +22,15 @@ SOFTWARE.
 
 ---
 
-This license covers the toolkit source code and documentation written for this
-repository (src/, tests/, emu/headless/, emu/scenes/, docs/). It does NOT cover:
+This license covers the toolkit source code, build files and documentation
+written for this repository: src/, tests/, rom_map.yml, roms.sha1, Makefile,
+pyproject.toml, .github/, emu/headless/, emu/scenes/, emu/explore/, docs/ and
+the README files. It does NOT cover:
 
   * the Golden Axe III game ROM or any data extracted from it — © SEGA;
   * the Russian translation of the game — © NEWGAME, 2003;
   * Genesis Plus GX — © Charles MacDonald, Eke-Eke and contributors,
-    distributed under its own non-commercial license.
+    distributed under its own non-commercial license; emu/patches/ is a
+    modification of that core and is offered under the same terms.
 
 See THIRD_PARTY_NOTICES.md for details.

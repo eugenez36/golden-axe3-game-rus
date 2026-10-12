@@ -50,19 +50,7 @@ jobs:
       - name: Install
         run: pip install -e .
       - name: Map loads, covers the image, every committed asset exists
-        run: |
-          ga3 map --list
-          python - <<'PY'
-          import sys
-          from ga3 import pipeline as pl
-          proj = pl.open_project(".")
-          missing = [s.path for s in proj.map.segments
-                     if s.path and s.type in {"header","table","text","nemesis","pcm","raw"}
-                     and not proj.paths.asset(s.path).exists()]
-          missing += [s.get("blob") for s in proj.map.segments
-                      if s.get("blob") and not proj.paths.asset(s.get("blob")).exists()]
-          print("missing:", missing); sys.exit(1 if missing else 0)
-          PY
+        run: ga3 map --list && ga3 map --check-assets
       - name: Derived files are fresh (encoding.tbl, font.nem, docs/rom_map.md)
         run: ga3 assets refresh && git diff --exit-code
       - name: No committed file above 1 MiB
@@ -82,13 +70,25 @@ jobs:
       - name: Core carries the dma_hook
         run: make -C emu/headless check-core GPGX="$PWD/emu/gpgx"
       - name: Build
-        run: make emu -j"$(nproc)" && build/emu/headless_gpgx --help 2>&1 | head -5
+        run: make emu -j"$(nproc)"
+      - name: Binary starts
+        run: build/emu/headless_gpgx --help >/dev/null
       - name: Upload binary
         uses: actions/upload-artifact@v7
         with:
           name: headless_gpgx-linux-x86_64
           path: build/emu/headless_gpgx
           retention-days: 14
+
+  pre-commit:
+    name: 🧹 pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
 
   docs:
     name: 📜 Docs & branding

@@ -148,12 +148,12 @@ class HeaderHandler(Handler):
             v = doc[key]
             if kind == "checksum":
                 if v != "auto":
-                    struct.pack_into(">H", rom.data, off, int(v) & 0xFFFF)
+                    rom.set_u16(off, int(v))
                 continue
             if kind == "u32":
                 if v == "auto":
                     continue  # fixed by the pipeline after all segments are placed
-                struct.pack_into(">I", rom.data, off, int(v) & 0xFFFFFFFF)
+                rom.set_u32(off, int(v))
                 continue
             if isinstance(v, dict) and "hex" in v:
                 raw = bytes.fromhex(v["hex"])

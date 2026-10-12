@@ -11,14 +11,14 @@ pytestmark = pytest.mark.rom
 
 
 def test_header_fixes_are_noops(baserom):
-    before = bytes(baserom.data)
-    baserom.fix_rom_end()
-    baserom.fix_checksum()
-    assert bytes(baserom.data) == before
+    rom = Rom(bytes(baserom.data))  # the session fixture stays pristine
+    rom.fix_rom_end()
+    rom.fix_checksum()
+    assert bytes(rom.data) == bytes(baserom.data)
 
 
 def test_map_check_passes(project, baserom):
-    assert pl.check_map(project, baserom, log=lambda *_: None) == []
+    assert pl.check_map(project, baserom) == []
 
 
 def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
@@ -49,7 +49,7 @@ def test_nemesis_parity_on_all_blocks(project, baserom):
         assert len(raw) == seg.get("tiles") * 32
         assert size <= seg.size <= size + 2
         ours = nemesis.compress(raw, xor_mode=seg.get("xor"), slack=False)
-        assert nemesis.decompress(ours + b"\0\0", 0) == raw
+        assert nemesis.decompress_blob(ours) == raw
         assert len(ours) <= size, f"{seg}: ours {len(ours)} > original {size}"
         total_rom += size
         total_ours += len(ours)

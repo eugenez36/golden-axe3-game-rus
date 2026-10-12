@@ -147,13 +147,22 @@ def _build_code_table(data: bytes, pos: int) -> tuple[dict[int, tuple[int, int, 
                     table[base + i] = entry
 
 
+def _header(data: bytes, offset: int) -> int:
+    if offset < 0 or offset + 2 > len(data):
+        raise ValueError(f"no Nemesis header at {offset:06X}: the data ends at {len(data):06X}")
+    return struct.unpack_from(">H", data, offset)[0]
+
+
 def _walk(data: bytes, offset: int, emit: bool) -> tuple[bytes, int]:
     """Shared decoder loop. Returns (raw tiles or b'', exact compressed size)."""
-    header = struct.unpack_from(">H", data, offset)[0]
+    header = _header(data, offset)
     xor_mode = bool(header & 0x8000)
     rows_total = (header & 0x7FFF) * 8
 
-    table, pos = _build_code_table(data, offset + 2)
+    try:
+        table, pos = _build_code_table(data, offset + 2)
+    except IndexError:
+        raise ValueError(f"truncated Nemesis block at {offset:06X}: code table cut short") from None
     br = BitReader(data, pos)
 
     out = bytearray()
@@ -201,12 +210,22 @@ def _walk(data: bytes, offset: int, emit: bool) -> tuple[bytes, int]:
 
 
 def decompress(data: bytes, offset: int) -> bytes:
-    """Decompress a Nemesis block. Returns raw 4bpp tiles."""
+    """Decompress the Nemesis block at ``offset`` inside ``data``. Returns raw 4bpp tiles."""
     return _walk(data, offset, emit=True)[0]
 
 
+def decompress_blob(blob: bytes) -> bytes:
+    """Decompress a standalone block (a ``.nem`` file) rather than a slice of a ROM.
+
+    The bit reader fetches two bytes beyond the last code it acts on, so a block
+    that is not followed by other data needs two spare bytes (see
+    ``BitWriter.finish`` and ``strip_slack``).
+    """
+    return decompress(bytes(blob) + b"\x00\x00", 0)
+
+
 def info(data: bytes, offset: int) -> dict:
-    header = struct.unpack_from(">H", data, offset)[0]
+    header = _header(data, offset)
     return {"offset": offset, "tiles": header & 0x7FFF, "xor": bool(header & 0x8000)}
 
 
@@ -537,8 +556,11 @@ def compress(raw: bytes, xor_mode: bool | None = None, slack: bool = True) -> by
     best = None
     for mode in modes:
         blob = _compress_one(raw, mode, slack)
-        if decompress(blob + b"\x00\x00", 0) != raw:
-            raise AssertionError(f"self-check failed (XOR={mode})")
+        if decompress_blob(blob) != raw:
+            raise RuntimeError(
+                f"Nemesis self-check failed (XOR={mode}): the packer produced a block that "
+                "does not decode to its input. This is a bug in ga3; please report it."
+            )
         if best is None or len(blob) < len(best):
             best = blob
     return best

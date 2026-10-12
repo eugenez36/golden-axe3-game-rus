@@ -36,6 +36,11 @@ class RawHandler(Handler):
             pos = end
         return out
 
+    def sources(self, seg: Segment, paths: Paths) -> list[Path]:
+        if not self.committed:
+            return []  # passthrough files are optional overrides
+        return [path for path, _s, _e in self._files(seg, paths)]
+
     def extract(self, rom: Rom, seg: Segment, paths: Paths) -> list[Path]:
         if self.is_free:
             return []

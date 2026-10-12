@@ -45,8 +45,10 @@ output row is the accumulator XORed with the previous row.
 "Exact size" is what `ga3 nemesis size` reports: the bytes the decoder actually
 consumes. (The earlier reader-position estimate was one byte short on 12
 blocks, which is why the journal says 14033.) "Pad" is the base ROM's zero
-word-alignment after the block; the map's `end` includes it. Blocks lie back to
-back; the six bytes after the font (`44 18 FD 63 E8 00`) are data, not padding.
+word-alignment after the block; the map's `end` includes it. The twelve blocks
+from `01B780` lie nearly back to back: the six bytes after the font
+(`44 18 FD 63 E8 00`) are data, not padding, and 43 unidentified bytes sit
+between `nem_01DD16` and `nem_01E29A`.
 
 ## Why the encoder matches SEGA's
 

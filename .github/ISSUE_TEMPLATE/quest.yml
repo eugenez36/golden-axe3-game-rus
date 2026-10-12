@@ -23,7 +23,9 @@ body:
         - v0.1 — Text & Font
         - v0.2 — Nemesis packer parity
         - v0.3 — Headless emulator
+        - v0.35 — Reproducible build
         - v0.4 — Gameplay tables
+        - v0.5 — Palettes and tilemaps in ROM
         - v1.0 — Release IPS
         - none of these
   - type: checkboxes

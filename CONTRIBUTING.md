@@ -50,6 +50,9 @@ ga3 emu emu/scenes/menu_verify.txt        # or the scene that shows your change
 - PRs are **squash-merged**; the PR title becomes the commit subject.
 - Fill in the PR template. The checklist is not decorative.
 - New offsets go in `rom_map.yml`, never in code.
+- `ruff` is pinned twice, in `pyproject.toml` (`[dev]`) and in
+  `.pre-commit-config.yaml` (`rev:`); bump both in the same commit, or the hook
+  and `make lint` will disagree.
 
 ### Reporting a finding
 
@@ -102,6 +105,9 @@ ga3 emu emu/scenes/menu_verify.txt        # или сцена, показыва�
 - PR вливаются **squash'ем**; заголовок PR становится заголовком коммита.
 - Заполняйте шаблон PR. Чеклист там не для красоты.
 - Новые смещения — в `rom_map.yml`, никогда в код.
+- `ruff` закреплён дважды: в `pyproject.toml` (`[dev]`) и в
+  `.pre-commit-config.yaml` (`rev:`); поднимайте обе версии одним коммитом,
+  иначе хук и `make lint` разойдутся.
 
 ### Сообщить о находке
 

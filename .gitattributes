@@ -1,5 +1,5 @@
 # Line endings: LF everywhere. The upstream emulator source once got CRLF-mangled,
-# turning a 12-line dma_hook patch into a 6600-line diff — never again.
+# turning a 14-line dma_hook patch into a 6600-line diff — never again.
 * text=auto eol=lf
 
 # Binary asset formats (the *.bin rule in .gitignore is reserved for ROM images)

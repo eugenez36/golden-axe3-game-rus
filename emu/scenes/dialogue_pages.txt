@@ -1,5 +1,5 @@
-# Four consecutive dialogue pages (every 300 frames): the Ё / Ъ / ( ) glyph check,
-# then the twelve credits pages (every 45 frames).
+# Four consecutive dialogue pages (every 300 frames): the Ё / Ъ / ( ) glyph check.
+# The credits pages are a separate scene, credits_pages.txt.
 include _to_dialogue.inc
 screenshot build/shots/dialogue_p1.png 2
 wait 300

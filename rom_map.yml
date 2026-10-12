@@ -19,7 +19,16 @@
 #   (a `palette` type will follow once a palette is located in the ROM; today they
 #    come from emulator CRAM captures listed under `palettes:` below)
 #
-# `evidence` says how an address was proven (CONTRIBUTING rule 3).
+# Per-segment keys (beyond name/start/end|size/type/path)
+#   note, evidence   free text; `evidence` says how an address was proven (CONTRIBUTING rule 3)
+#   text:            min_len (shortest run of printable bytes that counts as a string)
+#   table:           format (u8|u16|u32), fields (one name per entry), max_hud (warn above it)
+#   nemesis:         tiles, xor (checked against the block header); font_art adds
+#                    blob (the derived .nem), first_byte, bg, ink
+#   tiles4bpp:       sheet_tiles (per PNG), cols, prefix (file stem), palette (NAME[/INDEX])
+#   free:            fill (the byte the whole range must hold)
+# The `rom:` block: title, serial, size, sha1, md5, header_checksum, entry_point --
+# size, sha1, serial, header_checksum and entry_point are enforced by `ga3 map --check`.
 # Nemesis `end` values are the exact block size plus the base ROM's 0–2 bytes
 # of zero word-alignment padding, measured with `ga3 nemesis size`.
 
@@ -50,7 +59,7 @@ segments:
   - { name: hp_table,      start: 0x00E492, end: 0x00E496, type: table,  path: data/hp_table.yml,
       format: u8, fields: [slot_0, slot_1, slot_2, slot_3], max_hud: 0x36,
       note: "start and maximum HP of the four playable characters; slot->character order still to be proven",
-      evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E484 move.b $e492(pc,d0.w),d0" }
+      evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0" }
   - { name: code_main_a,   start: 0x00E496, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
       note: "includes the healing cap at 00E49C and HP pair update at 010544" }
   - { name: free_0116B6,   start: 0x0116B6, end: 0x011800, type: free,   fill: 0xFF,
@@ -107,7 +116,7 @@ segments:
   - { name: free_05B30A,   start: 0x05B30A, end: 0x05B42E, type: free,   fill: 0x00, note: "292 bytes" }
   - { name: art_main,      start: 0x080000, end: 0x0D8000, type: tiles4bpp, path: gfx/tiles,
       prefix: art, sheet_tiles: 512, cols: 32, palette: gray,
-      note: "11520 uncompressed tiles in 23 sheets; palette unknown, rendered with a grey ramp" }
+      note: "11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp" }
   - { name: text_dialogue, start: 0x0E9B00, end: 0x0EC300, type: text,   path: text/dialogue.txt, min_len: 4,
       note: "NPC dialogue, credits and ending text" }
   - { name: text_misc,     start: 0x0FB000, end: 0x0FB500, type: text,   path: text/misc.txt, min_len: 4,

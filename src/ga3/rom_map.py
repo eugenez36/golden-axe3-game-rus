@@ -64,7 +64,7 @@ class RomMap:
         for s in self.segments:
             if s.name == name:
                 return s
-        raise KeyError(name)
+        raise RomMapError(f"no segment named {name!r} in {self.source}")
 
     def by_type(self, *types: str) -> list[Segment]:
         return [s for s in self.segments if s.type in types]
@@ -160,7 +160,10 @@ def fill_gaps(segments: list[Segment], size: int) -> list[Segment]:
 
 def load(path: str | os.PathLike) -> RomMap:
     with open(path, encoding="utf-8") as fh:
-        doc = yaml.safe_load(fh)
+        try:
+            doc = yaml.safe_load(fh)
+        except yaml.YAMLError as exc:
+            raise RomMapError(f"{path}: not valid YAML: {exc}") from None
     return parse(doc, str(path))
 
 

@@ -14,6 +14,11 @@ Editing workflow:
    that no longer fits its slot. Unchanged blocks are written back byte for byte:
    our packer is smaller than SEGA's, so recompressing would break identity.
 
+When a `.4bpp` exists it is the source of truth for that block's tiles and the
+`.nem` is only reused if it still decodes to them; a stale `.4bpp` therefore
+wins over an edited `.nem`. Delete it (or re-run `ga3 extract`) after editing a
+`.nem` directly. The build log names the file each recompressed block came from.
+
 Names are the ROM offset until a block's purpose is confirmed in-game; rename the
 file and the `path:` in `rom_map.yml` together when you prove one (the load order
 in `docs/evidence/logs/nemdec.log` is the starting point). The font is the

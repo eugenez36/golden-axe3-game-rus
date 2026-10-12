@@ -22,20 +22,21 @@ module compensates.
 
 from __future__ import annotations
 
+import argparse
 import glob
 
 
 def load(pattern: str) -> list[bytes]:
     files = sorted(glob.glob(pattern))
     if not files:
-        raise SystemExit(f"no dumps match {pattern!r}")
+        raise ValueError(f"no dumps match {pattern!r}")
     dumps = []
     for f in files:
         with open(f, "rb") as fh:
             dumps.append(fh.read())
     sizes = {len(d) for d in dumps}
     if len(sizes) != 1:
-        raise SystemExit(f"dumps differ in size: {sizes}")
+        raise ValueError(f"dumps differ in size: {sorted(sizes)}")
     print(f"dumps: {len(dumps)}, size {len(dumps[0])} bytes")
     return dumps
 
@@ -50,7 +51,7 @@ def correlate(dumps: list[bytes], series: list[float], threshold: float, min_dis
     ms = sum(series) / n
     vs = sum((x - ms) ** 2 for x in series) ** 0.5
     if vs == 0:
-        raise SystemExit("the value series is constant; correlation is meaningless")
+        raise ValueError("the value series is constant; correlation is meaningless")
     hits = []
     for off in range(len(dumps[0])):
         vals = [d[off] for d in dumps]
@@ -72,7 +73,7 @@ def cmd_corr(args) -> int:
     dumps = load(args.pattern)
     series = [float(x) for x in args.series.split(",")]
     if len(series) != len(dumps):
-        raise SystemExit(f"{len(series)} values but {len(dumps)} dumps; they must match")
+        raise ValueError(f"{len(series)} values but {len(dumps)} dumps; they must match")
     hits = correlate(dumps, series, args.threshold, args.min_distinct)
     print(f"\nbytes with |r| >= {args.threshold}: {len(hits)}")
     for _a, r, off, vals in hits[: args.limit]:
@@ -107,24 +108,32 @@ def cmd_decreasing(args) -> int:
 
 
 def add_cli(sub) -> None:
-    p = sub.add_parser("ramsearch", help="find variables in Work RAM dumps")
-    p.add_argument("--limit", type=int, default=20)
-    p.add_argument(
+    p = sub.add_parser(
+        "ramsearch",
+        help="find variables in Work RAM dumps",
+        description="Cheat-engine style search over Work RAM dumps written by the headless "
+        "emulator (see `ga3 emu`). Offsets are reported as 68000 addresses.",
+    )
+    # options live on the subcommands so that `ga3 ramsearch corr ... --limit 5` works
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--limit", type=int, default=20, help="rows to print (default 20)")
+    distinct = argparse.ArgumentParser(add_help=False)
+    distinct.add_argument(
         "--min-distinct",
         type=int,
         default=3,
-        help="minimum distinct values for a byte to count as interesting",
+        help="minimum distinct values for a byte to count as interesting (default 3)",
     )
-    s = p.add_subparsers(dest="ramcmd", required=True)
-    q = s.add_parser("corr", help="correlate with a series of values")
-    q.add_argument("pattern")
+    s = p.add_subparsers(dest="ramcmd", required=True, metavar="MODE")
+    q = s.add_parser("corr", parents=[common, distinct], help="correlate with a series of values")
+    q.add_argument("pattern", help="glob of Work RAM dumps, e.g. 'build/dumps/hp/w*.bin'")
     q.add_argument("series", help="comma-separated values, one per dump")
-    q.add_argument("--threshold", type=float, default=0.9)
+    q.add_argument("--threshold", type=float, default=0.9, help="minimum |r| (default 0.9)")
     q.set_defaults(func=cmd_corr)
-    q = s.add_parser("value", help="bytes always equal to a value")
-    q.add_argument("pattern")
-    q.add_argument("value")
+    q = s.add_parser("value", parents=[common], help="bytes always equal to a value")
+    q.add_argument("pattern", help="glob of Work RAM dumps")
+    q.add_argument("value", help="the value (decimal or 0x hex)")
     q.set_defaults(func=cmd_value)
-    q = s.add_parser("decreasing", help="bytes that only decrease")
-    q.add_argument("pattern")
+    q = s.add_parser("decreasing", parents=[common, distinct], help="bytes that only decrease")
+    q.add_argument("pattern", help="glob of Work RAM dumps")
     q.set_defaults(func=cmd_decreasing)

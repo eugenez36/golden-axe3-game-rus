@@ -1,22 +1,33 @@
 """``ga3`` command line: one entry point, one subcommand per job.
 
-Every command reads the base ROM from ``baserom/ga3.bin`` (override with
-``--rom``) and never writes a ROM anywhere except ``build/``.
+Commands read the base ROM from ``baserom/ga3.bin``; ``--rom`` points them at
+another image (trusted as is, with a note when its sha1 differs from the
+map's) and the inspection commands also take ``--file``. The base ROM is
+never overwritten: builds and patches go to ``build/`` or to the ``-o`` path.
 """
 
 from __future__ import annotations
 
 import argparse
-import contextlib
 import os
 import sys
 from pathlib import Path
 
-from . import __version__, font, nemesis, palette, ramsearch, rom_map, table, text, tiles
-from . import balance as balmod
-from . import pipeline as pl
+from . import (
+    __version__,
+    balance,
+    font,
+    nemesis,
+    palette,
+    pipeline,
+    ramsearch,
+    rom_map,
+    table,
+    text,
+    tiles,
+)
 from .assets import handler_for
-from .assets.base import write_text
+from .assets.base import write_bytes, write_text
 from .assets.nemesis_asset import FontArtHandler
 from .rom import Rom, apply_ips, diff_report, make_ips
 
@@ -26,12 +37,44 @@ def _hex(s: str) -> int:
     return int(s, 16)
 
 
-def _proj(args) -> pl.Project:
-    return pl.open_project(getattr(args, "root", None))
+def _proj(args) -> pipeline.Project:
+    return pipeline.open_project(getattr(args, "root", None))
 
 
-def _rom(args, proj: pl.Project, strict: bool = True) -> Rom:
-    return pl.load_baserom(proj, getattr(args, "rom", None), strict=strict)
+def _try_proj(args) -> pipeline.Project | None:
+    """The project, or None when the command runs outside any project tree."""
+    try:
+        return _proj(args)
+    except pipeline.PipelineError:
+        return None
+
+
+def _open_image(args, proj: pipeline.Project | None, strict: bool | None = None) -> Rom:
+    """The image a command works on: ``--file``, then ``--rom``, then the base ROM.
+
+    ``strict=None`` verifies the sha1 against rom_map.yml only for the default
+    base ROM; an explicit ``--rom`` is used as is, with a note when it differs.
+    ``strict=True`` always verifies, ``strict=False`` never does.
+    """
+    file = getattr(args, "file", None)
+    if file:
+        return Rom.load(file)
+    rom_arg = getattr(args, "rom", None)
+    if proj is None:
+        if rom_arg:
+            return Rom.load(rom_arg)
+        raise pipeline.PipelineError(
+            "no rom_map.yml found: run inside the project or pass --root, --rom or --file"
+        )
+    check = strict if strict is not None else not rom_arg
+    rom = pipeline.load_baserom(proj, rom_arg, strict=check)
+    if rom_arg and not check:
+        want = proj.map.rom.get("sha1")
+        if want and rom.sha1() != want:
+            print(
+                f"note: {rom.path}: sha1 differs from rom_map.yml ({want[:12]}...)", file=sys.stderr
+            )
+    return rom
 
 
 def _fail(msg: str) -> int:
@@ -39,41 +82,47 @@ def _fail(msg: str) -> int:
     return 1
 
 
+def _report_problems(what: str, problems: list[str]) -> int:
+    for p in problems:
+        print("  " + p)
+    print(f"{what}: {'OK' if not problems else f'{len(problems)} problem(s)'}")
+    return 0 if not problems else 1
+
+
 # ---------------------------------------------------------------- pipeline
 
 
 def cmd_extract(args) -> int:
     proj = _proj(args)
-    rom = _rom(args, proj, strict=not args.rom)
+    rom = _open_image(args, proj)
     only = set(args.only) if args.only else None
     print(f"extracting from {rom.path} (sha1 {rom.sha1()[:12]}...) into {proj.paths.assets}")
-    files = pl.extract_all(proj, rom, only)
+    files = pipeline.extract_all(proj, rom, only)
     print(f"{len(files)} file(s) written")
     if args.png:
         _previews(proj, rom)
     return 0
 
 
-def _previews(proj: pl.Project, rom: Rom) -> None:
+def _previews(proj: pipeline.Project, rom: Rom) -> None:
     for seg in proj.map.by_type("nemesis"):
         raw = nemesis.decompress(rom.data, seg.start)
         out = proj.paths.preview(Path(seg.path).with_suffix(".png").name)
-        os.makedirs(out.parent, exist_ok=True)
         tiles.dump_tiles(raw, 0, len(raw) // 32, str(out), cols=16, scale=2)
         print(f"  preview {out.relative_to(proj.root)}")
 
 
 def cmd_build(args) -> int:
     proj = _proj(args)
-    base = _rom(args, proj)
+    base = _open_image(args, proj)
     out = Path(args.out).resolve() if args.out else None
-    pl.build(proj, base, out=out, ips=not args.no_ips)
+    pipeline.build(proj, base, out=out, ips=not args.no_ips)
     return 0
 
 
 def cmd_verify(args) -> int:
     proj = _proj(args)
-    ok = pl.verify(proj, update=args.update)
+    ok = pipeline.verify(proj, update=args.update)
     print("verify: OK" if ok else "verify: FAILED")
     return 0 if ok else 1
 
@@ -84,12 +133,9 @@ def cmd_map(args) -> int:
         print(rom_map.markdown_table(proj.map), end="")
         return 0
     if args.check:
-        rom = _rom(args, proj)
-        problems = pl.check_map(proj, rom)
-        for p in problems:
-            print("  " + p)
-        print(f"map check: {'OK' if not problems else str(len(problems)) + ' problem(s)'}")
-        return 0 if not problems else 1
+        return _report_problems("map check", pipeline.check_map(proj, _open_image(args, proj)))
+    if args.check_assets:
+        return _report_problems("asset check", pipeline.check_assets(proj))
     print(rom_map.coverage_report(proj.map))
     if args.list:
         for s in proj.map.segments:
@@ -123,7 +169,7 @@ def cmd_assets(args) -> int:
     return 0
 
 
-def _rom_map_doc(proj: pl.Project) -> str:
+def _rom_map_doc(proj: pipeline.Project) -> str:
     cov = proj.map.coverage()
     total = proj.map.size
     info = proj.map.rom
@@ -156,7 +202,7 @@ def cmd_asm(args) -> int:
     from . import disasm
 
     proj = _proj(args)
-    rom = _rom(args, proj)
+    rom = _open_image(args, proj)
     out_dir = proj.paths.asset("code/asm")
     n = 0
     for seg in proj.map.by_type("code"):
@@ -171,11 +217,7 @@ def cmd_asm(args) -> int:
 
 
 def cmd_info(args) -> int:
-    if args.rom:
-        print(Rom.load(args.rom).summary())
-        return 0
-    proj = _proj(args)
-    print(_rom(args, proj, strict=False).summary())
+    print(_open_image(args, _try_proj(args), strict=False).summary())
     return 0
 
 
@@ -189,60 +231,32 @@ def cmd_diff(args) -> int:
 
 
 def cmd_patch(args) -> int:
+    a = Path(args.orig).read_bytes()
     if args.patchcmd == "make":
-        with open(args.orig, "rb") as f:
-            a = f.read()
-        with open(args.patched, "rb") as f:
-            b = f.read()
-        data = make_ips(a, b)
-        os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-        with open(args.out, "wb") as f:
-            f.write(data)
-        print(f"{args.out}  ({len(data)} bytes)")
+        data = make_ips(a, Path(args.patched).read_bytes())
+        payload = len(data) - 8
+        what = "no changes" if payload == 0 else f"{payload} B of records"
+        print(f"{write_bytes(Path(args.out), data)}  ({len(data)} bytes, {what})")
     else:
-        with open(args.orig, "rb") as f:
-            a = f.read()
-        with open(args.ips, "rb") as f:
-            p = f.read()
-        out = apply_ips(a, p)
-        os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-        with open(args.out, "wb") as f:
-            f.write(out)
-        print(f"{args.out}  ({len(out)} bytes)")
+        out = apply_ips(a, Path(args.ips).read_bytes())
+        print(f"{write_bytes(Path(args.out), out)}  ({len(out)} bytes)")
     return 0
 
 
-def _palette_ref(proj: pl.Project | None, ref: str | None, rom: Rom | None):
-    if not ref:
-        return None
-    if ref.lower().startswith("0x") or all(c in "0123456789abcdefABCDEF" for c in ref):
-        if rom is None:
-            raise SystemExit("a ROM is needed to read a palette by offset")
-        return palette.pal_decode(rom.data, int(ref, 16))
-    name, _, idx = ref.partition("/")
-    if proj is None:
-        raise SystemExit("palette names need a project (rom_map.yml)")
-    pals = palette.load_pal(str(proj.paths.asset(f"palettes/{name}.pal")))
-    return pals[int(idx or 0)]
-
-
 def cmd_tiles(args) -> int:
-    proj = None
-    with contextlib.suppress(pl.PipelineError):
-        proj = _proj(args)
+    proj = _try_proj(args)
     if args.tilescmd == "import":
         raw = tiles.import_indexed(args.png) if args.indexed else tiles.import_tiles(args.png)
-        with open(args.out, "wb") as f:
-            f.write(raw)
+        write_bytes(Path(args.out), raw)
         print(f"{args.out}  ({len(raw) // 32} tiles)")
         return 0
-    src = Rom.load(args.file) if args.file else _rom(args, proj, strict=False)
+    src = _open_image(args, proj, strict=False)
     off = _hex(args.off)
     if args.tilescmd == "ascii":
         print(tiles.render_ascii(src.data, off, args.count, args.cols))
         return 0
-    pal = _palette_ref(proj, args.palette, src)
-    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
+    pal_dir = proj.paths.asset("palettes") if proj else None
+    pal = palette.resolve_ref(args.palette, pal_dir, src.data)
     tiles.dump_tiles(
         src.data,
         off,
@@ -258,8 +272,7 @@ def cmd_tiles(args) -> int:
 
 
 def cmd_pals(args) -> int:
-    proj = _proj(args)
-    rom = _rom(args, proj, strict=False)
+    rom = _open_image(args, _try_proj(args), strict=False)
     found = palette.find_palettes(rom.data)
     print(f"palette-shaped blocks: {len(found)} (heuristic; expect false positives)")
     for o in found[: args.limit]:
@@ -274,16 +287,14 @@ def cmd_nemesis(args) -> int:
             raw = f.read()
         mode = {"auto": None, "on": True, "off": False}[args.xor]
         blob = nemesis.compress(raw, mode, slack=not args.no_slack)
-        os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-        with open(args.out, "wb") as f:
-            f.write(blob)
+        write_bytes(Path(args.out), blob)
         meta = nemesis.info(blob, 0)
         print(
             f"{meta['tiles']} tiles, XOR={meta['xor']} -> {len(blob)} bytes "
             f"({100.0 * len(blob) / len(raw):.1f}% of {len(raw)} raw)"
         )
         return 0
-    src = Rom.load(args.file) if args.file else _rom(args, _proj(args), strict=False)
+    src = _open_image(args, _try_proj(args), strict=False)
     off = _hex(args.offset)
     if args.nemcmd == "size":
         meta = nemesis.info(src.data, off)
@@ -297,21 +308,18 @@ def cmd_nemesis(args) -> int:
         file=sys.stderr,
     )
     if args.out:
-        os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-        with open(args.out, "wb") as f:
-            f.write(raw)
+        write_bytes(Path(args.out), raw)
         print(args.out)
     return 0
 
 
 def cmd_text(args) -> int:
     proj = _proj(args)
+    rom = _open_image(args, proj, strict=False)
     if args.textcmd == "export":
-        rom = _rom(args, proj, strict=False)
-        pl.extract_all(proj, rom, {s.name for s in proj.map.by_type("text")})
+        pipeline.extract_all(proj, rom, {s.name for s in proj.map.by_type("text")})
         return 0
     # verify
-    rom = _rom(args, proj, strict=False)
     rc = 0
     for seg in proj.map.by_type("text"):
         path = proj.paths.asset(seg.path)
@@ -342,7 +350,7 @@ def cmd_font(args) -> int:
     bg = seg.get("bg", font.DEFAULT_BG)
     ink = seg.get("ink", font.DEFAULT_INK)
     if args.fontcmd == "export-art":
-        rom = _rom(args, proj, strict=False)
+        rom = _open_image(args, proj, strict=False)
         files = h.extract(rom, seg, proj.paths)
         print("\n".join(str(f.relative_to(proj.root)) for f in files))
         return 0
@@ -351,12 +359,11 @@ def cmd_font(args) -> int:
         pal = [(0, 0, 0)] * 16
         pal[bg] = (255, 255, 255)
         pal[ink] = (0, 0, 0)
-        os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
         tiles.dump_tiles(raw, 0, len(raw) // 32, args.out, palette=pal, cols=16, scale=args.scale)
         print(args.out)
         return 0
     # info
-    rom = _rom(args, proj, strict=False)
+    rom = _open_image(args, proj, strict=False)
     in_rom = nemesis.block_size(rom.data, seg.start)
     repack = len(nemesis.compress(raw, slack=False))
     free = font.free_slots(raw, first, bg)
@@ -371,7 +378,7 @@ def cmd_balance(args) -> int:
     proj = _proj(args)
     seg = proj.map.by_name("hp_table")
     path = proj.paths.asset(seg.path)
-    values = balmod.read_hp(path)
+    values = balance.read_hp(path)
     if args.balcmd == "show":
         print(f"HP table ({seg.path}, ROM {seg.start:06X}):")
         for k, v in values.items():
@@ -380,9 +387,9 @@ def cmd_balance(args) -> int:
     new = [int(v, 0) for v in args.values]
     if len(new) != len(values):
         return _fail(f"expected {len(values)} values")
-    for w in balmod.validate_hp(new):
+    for w in balance.validate_hp(new, seg.get("max_hud")):
         print("  warning: " + w, file=sys.stderr)
-    balmod.write_hp(path, dict(zip(values.keys(), new, strict=True)))
+    balance.write_hp(path, dict(zip(values.keys(), new, strict=True)))
     print(f"HP: {list(values.values())} -> {new}  (written to {seg.path}; run `ga3 build`)")
     return 0
 
@@ -390,8 +397,8 @@ def cmd_balance(args) -> int:
 def cmd_disasm(args) -> int:
     from . import disasm
 
-    src = Rom.load(args.file) if args.file else _rom(args, _proj(args), strict=False)
-    start = _hex(args.addr) - args.back
+    src = _open_image(args, _try_proj(args), strict=False)
+    start = max(0, _hex(args.addr) - args.back)
     print(disasm.fmt(disasm.disasm(bytes(src.data), start, args.count)))
     return 0
 
@@ -438,30 +445,47 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("build", help="rebuild build/ga3.bin and build/ga3.ips from assets/")
     p.add_argument("-o", "--out", help="output ROM path (default build/ga3.bin)")
-    p.add_argument("--no-ips", action="store_true")
+    p.add_argument("--no-ips", action="store_true", help="do not write the IPS patch")
+    p.add_argument(
+        "--rom",
+        default=argparse.SUPPRESS,
+        help="build on top of this image instead of the base ROM",
+    )
     p.set_defaults(func=cmd_build)
 
-    p = sub.add_parser("verify", help="check sha1 of base ROM and build against roms.sha1")
+    p = sub.add_parser(
+        "verify",
+        help="check base ROM and build against roms.sha1; check the IPS reproduces the build",
+    )
     p.add_argument("--update", action="store_true", help="record the current hashes")
     p.set_defaults(func=cmd_verify)
 
     p = sub.add_parser("map", help="rom_map.yml coverage, consistency checks, Markdown table")
     p.add_argument("--check", action="store_true", help="validate the map against the base ROM")
-    p.add_argument("--markdown", action="store_true")
+    p.add_argument(
+        "--check-assets",
+        action="store_true",
+        help="only check that every committed asset file exists (needs no ROM)",
+    )
+    p.add_argument("--markdown", action="store_true", help="print the segment table as Markdown")
     p.add_argument("--list", action="store_true", help="list every segment")
     p.set_defaults(func=cmd_map)
 
     p = sub.add_parser(
         "assets", help="refresh derived files (encoding.tbl, font.nem, docs/rom_map.md)"
     )
-    p.add_argument("assetscmd", nargs="?", default="refresh", choices=["refresh"])
+    p.add_argument(
+        "assetscmd", nargs="?", default="refresh", choices=["refresh"], help="the action"
+    )
     p.set_defaults(func=cmd_assets)
 
-    p = sub.add_parser("asm", help="write Capstone listings for every code segment")
+    p = sub.add_parser(
+        "asm", help="write Capstone listings for every code segment ([disasm] extra)"
+    )
     p.set_defaults(func=cmd_asm)
 
     p = sub.add_parser("info", help="header, checksum and sha1 of a ROM")
-    p.add_argument("rom", nargs="?", help="ROM path (default: base ROM)")
+    p.add_argument("file", nargs="?", help="ROM to describe (default: --rom, then the base ROM)")
     p.set_defaults(func=cmd_info)
 
     p = sub.add_parser("diff", help="compare two images")
@@ -566,7 +590,11 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     try:
         return args.func(args)
-    except pl.PipelineError as exc:
-        return _fail(str(exc))
-    except (ValueError, FileNotFoundError) as exc:
-        return _fail(str(exc))
+    except KeyboardInterrupt:
+        return 130
+    except (RuntimeError, ValueError, LookupError, OSError) as exc:
+        # PipelineError/BuildError are RuntimeErrors, RomMapError a ValueError,
+        # a bad segment name a LookupError, a missing file an OSError.
+        if os.environ.get("GA3_DEBUG"):
+            raise
+        return _fail(str(exc) or type(exc).__name__)

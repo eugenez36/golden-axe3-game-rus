@@ -73,23 +73,23 @@ class Rom:
         return sum(struct.unpack(">%dH" % (len(body) // 2), body)) & 0xFFFF
 
     def stored_checksum(self) -> int:
-        return struct.unpack(">H", self.data[HDR_CHECKSUM : HDR_CHECKSUM + 2])[0]
+        return self.u16(HDR_CHECKSUM)
 
     def fix_checksum(self) -> int:
         cs = self.compute_checksum()
-        struct.pack_into(">H", self.data, HDR_CHECKSUM, cs)
+        self.set_u16(HDR_CHECKSUM, cs)
         return cs
 
     def checksum_ok(self) -> bool:
         return self.stored_checksum() == self.compute_checksum()
 
     def rom_bounds(self) -> tuple[int, int]:
-        return struct.unpack(">II", self.data[HDR_ROM_START : HDR_ROM_START + 8])
+        return self.u32(HDR_ROM_START), self.u32(HDR_ROM_END)
 
     def fix_rom_end(self) -> int:
         """ROM end = address of the last byte of the image."""
         end = len(self.data) - 1
-        struct.pack_into(">I", self.data, HDR_ROM_END, end)
+        self.set_u32(HDR_ROM_END, end)
         return end
 
     def expand(self, size: int = 0x200000, fill: int = 0xFF) -> None:
@@ -98,10 +98,7 @@ class Rom:
             raise ValueError("expand(): new size is smaller than the current image")
         self.data.extend(bytes([fill]) * (size - len(self.data)))
 
-    # -- scalar access -------------------------------------------------------
-
-    def u8(self, off: int) -> int:
-        return self.data[off]
+    # -- big-endian word access ----------------------------------------------
 
     def u16(self, off: int) -> int:
         return struct.unpack_from(">H", self.data, off)[0]
@@ -109,23 +106,11 @@ class Rom:
     def u32(self, off: int) -> int:
         return struct.unpack_from(">I", self.data, off)[0]
 
-    def set_u8(self, off: int, val: int) -> None:
-        self.data[off] = val & 0xFF
-
     def set_u16(self, off: int, val: int) -> None:
         struct.pack_into(">H", self.data, off, val & 0xFFFF)
 
     def set_u32(self, off: int, val: int) -> None:
         struct.pack_into(">I", self.data, off, val & 0xFFFFFFFF)
-
-    def find_all(self, pattern: bytes, start: int = 0) -> list[int]:
-        out, i = [], start
-        while True:
-            i = self.data.find(pattern, i)
-            if i < 0:
-                return out
-            out.append(i)
-            i += 1
 
     def sha1(self) -> str:
         return hashlib.sha1(self.data).hexdigest()
@@ -165,7 +150,10 @@ def diff(a: bytes, b: bytes, max_gap: int = 8) -> list[tuple[int, bytes, bytes]]
         spans.append((start, last))
     if len(b) > len(a):  # the image was expanded
         spans.append((len(a), len(b) - 1))
-    return [(s, bytes(a[s : e + 1]), bytes(b[s : e + 1])) for s, e in spans]
+    out = [(s, bytes(a[s : e + 1]), bytes(b[s : e + 1])) for s, e in spans]
+    if len(b) < len(a):  # the image was truncated: the removed tail, with an empty ``new``
+        out.append((len(b), bytes(a[len(b) :]), b""))
+    return out
 
 
 def diff_report(a: bytes, b: bytes, limit: int = 24) -> str:
@@ -173,6 +161,9 @@ def diff_report(a: bytes, b: bytes, limit: int = 24) -> str:
     total = sum(len(new) for _, _, new in ch)
     head = [f"changes: {len(ch)}, bytes affected: {total}", f"size: {len(a)} -> {len(b)}"]
     for off, old, new in ch[:limit]:
+        if not new:
+            head.append(f"  {off:06X}  {len(old)} byte(s) removed from the end")
+            continue
         head.append(
             f"  {off:06X}  {old[:16].hex(' ')}  ->  {new[:16].hex(' ')}"
             + (f"  (+{len(new) - 16} B)" if len(new) > 16 else "")
@@ -182,46 +173,72 @@ def diff_report(a: bytes, b: bytes, limit: int = 24) -> str:
     return "\n".join(head)
 
 
+IPS_EOF_OFFSET = 0x454F46  # the bytes "EOF" read as a 24-bit record offset
+IPS_MAX_RECORD = 0xFFFF
+
+
 def make_ips(orig: bytes, patched: bytes) -> bytes:
-    """Build an IPS patch. 24-bit offsets: images up to 16 MiB."""
-    if len(patched) > 0xFFFFFF:
+    """Build an IPS patch. 24-bit offsets: images up to 16 MiB.
+
+    A shrunken image is expressed with the common truncation extension (the
+    new length after ``EOF``), which ``apply_ips`` honours.
+    """
+    if max(len(orig), len(patched)) > 0xFFFFFF:
         raise ValueError("IPS cannot address images larger than 16 MiB")
     out = bytearray(b"PATCH")
     for off, _old, new in diff(orig, patched, max_gap=5):
-        # An offset of 0x454F46 would read as the "EOF" marker: start one byte earlier.
-        if off == 0x454F46 and off > 0:
-            off -= 1
-            new = patched[off : off + len(new) + 1]
-        i = 0
-        while i < len(new):
-            chunk = new[i : i + 0xFFFF]
-            out += (off + i).to_bytes(3, "big") + len(chunk).to_bytes(2, "big") + chunk
-            i += len(chunk)
+        if not new:  # the removed tail is covered by the truncation trailer
+            continue
+        pos, end = off, off + len(new)
+        while pos < end:
+            if pos == IPS_EOF_OFFSET:
+                # A record starting here would read as the end marker. Start it one
+                # byte earlier instead and re-send a byte that is already correct.
+                pos -= 1
+            n = min(IPS_MAX_RECORD, end - pos)
+            out += pos.to_bytes(3, "big") + n.to_bytes(2, "big") + patched[pos : pos + n]
+            pos += n
     out += b"EOF"
+    if len(patched) < len(orig):
+        out += len(patched).to_bytes(3, "big")
     return bytes(out)
 
 
 def apply_ips(orig: bytes, ips: bytes) -> bytes:
-    """Apply an IPS patch (plain and RLE records; the truncation extension is honoured)."""
+    """Apply an IPS patch (plain and RLE records; the truncation extension is honoured).
+
+    Raises ``ValueError`` on a malformed or truncated patch rather than
+    producing a silently incomplete image.
+    """
     if ips[:5] != b"PATCH":
         raise ValueError("not an IPS file (missing PATCH header)")
     out = bytearray(orig)
     pos = 5
+
+    def take(n: int) -> bytes:
+        nonlocal pos
+        if pos + n > len(ips):
+            raise ValueError(
+                f"truncated IPS patch: record at byte {pos} needs {n} more byte(s), "
+                f"file has {len(ips)}"
+            )
+        chunk = ips[pos : pos + n]
+        pos += n
+        return chunk
+
     while True:
+        if pos + 3 > len(ips):
+            raise ValueError("truncated IPS patch: no EOF marker")
         if ips[pos : pos + 3] == b"EOF":
             pos += 3
             break
-        off = int.from_bytes(ips[pos : pos + 3], "big")
-        size = int.from_bytes(ips[pos + 3 : pos + 5], "big")
-        pos += 5
+        off = int.from_bytes(take(3), "big")
+        size = int.from_bytes(take(2), "big")
         if size == 0:  # RLE record
-            run = int.from_bytes(ips[pos : pos + 2], "big")
-            value = ips[pos + 2]
-            pos += 3
-            payload = bytes([value]) * run
+            run = int.from_bytes(take(2), "big")
+            payload = take(1) * run
         else:
-            payload = ips[pos : pos + size]
-            pos += size
+            payload = take(size)
         end = off + len(payload)
         if end > len(out):
             out.extend(b"\x00" * (end - len(out)))

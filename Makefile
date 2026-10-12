@@ -11,6 +11,8 @@
 #   make regress    run every emu/scenes/*.txt against build/ga3.bin
 #   make clean      rm -rf build/
 #   make distclean  clean + virtualenv + caches
+#   make venv       create .venv and install ga3 with the [dev,disasm] extras
+#   make help       print this list
 #
 # Variables: PYTHON (interpreter used to create .venv), GPGX (emulator core dir).
 
@@ -36,7 +38,7 @@ extract: $(GA3) $(BASEROM)
 
 verify: build
 	$(GA3) verify
-	@command -v sha1sum >/dev/null && sha1sum -c roms.sha1 || shasum -c roms.sha1
+	@if command -v sha1sum >/dev/null; then sha1sum -c roms.sha1; else shasum -c roms.sha1; fi
 
 test: $(PYTEST)
 	$(PYTEST) -q
@@ -52,6 +54,7 @@ asm: $(GA3) $(BASEROM)
 	$(GA3) asm
 
 emu:
+	$(MAKE) -C emu/headless check-core GPGX=$(GPGX)
 	$(MAKE) -C emu/headless GPGX=$(GPGX) BUILD=$(CURDIR)/build/emu
 
 regress: build emu
@@ -68,10 +71,19 @@ distclean: clean
 
 # -- tooling --------------------------------------------------------------
 
-venv $(GA3) $(PYTEST) $(RUFF):
+# One install per change of pyproject.toml: the stamp keeps `make build test lint`
+# from running pip three times on a cold tree.
+STAMP := $(VENV)/.installed
+
+venv: $(STAMP)
+
+$(GA3) $(PYTEST) $(RUFF): $(STAMP)
+
+$(STAMP): pyproject.toml
 	@test -d $(VENV) || $(PYTHON) -m venv $(VENV)
 	$(VENV)/bin/pip install -q --upgrade pip
 	$(VENV)/bin/pip install -q -e ".[dev,disasm]"
+	@touch $@
 
 $(BASEROM):
 	@echo "error: $(BASEROM) is missing."
@@ -80,4 +92,4 @@ $(BASEROM):
 	@exit 1
 
 help:
-	@sed -n '2,15p' $(MAKEFILE_LIST)
+	@sed -n '2,17p' $(MAKEFILE_LIST)

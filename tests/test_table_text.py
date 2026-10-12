@@ -65,3 +65,32 @@ def test_insert_pads_with_spaces():
     assert bytes(data[8:13]) == table.encode("ИГР") + b"\x20\x20"
     with pytest.raises(ValueError):
         text.insert_strings(data, [(8, 5, "ГЕРОЙ!")], 0, len(data))
+
+
+def test_bad_escape_is_reported_with_position():
+    for bad in ("{zz}", "{1}", "ИГ{0", "{"):
+        with pytest.raises(ValueError, match="bad escape"):
+            table.encode(bad)
+
+
+def test_tbl_lists_every_byte_exactly_once():
+    active = [
+        ln.split("=", 1)[0]
+        for ln in table.format_tbl().splitlines()
+        if ln and not ln.startswith(("#", "*", "/"))
+    ]
+    assert len(active) == len(set(active)) == len(table.BYTE_TO_CHAR)
+    assert "# 30=0" in table.format_tbl()  # the alias survives, as a comment
+
+
+def test_case_fallback_accepts_byte_zero(monkeypatch):
+    # a hypothetical glyph at byte 0 must not be mistaken for "not found"
+    monkeypatch.setitem(table.CHAR_TO_BYTE, "Ω", 0)
+    assert table.encode("ω") == b"\x00"
+
+
+def test_count_changed_counts_unencodable_and_shortened_rows():
+    data = b"\x00" * 8 + table.encode("ИГРОК")
+    assert text.count_changed([(8, 5, "ИГРОК")], data) == 0
+    assert text.count_changed([(8, 5, "ИГР")], data) == 1
+    assert text.count_changed([(8, 5, "ИГРОß")], data) == 1
