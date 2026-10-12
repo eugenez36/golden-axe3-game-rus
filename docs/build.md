@@ -98,13 +98,15 @@ committed.
 
 ## Byte identity, in numbers
 
-| Commit                   | `build/ga3.bin`                                                                                                                             |
-|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| pristine assets          | `e9538c05…` = the base ROM                                                                                                                  |
-| translation edits ported | `d2329d84…`; differs from the base only at the checksum, `0179F3–017A0A`, `01D861–01DBA5`, `0EBBDC`, `0EBC29–0EBC2E`                        |
-| menu version (0.3.6)     | `be7f3b21…`; adds the routine at `0116B6–0116E1`, the hook at `014F86` and glyph `V` in the font                                            |
-| text proofreading (#6)   | `77895c70…`; text fixes, glyph `ё`, the main-menu items relocated to `0116F6–011716`                                                        |
-| kill counter (#11)       | `d47cd65f…`; code at `011716–011800`, `05AEAA–05AFC6`, `05B30A–05B41A`, hooks at `000E04`, `000E74`, `00C7F8`, `00F006`, `00F8BC`, `014FF6` |
+| Commit                    | `build/ga3.bin`                                                                                                                             |
+|---------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| pristine assets           | `e9538c05…` = the base ROM                                                                                                                  |
+| translation edits ported  | `d2329d84…`; differs from the base only at the checksum, `0179F3–017A0A`, `01D861–01DBA5`, `0EBBDC`, `0EBC29–0EBC2E`                        |
+| menu version (0.3.6)      | `be7f3b21…`; adds the routine at `0116B6–0116E1`, the hook at `014F86` and glyph `V` in the font                                            |
+| text proofreading (#6)    | `77895c70…`; text fixes, glyph `ё`, the main-menu items relocated to `0116F6–011716`                                                        |
+| kill counter (#11)        | `d47cd65f…`; code at `011716–011800`, `05AEAA–05AFC6`, `05B30A–05B41A`, hooks at `000E04`, `000E74`, `00C7F8`, `00F006`, `00F8BC`, `014FF6` |
+| kill counter to 999 (#21) | `1bc128b9…`; also «РАНГ» (#16), no counter in a duel (#17), the owner's splash year and header note (#19)                                   |
+| release 0.3.7             | `133c1ba1…`; only the menu version line changes                                                                                             |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the

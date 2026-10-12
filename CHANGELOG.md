@@ -8,6 +8,11 @@ follow the roadmap in the README (`ga3 --version`, shown in the main menu as
 
 ## [Unreleased]
 
+## [0.3.7] — 2026-10-12
+
+The proofread text, the kill counter (to 999) and the bug hunt, with the
+toolkit and documentation work behind them. The main menu shows `V 0.3.7`.
+
 ### Added
 
 - **Kill counter** next to each player's HUD (#11, #17): enemies killed by
@@ -69,6 +74,7 @@ follow the roadmap in the README (`ga3 --version`, shown in the main menu as
   screenshots, dumps, watchpoints.
 - CI, pre-commit hooks, bilingual README, contribution and style guides.
 
-[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/aa2624b...HEAD
+[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.3.7...HEAD
+[0.3.7]: https://github.com/eugenez36/golden-axe3-game-rus/compare/1e4ccb1...v0.3.7
 [0.3.6]: https://github.com/eugenez36/golden-axe3-game-rus/commit/1e4ccb1
 [0.3.5]: https://github.com/eugenez36/golden-axe3-game-rus/commit/aa2624b
