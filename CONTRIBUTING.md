@@ -48,6 +48,12 @@ ga3 emu emu/scenes/menu_verify.txt        # or the scene that shows your change
   separate commits when possible, so `git log -- assets/` reads as the
   translation's history.
 - PRs are **squash-merged**; the PR title becomes the commit subject.
+- Every PR into `main` needs **at least one approving review** from someone
+  other than its author; a new push dismisses earlier approvals. The owner may
+  merge without one in an emergency, through the PR, never by a direct push.
+  GitHub enforces this with a ruleset created by
+  `.github/scripts/protect-main.sh` (needs GitHub Pro for a private repository;
+  until then the rule is ours to keep).
 - Fill in the PR template. The checklist is not decorative.
 - New offsets go in `rom_map.yml`, never in code.
 - `ruff` is pinned twice, in `pyproject.toml` (`[dev]`) and in
@@ -103,6 +109,11 @@ ga3 emu emu/scenes/menu_verify.txt        # или сцена, показыва�
   кода — по возможности отдельными коммитами, чтобы `git log -- assets/` читался
   как история перевода.
 - PR вливаются **squash'ем**; заголовок PR становится заголовком коммита.
+- Любой PR в `main` требует **хотя бы одного одобряющего ревью** не от автора;
+  новый push сбрасывает прежние одобрения. Владелец в крайнем случае может
+  влить PR без ревью — только через PR, не прямым push. GitHub следит за этим
+  набором правил из `.github/scripts/protect-main.sh` (для приватного
+  репозитория нужен GitHub Pro; пока его нет, правило держится на нас).
 - Заполняйте шаблон PR. Чеклист там не для красоты.
 - Новые смещения — в `rom_map.yml`, никогда в код.
 - `ruff` закреплён дважды: в `pyproject.toml` (`[dev]`) и в
