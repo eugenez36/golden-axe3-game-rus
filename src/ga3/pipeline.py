@@ -123,7 +123,7 @@ def extract_all(proj: Project, rom: Rom, only: set[str] | None = None, log=print
 
 def build(proj: Project, base: Rom, out: Path | None = None, ips: bool = True, log=print) -> Rom:
     rom = Rom(bytes(base.data), str(out or proj.build_rom))
-    size = proj.map.size
+    size = proj.map.image_size
     if len(rom.data) < size:
         rom.expand(size, fill=0xFF)
     for seg in proj.map.segments:

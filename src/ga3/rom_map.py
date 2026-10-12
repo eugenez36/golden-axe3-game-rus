@@ -91,7 +91,13 @@ class RomMap:
 
     @property
     def size(self) -> int:
+        """Size of the base ROM (the dump ``map --check`` compares against)."""
         return int(self.rom["size"])
+
+    @property
+    def image_size(self) -> int:
+        """Size of the built image: ``rom.build_size`` when the map expands it."""
+        return int(self.rom.get("build_size", self.rom["size"]))
 
     def by_name(self, name: str) -> Segment:
         for s in self.segments:
@@ -154,6 +160,13 @@ def parse(doc: dict[str, Any], source: str = "rom_map.yml") -> RomMap:
         raise RomMapError(f"{source}: expected top-level 'rom' and 'segments' keys")
     rom = dict(doc["rom"])
     size = _int(rom.get("size"), "rom.size")
+    image = size
+    if "build_size" in rom:
+        image = _int(rom["build_size"], "rom.build_size")
+        if not size <= image <= 0x400000 or image % 0x20000:
+            raise RomMapError(
+                "rom.build_size: expected a multiple of 128 KiB between rom.size and 4 MiB"
+            )
     segments = [_parse_segment(s, i) for i, s in enumerate(doc["segments"])]
 
     names = [s.name for s in segments]
@@ -168,12 +181,12 @@ def parse(doc: dict[str, Any], source: str = "rom_map.yml") -> RomMap:
     for s in ordered:
         if prev is not None and s.start < prev.end:
             raise RomMapError(f"segments overlap: {prev} and {s}")
-        if s.end > size:
-            raise RomMapError(f"{s} extends past rom.size 0x{size:X}")
+        if s.end > image:
+            raise RomMapError(f"{s} extends past the image (0x{image:X})")
         prev = s
 
     _attach_patches(doc.get("patches") or {}, ordered)
-    filled = fill_gaps(ordered, size)
+    filled = fill_gaps(ordered, image)
     palettes = dict(doc.get("palettes") or {})
     path, constants = _parse_constants(doc.get("constants"), size)
     return RomMap(rom, palettes, filled, source, constants, path)
@@ -283,7 +296,7 @@ def load(path: str | os.PathLike) -> RomMap:
 
 def coverage_report(rm: RomMap) -> str:
     cov = rm.coverage()
-    total = rm.size
+    total = rm.image_size
     lines = [f"{rm.source}: {len(rm.declared())} declared segments, {len(rm.segments)} with gaps"]
     for t, n in sorted(cov.items(), key=lambda kv: -kv[1]):
         lines.append(f"  {t:10s} {n:8d} B  {100.0 * n / total:5.1f}%")

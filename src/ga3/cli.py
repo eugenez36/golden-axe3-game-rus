@@ -171,16 +171,21 @@ def cmd_assets(args) -> int:
 
 def _rom_map_doc(proj: pipeline.Project) -> str:
     cov = proj.map.coverage()
-    total = proj.map.size
+    total = proj.map.image_size
     info = proj.map.rom
+    grown = (
+        f" The build expands it to {total} bytes ({total // 0x100000} MiB)."
+        if total != proj.map.size
+        else ""
+    )
     lines = [
         "# ROM map",
         "",
         "Generated from `rom_map.yml` by `ga3 assets refresh`. Do not edit by hand.",
         "",
-        f"Image: **{info.get('title')}**, {total} bytes, sha1 `{info.get('sha1')}`,",
+        f"Base image: **{info.get('title')}**, {proj.map.size} bytes, sha1 `{info.get('sha1')}`,",
         f"header checksum `{info.get('header_checksum'):04X}`, "
-        f"entry point `{info.get('entry_point'):06X}`.",
+        f"entry point `{info.get('entry_point'):06X}`.{grown}",
         "",
         "## Coverage",
         "",
