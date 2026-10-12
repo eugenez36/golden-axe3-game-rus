@@ -29,3 +29,10 @@ repos:
         description: the same guard as the CI job — no *.bin/*.gen/*.smd, no 512 KiB+ file with a SEGA header
         language: script
         entry: .github/scripts/no-rom-images.sh
+      - id: align-md-tables
+        name: align Markdown tables
+        description: pad every table column to its widest cell; docs/rom_map.md is generated and left as is
+        language: script
+        entry: .github/scripts/align-md-tables.py
+        files: '\.md$'
+        exclude: '^docs/rom_map\.md$|^emu/gpgx/'
