@@ -14,5 +14,5 @@ ram_start: 0x00FF0000
 ram_end: 0x00FFFFFF
 sram_info: '            '
 modem_info: '            '
-notes: '                                        '
+notes: '   Friends editions version             '
 region: 'J E             '
