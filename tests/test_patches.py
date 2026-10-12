@@ -234,8 +234,51 @@ def _real_project():
     return open_project(ROOT)
 
 
+def test_kill_counter_assembles_into_its_three_slots():
+    from ga3.assets.patch_asset import assembled
+
+    proj = _real_project()
+    segs = {
+        s.get("section"): s for s in proj.map.by_type("patch") if s.get("patch") == "kill_counter"
+    }
+    assert set(segs) == {"count", "hud", "tiles"}
+    labels = None
+    for section, seg in segs.items():
+        body, todo, labels = assembled(seg, proj.paths)
+        assert 0 < len(body) <= seg.size, f"{section}: {len(body)} B in a {seg.size} B slot"
+        for e in todo:  # every hook is a jmp into this patch
+            assert e.new[:2] == b"\x4e\xf9"
+            target = int.from_bytes(e.new[2:], "big")
+            assert any(s.start <= target < s.end for s in segs.values())
+    assert labels["melee_a0"] == segs["count"].start
+    assert labels["frame"] == segs["hud"].start
+    assert labels["tiles"] == segs["tiles"].start
 
 
+def test_kill_counter_glyphs_come_from_the_font_art():
+    from ga3 import font as fontlib
+    from ga3.assets.patch_asset import _glyph_tables
+
+    proj = _real_project()
+    seg = next(s for s in proj.map.by_type("patch") if s.get("section") == "tiles")
+    src, derived = _glyph_tables(seg, proj.paths)
+    assert derived == {"BLANK_GLYPH": 10}
+    rows = [
+        int(b.strip("$"), 16)
+        for line in src.splitlines()
+        if "dc.b" in line
+        for b in line.split("dc.b")[1].replace(" ", "").split(",")
+    ]
+    assert len(rows) == 11 * 8
+    art = fontlib.parse_art_file(str(proj.paths.asset("gfx/font/font.txt")))
+    one = art[table.encode("1")[0]]
+    for y in range(8):
+        row = "".join(
+            "#" if (one[y * 4 + x // 2] >> (4 if x % 2 == 0 else 0) & 0xF) == 6 else "."
+            for x in range(8)
+        )
+        assert row == f"{rows[8 + y]:08b}".replace("1", "#").replace("0", ".")
+    assert rows[10 * 8 : 11 * 8] == [0] * 8  # the blank glyph
 
 
 def test_verify_built_catches_a_later_overwrite(tmp_path):
