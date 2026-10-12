@@ -9,6 +9,15 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+### Added
+
+- **Gameplay constants:** numbers inside the code (instruction operands) are
+  mapped under `constants:` in `rom_map.yml` with their instructions' base-ROM
+  bytes and edited by name in `assets/data/gameplay.yml`. The first two:
+  **spare lives** (2; at the start and after a continue) and **credits**
+  (continues, 4). `ga3 balance set lives 5`, `ga3 balance show`; the table is
+  in `docs/rom_map.md`.
+
 ## [0.37.400] — 2026-10-12
 
 The proofread text, the kill counter (to 999) and the bug hunt, with the
