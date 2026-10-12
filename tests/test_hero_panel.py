@@ -52,6 +52,7 @@ def test_bad_data_is_refused(panel):
         hero_panel.render(long, glyphs, VRAM_TILE, 118)
 
 
+@pytest.mark.rom
 def test_numbers_match_the_rom_tables(baserom, panel):
     """hp, hit, super and speed come from the game's own tables, not from memory."""
     doc, _p = panel
