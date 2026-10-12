@@ -7,7 +7,7 @@ against what the base ROM holds there before anything is written.
 
 | Patch          | What it does                                                             | Kind                                           |
 |----------------|--------------------------------------------------------------------------|------------------------------------------------|
-| `menu_version` | `V x.y.z` at the bottom right of the main menu                           | routine in `ga3.patches`                       |
+| `menu_version` | `V X.YY.ZZZ` at the bottom right of the main menu                        | routine in `ga3.patches`                       |
 | `menu_items`   | main-menu items 8 characters wide (`1 ИГРОК / 2 ИГРОКА / ДУЭЛЬ / ОПЦИИ`) | routine in `ga3.patches`                       |
 | `kill_counter` | enemies killed by each player, next to their HUD                         | assembled from `assets/patches/kill_counter.s` |
 

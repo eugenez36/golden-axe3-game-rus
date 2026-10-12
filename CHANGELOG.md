@@ -1,17 +1,19 @@
 # Changelog
 
 All notable changes to the toolkit and to the image it builds. The format
-follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions
-follow the roadmap in the README (`ga3 --version`, shown in the main menu as
-`V x.y.z`). Every change to the ROM also changes the build hash recorded in
-`roms.sha1`.
+follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions are
+`X.YY.ZZZ`, zero-padded everywhere (`0.37.400`, `0.38.001`): in `ga3 --version`,
+in the main menu (`V X.YY.ZZZ`) and in the tags (`vX.YY.ZZZ`); releases before
+0.37.400 kept their old numbers. Every change to the ROM also changes the build
+hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
-## [0.3.7] — 2026-10-12
+## [0.37.400] — 2026-10-12
 
 The proofread text, the kill counter (to 999) and the bug hunt, with the
-toolkit and documentation work behind them. The main menu shows `V 0.3.7`.
+toolkit and documentation work behind them. First release numbered
+`X.YY.ZZZ`; the main menu shows `V 0.37.400`.
 
 ### Added
 
@@ -41,7 +43,9 @@ toolkit and documentation work behind them. The main menu shows `V 0.3.7`.
 - **Game text proofread** (#6): spelling and punctuation fixes, the lower-case
   «ё», main-menu items widened to 8 characters («2 ИГРОКА»), options labels
   «МУЗ.» / «ЗВУК». Details in `docs/ru/proofreading.md`.
-- The main menu shows the toolkit version as `V x.y.z` (#5).
+- The main menu shows the toolkit version (#5), now as `V X.YY.ZZZ`.
+- Versions are `X.YY.ZZZ`, zero-padded; a test keeps `ga3.__version__`,
+  `pyproject.toml` and the menu line in that form.
 - `docs/rom_map.md` escapes Markdown in notes and evidence (#12).
 - Documentation reviewed against the code: stale facts, wording and
   formatting fixed (#12, #13).
@@ -74,7 +78,7 @@ toolkit and documentation work behind them. The main menu shows `V 0.3.7`.
   screenshots, dumps, watchpoints.
 - CI, pre-commit hooks, bilingual README, contribution and style guides.
 
-[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.3.7...HEAD
-[0.3.7]: https://github.com/eugenez36/golden-axe3-game-rus/compare/1e4ccb1...v0.3.7
+[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.400...HEAD
+[0.37.400]: https://github.com/eugenez36/golden-axe3-game-rus/compare/1e4ccb1...v0.37.400
 [0.3.6]: https://github.com/eugenez36/golden-axe3-game-rus/commit/1e4ccb1
 [0.3.5]: https://github.com/eugenez36/golden-axe3-game-rus/commit/aa2624b

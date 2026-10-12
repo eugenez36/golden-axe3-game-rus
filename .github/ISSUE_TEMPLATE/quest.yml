@@ -20,13 +20,13 @@ body:
     attributes:
       label: Fits which milestone?
       options:
-        - v0.1 — Text & Font
-        - v0.2 — Nemesis packer parity
-        - v0.3 — Headless emulator
+        - v0.10 — Text & Font
+        - v0.20 — Nemesis packer parity
+        - v0.30 — Headless emulator
         - v0.35 — Reproducible build
-        - v0.4 — Gameplay tables
-        - v0.5 — Palettes and tilemaps in ROM
-        - v1.0 — Release IPS
+        - v0.40 — Gameplay tables
+        - v0.50 — Palettes and tilemaps in ROM
+        - v1.00 — Release IPS
         - none of these
   - type: checkboxes
     id: constraints

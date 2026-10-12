@@ -72,9 +72,10 @@ applied back as a self-check, and saved as `build/ga3.ips`.
 
 ### The version in the main menu
 
-`menu_version` draws `V <version>` at the bottom right of the main menu. The
-version is `ga3.__version__` (`src/ga3/__init__.py`, kept equal to
-`pyproject.toml`), so a version bump changes the image: rebuild, run
+`menu_version` draws `V X.YY.ZZZ` (for example `V 0.37.400`) at the bottom
+right of the main menu. The version is `ga3.__version__` (`src/ga3/__init__.py`,
+kept equal to `pyproject.toml`; `tests/test_version.py` checks both and the
+zero-padded form), so a version bump changes the image: rebuild, run
 `ga3 verify --update` and commit `roms.sha1` with the bump. Allowed characters
 are those of the font: digits, `.`, `-`, Latin `V` (slot `0x40`) and the
 Cyrillic letters; the build refuses anything else. `emu/scenes/menu.txt` and
@@ -106,7 +107,7 @@ committed.
 | text proofreading (#6)    | `77895c70…`; text fixes, glyph `ё`, the main-menu items relocated to `0116F6–011716`                                                        |
 | kill counter (#11)        | `d47cd65f…`; code at `011716–011800`, `05AEAA–05AFC6`, `05B30A–05B41A`, hooks at `000E04`, `000E74`, `00C7F8`, `00F006`, `00F8BC`, `014FF6` |
 | kill counter to 999 (#21) | `1bc128b9…`; also «РАНГ» (#16), no counter in a duel (#17), the owner's splash year and header note (#19)                                   |
-| release 0.3.7             | `133c1ba1…`; only the menu version line changes                                                                                             |
+| release 0.37.400          | `012e83d2…`; only the menu version line changes                                                                                             |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the

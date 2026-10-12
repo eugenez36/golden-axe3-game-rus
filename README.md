@@ -155,14 +155,14 @@ still `unknown`; `ga3 map` prints the exact figure and the ranges.
 
 ## Roadmap
 
-- [x] **v0.1 — Text & Font** · byte-exact round-trip, glyph editor, Ё / Ъ / ( ), translator credit
-- [x] **v0.2 — Nemesis packer parity** · smaller than the original on all 14 blocks, self-verifying
-- [x] **v0.3 — Headless emulator** · scenes, screenshots, dumps, watchpoints, `dma_hook`
+- [x] **v0.10 — Text & Font** · byte-exact round-trip, glyph editor, Ё / Ъ / ( ), translator credit
+- [x] **v0.20 — Nemesis packer parity** · smaller than the original on all 14 blocks, self-verifying
+- [x] **v0.30 — Headless emulator** · scenes, screenshots, dumps, watchpoints, `dma_hook`
 - [x] **v0.35 — Reproducible build** · `rom_map.yml`, `assets/`, `build/`, `roms.sha1`, tests, CI
-- [x] **v0.3.7 — Text and kill counter** · proofread text, kill counter up to 999, bug hunt ([CHANGELOG](CHANGELOG.md))
-- [ ] **v0.4 — Gameplay tables** · lives, magic, timers (method ready in `ga3 ramsearch`); kill counter done
-- [ ] **v0.5 — Palettes and tilemaps in ROM** · turn the grey tile sheets into real colours
-- [ ] **v1.0 — Release IPS** · verified patch with RU + EN docs
+- [x] **v0.37.400 — Text and kill counter** · proofread text, kill counter up to 999, bug hunt ([CHANGELOG](CHANGELOG.md))
+- [ ] **v0.40 — Gameplay tables** · lives, magic, timers (method ready in `ga3 ramsearch`); kill counter done
+- [ ] **v0.50 — Palettes and tilemaps in ROM** · turn the grey tile sheets into real colours
+- [ ] **v1.00 — Release IPS** · verified patch with RU + EN docs
 
 Progress is tracked in [milestones](https://github.com/eugenez36/golden-axe3-game-rus/milestones).
 
