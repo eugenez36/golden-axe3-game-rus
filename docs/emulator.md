@@ -12,7 +12,7 @@ reports which code writes where. Every address in `rom_map.yml` was found with i
 make emu                                   # -> build/emu/headless_gpgx
 ga3 emu emu/scenes/menu_verify.txt         # runs against build/ga3.bin
 build/emu/headless_gpgx --rom build/ga3.bin --script emu/scenes/title.txt
-make regress                               # every scene in emu/scenes/
+make regress                               # every scene in emu/scenes/, one per CPU (JOBS=N to limit)
 ```
 
 Command line: `--rom FILE` (required), `--script FILE` (`-` reads stdin),

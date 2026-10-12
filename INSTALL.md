@@ -61,7 +61,7 @@ make               # build/ga3.bin + build/ga3.ips from assets/
 make verify        # sha1sum -c roms.sha1 and an IPS self-check
 make test          # pytest, including the ROM-gated tests now that the ROM is present
 make emu           # build/emu/headless_gpgx
-make regress       # run every scene in emu/scenes/ against build/ga3.bin
+make regress       # run every scene in emu/scenes/ against build/ga3.bin, in parallel (JOBS=N)
 ```
 
 A successful `make verify` on a fresh clone with unchanged assets means the
