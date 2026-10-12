@@ -11,8 +11,9 @@
 ; when the enemy dies (HP to zero, or freed alive because it fell off the
 ; stage), the marked player's counter goes up (to 99).
 ; Display: every frame, just before the game waits for VBlank, the sprite list
-; is walked; for each player whose HUD is on screen two digit tiles go to free
-; VRAM and one 2x1 sprite is appended right of the HUD.
+; is walked; for each player whose HUD is on screen (its sprites and its art in
+; VRAM) two digit tiles go to free VRAM and one 2x1 sprite is appended right of
+; the HUD.
 ; Reset: choosing a game mode in the main menu clears both counters.
 
 ; ---------------------------------------------------------------- counting
@@ -167,6 +168,9 @@ hud:
         bra.s   .walk
 .last:  move.l  a2,d1
         beq.s   .p2
+        move.w  #HUD_P1,d1
+        bsr.s   loaded
+        beq.s   .p2
         moveq   #0,d3
         move.b  KILLS.w,d3
         moveq   #0,d1                   ; tiles 0 and 1
@@ -175,6 +179,9 @@ hud:
         moveq   #0,d1
         bsr.s   sprite
 .p2:    move.l  a3,d1
+        beq.s   .done
+        move.w  #HUD_P2,d1
+        bsr.s   loaded
         beq.s   .done
         moveq   #0,d3
         move.b  KILLS+1.w,d3
@@ -206,6 +213,27 @@ sprite:
         move.w  d3,6(a4)
         addq.w  #1,d2
 .done:  rts
+
+; is the art of the HUD whose third block starts at tile d1 in VRAM? ne: yes.
+; A spell clears the HUD tiles, and the game reloads them a few frames after
+; the HUD sprites are back; until then the counter would float on its own.
+; Each block (third, second, first: 16 tiles apart) begins with a border row.
+loaded:
+        moveq   #2,d3
+.block: moveq   #0,d0
+        move.w  d1,d0
+        lsl.l   #7,d0                   ; VDP read command for tile d1:
+        lsr.w   #2,d0                   ; 32 bytes a tile, then as in `tiles`
+        swap    d0                      ; with CD0 = 0
+        move.l  d0,VDP_CTRL
+        tst.w   VDP_DATA
+        beq.s   .no
+        subi.w  #$10,d1
+        dbra    d3,.block
+        moveq   #1,d0
+        rts
+.no:    moveq   #0,d0
+        rts
 
         section tiles
 
