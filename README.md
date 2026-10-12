@@ -134,7 +134,7 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | Range | Contents |
 |---|---|
 | `000000–000200` | vectors and header (entry point moved by the translators to `0FFA20`) |
-| `000200–01B780` | 68000 code, with the HP table at `00E492`, a Nemesis block at `013E76`, the menu / stage / ending text and a 330-byte hole at `0116B6` |
+| `000200–01B780` | 68000 code, with the HP table at `00E492`, a Nemesis block at `013E76`, the menu / stage / ending text, the menu-version routine at `0116B6` and a 266-byte hole after it |
 | `01B780–01E3DC` | 12 Nemesis blocks nearly back to back (a 6-byte data stub after the font, 43 unknown bytes at `01E26F`), the font at `01D85E` (840 B) |
 | `0295EE–029F08` | one more Nemesis block (208 tiles) |
 | `080000–0D8000` | 11 264 uncompressed 4bpp tiles |
@@ -142,7 +142,7 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `0FC000–0FFA20` | PCM samples |
 | `0FFA20–100000` | the relocated entry stub |
 
-Free space: **914 bytes** in three verified holes. About half of the image is
+Free space: **850 bytes** in three verified holes (64 of the original 914 hold the menu-version routine). About half of the image is
 still `unknown`; `ga3 map` prints the exact figure and the ranges.
 
 ## Roadmap

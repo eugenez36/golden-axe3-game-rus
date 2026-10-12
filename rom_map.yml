@@ -16,6 +16,8 @@
 #   tiles4bpp  uncompressed 4bpp tiles              -> assets/gfx/tiles/*.png (indexed)
 #   pcm        raw sample data                      -> assets/sound/pcm/*.pcm
 #   free       filler verified to hold `fill`; candidate space for relocated data
+#   patch      generated 68000 routine (ga3.patches) in former free space, plus a
+#              jmp hook over six bytes elsewhere; nothing is extracted
 #   (a `palette` type will follow once a palette is located in the ROM; today they
 #    come from emulator CRAM captures listed under `palettes:` below)
 #
@@ -27,6 +29,8 @@
 #                    blob (the derived .nem), first_byte, bg, ink
 #   tiles4bpp:       sheet_tiles (per PNG), cols, prefix (file stem), palette (NAME[/INDEX])
 #   free:            fill (the byte the whole range must hold)
+#   patch:           routine, hook, hook_bytes (base ROM bytes at hook, hex), fill,
+#                    plus the routine's parameters (menu_version: return_to, vram_end, attr)
 # The `rom:` block: title, serial, size, sha1, md5, header_checksum, entry_point --
 # size, sha1, serial, header_checksum and entry_point are enforced by `ga3 map --check`.
 # Nemesis `end` values are the exact block size plus the base ROM's 0–2 bytes
@@ -62,8 +66,13 @@ segments:
       evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0" }
   - { name: code_main_a,   start: 0x00E496, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
       note: "includes the healing cap at 00E49C and HP pair update at 010544" }
-  - { name: free_0116B6,   start: 0x0116B6, end: 0x011800, type: free,   fill: 0xFF,
-      note: "330 bytes" }
+  - { name: menu_version,  start: 0x0116B6, size: 0x40,    type: patch,  fill: 0xFF,
+      routine: menu_version, hook: 0x014F86, hook_bytes: "72 00 60 00 00 86", return_to: 0x015010,
+      vram_end: 0xCD4C, attr: 0xE000,
+      note: "draws 'V <package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6",
+      evidence: "disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)" }
+  - { name: free_0116F6,   start: 0x0116F6, end: 0x011800, type: free,   fill: 0xFF,
+      note: "266 bytes" }
   - { name: code_main_b,   start: 0x011800, end: 0x013E76, type: code,   path: code/code_main_b.m68k,
       note: "NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2" }
   - { name: nem_013E76,    start: 0x013E76, end: 0x014013, type: nemesis, path: gfx/nemesis/nem_013E76.nem,

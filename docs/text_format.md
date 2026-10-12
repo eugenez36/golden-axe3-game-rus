@@ -84,7 +84,8 @@ moving anything.
 
 ## Growing text
 
-Not possible in place. Free space is 914 bytes in three holes
-(`0116B6`, `05AEAA`, `05B30A`) plus a probable 170-byte filler at `01B6D6`.
+Not possible in place. Free space is 850 bytes in three holes
+(`0116F6`, `05AEAA`, `05B30A`; the first 64 bytes at `0116B6` now hold the
+menu-version routine) plus a probable 170-byte filler at `01B6D6`.
 Relocating a string means finding and rewriting its pointer; no pointer table
 has been mapped yet. `Rom.expand()` to 2 MiB exists for when that day comes.

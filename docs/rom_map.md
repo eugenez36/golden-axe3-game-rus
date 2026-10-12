@@ -15,8 +15,9 @@ header checksum `9BB5`, entry point `0FFA20`.
 | pcm | 14880 | 1.4% |
 | nemesis | 14050 | 1.3% |
 | text | 13217 | 1.3% |
-| free | 914 | 0.1% |
+| free | 850 | 0.1% |
 | header | 512 | 0.0% |
+| patch | 64 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
 
@@ -30,7 +31,8 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `000284–00E492` | code | code_boot | `code/code_boot.m68k` |  |
 | `00E492–00E496` | table | hp_table | `data/hp_table.yml` | format u8; start and maximum HP of the four playable characters; slot->character order still to be proven; *evidence: watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0* |
 | `00E496–0116B6` | code | code_main_a | `code/code_main_a.m68k` | includes the healing cap at 00E49C and HP pair update at 010544 |
-| `0116B6–011800` | free | free_0116B6 |  | filled with 0xFF; 330 bytes |
+| `0116B6–0116F6` | patch | menu_version |  | filled with 0xFF; draws 'V <package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6; *evidence: disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)* |
+| `0116F6–011800` | free | free_0116F6 |  | filled with 0xFF; 266 bytes |
 | `011800–013E76` | code | code_main_b | `code/code_main_b.m68k` | NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2 |
 | `013E76–014013` | nemesis | nem_013E76 | `gfx/nemesis/nem_013E76.nem` | 50 tiles |
 | `014013–014E00` | code | code_main_c | `code/code_main_c.m68k` |  |
