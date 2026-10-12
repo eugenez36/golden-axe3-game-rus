@@ -28,7 +28,7 @@ patches:
       count: [[0x000E04, "93 28 01 42 6A 04", melee_a0], ...]
     glyphs: { section: tiles, art: gfx/font/font.txt, chars: "0123456789 ", ink: 0x06, bg: 0x0C }
 segments:
-  - { name: kill_counter_count, start: 0x011716, size: 0xA0, type: patch, fill: 0xFF,
+  - { name: kill_counter_count, start: 0x011716, end: 0x011800, type: patch, fill: 0xFF,
       patch: kill_counter, section: count }
 ```
 
@@ -64,9 +64,9 @@ with the object). The kill goes to the marked player, to 99, in their byte at
 
 An enemy no player hit counts for nobody, also when it falls by itself. An
 enemy that leaves the screen alive after a player's hit would count as well;
-none was seen doing that on the 13 stages. The counters live in Work RAM the game never writes after boot (watched over the
-stages); choosing a game mode in the main menu (`014FF6`) clears them, so they
-carry over from stage to stage.
+none was seen doing that on the 13 stages. The counters live in Work RAM the
+game never writes after boot (watched over the stages); choosing a game mode in
+the main menu (`014FF6`) clears them, so they carry over from stage to stage.
 
 **Display.** Before the game waits for VBlank (`00F006`) the patch walks the
 sprite list (`FFE5CA`, DMA'd to the SAT every frame), finds the third HUD block
@@ -78,7 +78,16 @@ pixel at build time, drawn in palette 0's white on blue like a dialogue box.
 started on any of the 13 stages; the title and menus use it, which is why the
 tiles are uploaded every frame the HUD is on screen and never elsewhere.
 
+A counter is drawn only once its HUD's art is in VRAM: the patch reads back the
+first word of each of the player's three HUD blocks (every block starts with a
+non-zero border row). A spell clears the HUD tiles, and when it ends the game
+puts the HUD sprites back 6-12 frames before it has reloaded their art, block
+by block; a stage start loads the art late in the same way. Without the check
+the digits showed alone next to an empty HUD for those frames.
+
 **Checked.** `emu/scenes/kill_counter.txt` (hits), magic kills, a 2-player game
 (each player's kills go to their counter), all 13 stages through the level
 select (`A A A A START C C C C C C` on the character select), the reset, and
 `ga3 lag`: one frame more in 2944 (a magic load pause of 48 frames became 49).
+The HUD art check was verified on VRAM dumped every frame across a spell and a
+stage start of a 2-player game: the digits never show without the HUD art.
