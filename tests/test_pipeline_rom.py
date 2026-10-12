@@ -51,9 +51,12 @@ def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
     generated = _generated_ranges(project)
     assert generated, "rom_map.yml declares no patch; drop this masking"
     size = len(baserom.data)
-    expansion = bytes(built.data[size:])
     assert len(built.data) == project.map.image_size
-    assert expansion == b"\xff" * (project.map.image_size - size)  # rom.build_size: free space
+    expansion = bytearray(built.data[size:])  # rom.build_size: FF outside the patch slots
+    for start, end in generated:
+        if start >= size:
+            expansion[start - size : end - size] = b"\xff" * (end - start)
+    assert expansion == b"\xff" * (project.map.image_size - size)
     masked = [bytearray(baserom.data), bytearray(built.data[:size])]
     for start, end in generated:
         for image in masked:
