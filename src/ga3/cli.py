@@ -313,18 +313,50 @@ def cmd_nemesis(args) -> int:
     return 0
 
 
+def _text_units(proj: pipeline.Project) -> list[tuple]:
+    """Every strings file the build reads: ``(segment, path, prose spans or None)``.
+
+    ``text`` segments may restrict real prose with ``prose: [[start, end], ...]``
+    (the rest of a scanned region is data that happens to be printable); strings
+    embedded in code, and those a patch relocates, are prose throughout.
+    """
+    units = []
+    for seg in proj.map.segments:
+        if seg.type == "text":
+            prose = seg.get("prose")
+            spans = [tuple(p) for p in prose] if prose is not None else None
+            units.append((seg, proj.paths.asset(seg.path), spans))
+        elif (seg.type in ("code", "data") and seg.get("strings") is not None) or (
+            seg.type == "patch" and seg.get("strings_path") is not None
+        ):
+            units.append((seg, proj.paths.asset(seg.get("strings_path")), None))
+    return units
+
+
+def _prose_rows(seg, path: Path, spans) -> list:
+    rows = text.parse_strings_file(str(path))
+    if seg.type == "text":
+        rows = [r for r in rows if spans is not None and text.in_spans(r[0], r[1], spans)]
+    return rows
+
+
 def cmd_text(args) -> int:
     proj = _proj(args)
-    rom = _open_image(args, proj, strict=False)
+    units = _text_units(proj)
     if args.textcmd == "export":
-        pipeline.extract_all(proj, rom, {s.name for s in proj.map.by_type("text")})
+        rom = _open_image(args, proj, strict=False)
+        pipeline.extract_all(proj, rom, {seg.name for seg, _p, _s in units})
         return 0
+    if args.textcmd == "lint":
+        return _text_lint(units)
+    if args.textcmd == "preview":
+        return _text_preview(args, proj, units)
     # verify
+    rom = _open_image(args, proj, strict=False)
     rc = 0
-    for seg in proj.map.by_type("text"):
-        path = proj.paths.asset(seg.path)
+    for seg, path, _spans in units:
         if not path.exists():
-            print(f"  {seg.name}: missing {seg.path}")
+            print(f"  {seg.name}: missing {path.relative_to(proj.paths.assets)}")
             rc = 1
             continue
         rows = text.parse_strings_file(str(path))
@@ -338,6 +370,66 @@ def cmd_text(args) -> int:
             print("      " + p)
             rc = 1
     return rc
+
+
+def _text_lint(units) -> int:
+    total = 0
+    for seg, path, spans in units:
+        if seg.type == "text" and spans is None:
+            continue  # no prose declared: the region is not checked
+        allow = {int(k): list(v) for k, v in (seg.get("lint_allow") or {}).items()}
+        rows = _prose_rows(seg, path, spans)
+        findings = text.lint(rows, allow)
+        print(f"  {seg.name:14s} {len(rows):4d} prose strings, {len(findings)} finding(s)")
+        for f in findings:
+            print("      " + f)
+        total += len(findings)
+    if not total:
+        return 0
+    for rule, (_pattern, why) in text.LINT_RULES.items():
+        print(f"  rule {rule}: {why}")
+    return 1
+
+
+def _text_preview(args, proj: pipeline.Project, units) -> int:
+    """Render prose records with the current font art: one PNG per strings file."""
+    seg = next((s for s in proj.map.by_type("nemesis") if s.get("format") == "font_art"), None)
+    if seg is None:
+        return _fail("rom_map.yml has no nemesis segment with format: font_art")
+    h: FontArtHandler = handler_for(seg)  # type: ignore[assignment]
+    raw = h.raw_from_art(seg, proj.paths)
+    first = seg.get("first_byte", font.DEFAULT_FIRST_BYTE)
+    pal = [(0, 0, 0)] * 16
+    pal[seg.get("bg", font.DEFAULT_BG)] = (255, 255, 255)
+    pal[seg.get("ink", font.DEFAULT_INK)] = (0, 0, 0)
+    base = _open_image(args, proj, strict=False) if args.changed else None
+    out_dir = Path(args.out)
+    written = []
+    for tseg, path, spans in units:
+        if tseg.type == "text" and spans is None:
+            continue
+        rows = _prose_rows(tseg, path, spans)
+        if base is not None:
+            rows = [r for r in rows if text.count_changed([r], base.data)]
+        if not rows:
+            continue
+        width = max(ln for _o, ln, _t in rows)
+        blank = raw[0:32]  # the space glyph
+        sheet = b""
+        for _off, _ln, txt in rows:
+            enc = table.encode(txt).ljust(width, b"\x20")
+            for b in enc:
+                i = b - first
+                sheet += raw[i * 32 : i * 32 + 32] if 0 <= i < len(raw) // 32 else blank
+        dest = out_dir / f"{tseg.name}.png"
+        tiles.dump_tiles(
+            sheet, 0, len(sheet) // 32, str(dest), palette=pal, cols=width, scale=args.scale
+        )
+        written.append(dest)
+        print(f"{dest}  ({len(rows)} strings)")
+    if not written:
+        print("nothing to render")
+    return 0
 
 
 def cmd_font(args) -> int:
@@ -549,8 +641,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("text", help="export or verify text assets")
     s = p.add_subparsers(dest="textcmd", required=True)
-    s.add_parser("export")
-    s.add_parser("verify")
+    s.add_parser("export", help="extract every strings file from the ROM (overwrites edits)")
+    s.add_parser("verify", help="check every strings file against its segment")
+    s.add_parser("lint", help="mechanical checks of the prose (no ROM needed)")
+    q = s.add_parser("preview", help="render the prose with the current font art")
+    q.add_argument("-o", "--out", default="build/preview/text")
+    q.add_argument("--scale", type=int, default=3)
+    q.add_argument("--changed", action="store_true", help="only strings that differ from the ROM")
     p.set_defaults(func=cmd_text)
 
     p = sub.add_parser("font", help="font block: info, export-art, export-png")

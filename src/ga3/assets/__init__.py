@@ -16,7 +16,7 @@ from .nemesis_asset import FontArtHandler, NemesisHandler
 from .patch_asset import PatchHandler
 from .raw_asset import RawHandler
 from .table_asset import TableHandler
-from .text_asset import TextHandler
+from .text_asset import EmbeddedTextHandler, TextHandler
 from .tiles_asset import TilesHandler
 
 HANDLERS: dict[str, Handler] = {
@@ -35,11 +35,14 @@ HANDLERS: dict[str, Handler] = {
 }
 
 _FONT = FontArtHandler()
+_EMBEDDED_TEXT = EmbeddedTextHandler()
 
 
 def handler_for(seg) -> Handler:
     if seg.type == "nemesis" and seg.get("format") == "font_art":
         return _FONT
+    if seg.type in ("code", "data") and seg.get("strings") is not None:
+        return _EMBEDDED_TEXT
     try:
         return HANDLERS[seg.type]
     except KeyError:

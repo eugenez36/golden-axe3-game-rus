@@ -1,0 +1,14 @@
+# code_main_d: game text, ROM range 0151A0-016C00
+# Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
+# A string may not grow: the ROM is full and edits are in place.
+# {XX} is a byte with no glyph in the font (or one that does not round-trip).
+# In-game strings are separated by 0xFF; here each string is one record.
+
+015318:6 | ОБЫЧНО
+01531E:6 | ТРУДНО
+0153AA:6 | МАГИЯ 
+0153B0:6 | АТАКА 
+0153B6:6 | ПРЫЖОК
+015C48:14 | ИГРОК 2: СТАРТ
+016BC8:5 | ОЧКИ 
+016BCD:4 | ЭТАП

@@ -1,0 +1,11 @@
+# Main menu -> ДУЭЛЬ -> character select. «ИГРОК 2: СТАРТ» blinks at the bottom
+# (32 frames on, 32 off) inviting player 2 in instead of the computer.
+include _boot.inc
+press down 6
+press down 6
+wait 20
+screenshot build/shots/duel_menu.png 2
+press start 10
+wait 167
+screenshot build/shots/duel_select.png 2
+dump vram build/dumps/duel_select_vram.bin

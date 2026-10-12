@@ -2,7 +2,7 @@
 
 import pytest
 
-from ga3 import __version__, patches, table
+from ga3 import __version__, patches, table, text
 from ga3.assets import BuildError, Paths, handler_for
 from ga3.rom import Rom
 from ga3.rom_map import Segment
@@ -100,7 +100,7 @@ def test_handler_places_body_and_hook(tmp_path):
     seg, rom = _segment(), _image()
     handler = handler_for(seg)
     assert handler.check(rom, seg) == []
-    assert "hook at 000100" in handler.build(rom, seg, _paths(tmp_path))
+    assert "edits at 000100" in handler.build(rom, seg, _paths(tmp_path))
     body = patches.menu_version(VRAM_END, ATTR, RETURN_TO, patches.version_text())
     assert rom.data[HOOK : HOOK + 6] == patches.jmp_abs(0x200)
     assert rom.data[0x200 : 0x200 + len(body)] == body
@@ -111,9 +111,9 @@ def test_handler_places_body_and_hook(tmp_path):
 def test_handler_refuses_a_hook_that_is_not_the_expected_code(tmp_path):
     seg, rom = _segment(), _image()
     rom.data[HOOK] = 0x4E
-    with pytest.raises(BuildError, match="hook 0x000100 holds"):
+    with pytest.raises(BuildError, match="0x000100 holds"):
         handler_for(seg).build(rom, seg, _paths(tmp_path))
-    assert any("hook" in p for p in handler_for(seg).check(rom, seg))
+    assert any("0x000100 holds" in p for p in handler_for(seg).check(rom, seg))
 
 
 def test_check_reports_a_slot_that_is_not_free():
@@ -141,3 +141,83 @@ def test_handler_refuses_a_routine_larger_than_its_slot(tmp_path):
     seg = _segment(end=0x210)
     with pytest.raises(BuildError, match="overflow"):
         handler_for(seg).build(_image(), seg, _paths(tmp_path))
+
+
+# ---------------------------------------------------------------- menu_items
+
+ITEMS_LEA, HEADER_LEA, WIDTH_IMM = 0x10A, 0x112, 0x119
+OLD_ITEMS, OLD_HEADER = 0x130, 0x150
+
+
+def _items_segment(**over) -> Segment:
+    attrs = {
+        "routine": "menu_items",
+        "strings_path": "text/menu_items.txt",
+        "item_width": 8,
+        "items": 4,
+        "items_lea": ITEMS_LEA,
+        "items_was": OLD_ITEMS,
+        "header_lea": HEADER_LEA,
+        "header_was": OLD_HEADER,
+        "header_item": 1,
+        "width_imm": WIDTH_IMM,
+        "width_was": 7,
+        "fill": 0xFF,
+    } | over
+    return Segment("menu_items", 0x200, 0x220, "patch", None, attrs)
+
+
+def _items_image() -> Rom:
+    data = bytearray(0x400)
+    data[0x108:0x10C] = bytes.fromhex("41FA") + (OLD_ITEMS - ITEMS_LEA).to_bytes(2, "big")
+    data[0x110:0x114] = bytes.fromhex("41FA") + (OLD_HEADER - HEADER_LEA).to_bytes(2, "big")
+    data[0x118:0x11A] = bytes.fromhex("7E06")  # moveq #6,d7: seven characters
+    data[0x200:0x220] = b"\xff" * 0x20
+    return Rom(bytes(data))
+
+
+def _write_items(tmp_path, names) -> None:
+    path = tmp_path / "assets" / "text" / "menu_items.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = [(0x200 + 8 * i, 8, n) for i, n in enumerate(names)]
+    path.write_text(text.format_strings_file(rows, "menu_items", 0x200, 0x220), encoding="utf-8")
+
+
+ITEM_NAMES = ["1 ИГРОК", "2 ИГРОКА", "ДУЭЛЬ", "ОПЦИИ"]
+
+
+def test_menu_items_places_the_table_and_retargets_the_code(tmp_path):
+    seg, rom = _items_segment(), _items_image()
+    _write_items(tmp_path, ITEM_NAMES)
+    h = handler_for(seg)
+    assert h.check(rom, seg) == []
+    assert h.sources(seg, _paths(tmp_path)) == [tmp_path / "assets/text/menu_items.txt"]
+    h.build(rom, seg, _paths(tmp_path))
+    assert bytes(rom.data[0x200:0x220]) == b"".join(table.encode(n).ljust(8) for n in ITEM_NAMES)
+    lea = int.from_bytes(rom.data[ITEMS_LEA : ITEMS_LEA + 2], "big", signed=True)
+    assert ITEMS_LEA + lea == 0x200
+    lea = int.from_bytes(rom.data[HEADER_LEA : HEADER_LEA + 2], "big", signed=True)
+    assert HEADER_LEA + lea == 0x208  # item 2, redrawn grey without a second pad
+    assert bytes(rom.data[0x118:0x11A]) == bytes.fromhex("7E07")
+
+
+def test_menu_items_refuses_a_bad_strings_file(tmp_path):
+    seg = _items_segment()
+    _write_items(tmp_path, ITEM_NAMES[:3])
+    with pytest.raises(BuildError, match="must hold exactly the records"):
+        handler_for(seg).build(_items_image(), seg, _paths(tmp_path))
+    _write_items(tmp_path, ["1 ИГРОК", "ДЛИННОЕ ИМЯ", "ДУЭЛЬ", "ОПЦИИ"])
+    with pytest.raises(BuildError, match="longer than 8"):
+        handler_for(seg).build(_items_image(), seg, _paths(tmp_path))
+
+
+def test_menu_items_refuses_code_that_drifted(tmp_path):
+    seg, rom = _items_segment(), _items_image()
+    _write_items(tmp_path, ITEM_NAMES)
+    rom.data[0x119] = 0x05
+    assert any("0x000118 holds" in p for p in handler_for(seg).check(rom, seg))
+    with pytest.raises(BuildError, match="0x000118 holds 7e 05, expected 7e 06"):
+        handler_for(seg).build(rom, seg, _paths(tmp_path))
+    far = _items_segment(items_was=0x9000)
+    with pytest.raises(BuildError, match="cannot reach"):
+        handler_for(far).build(_items_image(), far, _paths(tmp_path))

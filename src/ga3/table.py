@@ -15,10 +15,13 @@ Pitfalls worth remembering:
     second byte, the reverse table keeps the first one and ``decode_lossless``
     exports the other as {XX}, so text stays readable and edits exact
     (``test_every_byte_roundtrips_losslessly`` guards that invariant).
-  * 0x71 is «й» (the «и» glyph plus a breve), 0x50 is «ю». Easy to confuse at 8x8.
-  * Ъ (0x4F), Ё (0x51), the parentheses (0x2A, 0x2B) and Latin V (0x40, for the
-    menu version) were drawn into free slots by this project; the original
-    translation did not have them.
+  * 0x29 is lower-case «ю» and 0x50 upper-case «Ю» (the menu's «МЕНЮ» uses 0x50).
+    Earlier versions of this table swapped the two labels, which made correct
+    text such as «следующий» read as «следуЮщий» in assets/text. 0x71 is «й»
+    (the «и» glyph plus a breve).
+  * Ъ (0x4F), Ё (0x51), ё (0x3C), the parentheses (0x2A, 0x2B) and Latin V
+    (0x40, for the menu version) were drawn into free slots by this project;
+    the original translation did not have them.
 """
 
 from __future__ import annotations
@@ -33,7 +36,7 @@ BYTE_TO_CHAR: dict[int, str] = {
     0x26: "Ж",  # tall «Ж»
     0x27: "э",
     0x28: "б",
-    0x29: "Ю",
+    0x29: "ю",  # x-height glyph; upper-case Ю is 0x50
     0x2A: "(",  # added by this project
     0x2B: ")",  # added by this project
     0x2C: ",",
@@ -56,10 +59,11 @@ BYTE_TO_CHAR: dict[int, str] = {
     0x3F: "?",
     0x60: "'",
     # capitals
+    0x3C: "ё",  # added by this project
     0x40: "V",  # Latin, for the menu version; added by this project
     0x41: "А", 0x42: "В", 0x43: "С", 0x44: "И", 0x45: "У", 0x46: "Ф",
     0x47: "П", 0x48: "Р", 0x49: "Ш", 0x4A: "Х", 0x4B: "Л", 0x4C: "Д",
-    0x4D: "М", 0x4E: "Е", 0x4F: "Ъ", 0x50: "ю", 0x51: "Ё", 0x52: "К",
+    0x4D: "М", 0x4E: "Е", 0x4F: "Ъ", 0x50: "Ю", 0x51: "Ё", 0x52: "К",
     0x53: "Ы", 0x54: "Т", 0x55: "Г", 0x56: "Ь", 0x57: "Ц", 0x58: "Ч",
     0x59: "Н", 0x5A: "Я",
     # lower case

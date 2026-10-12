@@ -196,8 +196,8 @@ def test_font_art_edit_recompresses_and_refresh_blob_rewrites_nem(synthetic_extr
     blob = s.asset("gfx/nemesis/font.nem")
     before = blob.read_bytes()
     txt = art.read_text(encoding="utf-8")
-    assert "@ 3C  FREE" in txt
-    txt = txt.replace("@ 3C  FREE\n" + "........\n" * 8, "@ 3C  FREE\n" + "#......#\n" * 8)
+    assert "@ 3E  FREE" in txt
+    txt = txt.replace("@ 3E  FREE\n" + "........\n" * 8, "@ 3E  FREE\n" + "#......#\n" * 8)
     art.write_text(txt, encoding="utf-8")
     assert _notes(s)["font"].startswith("recompressed")
     h = handler_for(seg)
@@ -206,7 +206,7 @@ def test_font_art_edit_recompresses_and_refresh_blob_rewrites_nem(synthetic_extr
     assert "font" not in _notes(s)  # the refreshed .nem is now used verbatim
     built = _build(s, ips=False)
     raw = nemesis.decompress(built.data, seg.start)
-    assert raw[(0x3C - 0x20) * 32 : (0x3C - 0x20) * 32 + 4] == b"\x6c\xcc\xcc\xc6"
+    assert raw[(0x3E - 0x20) * 32 : (0x3E - 0x20) * 32 + 4] == b"\x6c\xcc\xcc\xc6"
 
 
 # ---------------------------------------------------------------- tiles4bpp

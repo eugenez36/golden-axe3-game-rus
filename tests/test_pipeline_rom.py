@@ -2,9 +2,9 @@
 
 import pytest
 
-from ga3 import nemesis, patches, text
+from ga3 import nemesis, text
 from ga3 import pipeline as pl
-from ga3.assets import Paths
+from ga3.assets import Paths, handler_for
 from ga3.rom import Rom, apply_ips
 
 pytestmark = pytest.mark.rom
@@ -22,19 +22,29 @@ def test_map_check_passes(project, baserom):
 
 
 def _generated_ranges(project) -> list[tuple[int, int]]:
-    """Bytes the build generates rather than takes from assets: patch slots and their hooks."""
+    """Bytes the build generates rather than takes from assets: patch slots and their edits."""
+    from ga3.assets.patch_asset import edits
+
     out = []
     for seg in project.map.by_type("patch"):
-        out += [(seg.start, seg.end), (seg.get("hook"), seg.get("hook") + 6)]
+        out += [(seg.start, seg.end), *((e.at, e.end) for e in edits(seg))]
     return out
 
 
 def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
     """Outside the generated patches, freshly extracted assets rebuild the base ROM exactly."""
+    from ga3.assets.patch_asset import edits
+
     scratch = pl.Project(
         project.root, project.map, Paths(project.root, tmp_path / "assets", tmp_path / "build")
     )
     pl.extract_all(scratch, baserom, log=lambda *_: None)
+    # a patch's strings are committed sources with no counterpart in the base ROM
+    for seg in project.map.by_type("patch"):
+        for src in handler_for(seg).sources(seg, project.paths):
+            dst = scratch.paths.asset(str(src.relative_to(project.paths.assets)))
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(src.read_bytes())
     built = pl.build(scratch, baserom, out=tmp_path / "out.bin", log=lambda *_: None)
     generated = _generated_ranges(project)
     assert generated, "rom_map.yml declares no patch; drop this masking"
@@ -47,8 +57,8 @@ def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
         image[0x18E:0x190] = b"\0\0"
     assert masked[0] == masked[1]
     for seg in project.map.by_type("patch"):
-        hook = seg.get("hook")
-        assert built.data[hook : hook + 6] == patches.jmp_abs(seg.start)
+        for e in edits(seg):
+            assert bytes(built.data[e.at : e.end]) == e.new
 
 
 def test_committed_assets_build_to_recorded_sha1(project, baserom, tmp_path):
@@ -84,8 +94,8 @@ def test_text_roundtrip_over_all_segments(project, baserom):
         ):
             assert text.table.encode(txt) == bytes(baserom.data[off : off + ln])
             count += 1
-    # 202 before Latin V took byte 0x40: three runs of binary data now read as text
-    assert count == 205
+    # 202 before Latin V (0x40) and ё (0x3C) became text: binary data now reads as a few more runs
+    assert count == 209
 
 
 def test_pristine_free_font_slots(project, baserom):
@@ -98,8 +108,8 @@ def test_pristine_free_font_slots(project, baserom):
     #  because the menu swaps the background index -- both are in the table)
     blank = [0x20 + i for i in range(96) if font.is_blank(raw, i) and 0x20 + i not in (0x20, 0x25)]
     assert blank == [0x2A, 0x2B, 0x3C, 0x3E, 0x40, 0x4F, 0x51, 0x7B, 0x7F]
-    # ... five of which this project has since assigned (Ё Ъ, the parentheses and V)
-    assert font.free_slots(raw) == [0x3C, 0x3E, 0x7B, 0x7F]
+    # ... six of which this project has since assigned (Ё Ъ ё, the parentheses and V)
+    assert font.free_slots(raw) == [0x3E, 0x7B, 0x7F]
 
 
 def test_loading_a_wrong_rom_is_refused(project, tmp_path):
@@ -108,3 +118,38 @@ def test_loading_a_wrong_rom_is_refused(project, tmp_path):
     with pytest.raises(pl.PipelineError, match="sha1"):
         pl.load_baserom(project, bad)
     Rom.load(bad)  # plain loading is still allowed
+
+
+def _message_lines(data: bytes, start: int, end: int) -> int:
+    """FF-terminated lines of the dialogue message at ``start`` (header skipped), up to ``end``."""
+    lines, pos = 0, start + 2
+    while pos < end and data[pos] != 0x00:
+        stop = data.index(0xFF, pos)
+        if stop >= end:
+            break
+        lines += 1
+        pos = stop + 1
+    return lines
+
+
+def test_every_dialogue_box_shows_all_its_lines(project, baserom, tmp_path):
+    """Header byte 1 is the number of lines shown minus one; a smaller value cuts text off.
+
+    Message 1 had 4 lines and a 3-line box, so «в округе.'» never appeared.
+    """
+    import struct
+
+    built = pl.build(project, baserom, out=tmp_path / "out.bin", ips=False, log=lambda *_: None)
+    data = bytes(built.data)
+    seg = project.map.by_name("text_dialogue")
+    table_at = seg.get("messages")
+    starts = sorted(table_at + o for o in struct.unpack_from(">16H", data, table_at))
+    bounds = dict(zip(starts, [*starts[1:], None], strict=True))
+    wrong = []
+    for start, nxt in bounds.items():
+        shown = data[start + 1] + 1
+        lines = _message_lines(data, start, nxt or seg.end)
+        # the last message is followed by another text block, not by a message
+        if (lines != shown) if nxt else (lines < shown):
+            wrong.append(f"{start:06X}: {lines} lines, box shows {shown}")
+    assert wrong == []

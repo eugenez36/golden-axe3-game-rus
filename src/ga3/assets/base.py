@@ -64,7 +64,8 @@ class Handler:
         """Files ``build`` needs for this segment -- what has to be committed.
 
         Handlers with several files per segment override this; passthrough
-        handlers (``committed = False``) are never asked.
+        handlers (``committed = False``) return nothing unless they carry
+        committed files of their own (strings embedded in code).
         """
         return [paths.asset(seg.path)] if seg.path else []
 

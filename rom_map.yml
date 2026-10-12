@@ -71,21 +71,42 @@ segments:
       vram_end: 0xCD4C, attr: 0xE000,
       note: "draws 'V <package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6",
       evidence: "disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)" }
-  - { name: free_0116F6,   start: 0x0116F6, end: 0x011800, type: free,   fill: 0xFF,
-      note: "266 bytes" }
+  - { name: menu_items,    start: 0x0116F6, size: 0x20,    type: patch,  fill: 0xFF,
+      routine: menu_items, strings_path: text/menu_items.txt, item_width: 8, items: 4,
+      items_lea: 0x014F6A, items_was: 0x014F8C, header_lea: 0x015060, header_was: 0x015088,
+      header_item: 1, width_imm: 0x014FAF, width_was: 7,
+      note: "main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6",
+      evidence: "disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings" }
+  - { name: free_011716,   start: 0x011716, end: 0x011800, type: free,   fill: 0xFF,
+      note: "234 bytes" }
   - { name: code_main_b,   start: 0x011800, end: 0x013E76, type: code,   path: code/code_main_b.m68k,
-      note: "NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2" }
+      strings: [[0x013752, 3], [0x013755, 3], [0x013758, 3], [0x013B94, 5]],
+      strings_path: text/code_main_b.txt,
+      note: "NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2; ASCII SEGA licence text 0136BA (3x21) and region lock text 013DD0 (6x25), not in the game font, left as code",
+      evidence: "strings: disasm 01373C lea $13752(pc,d1.w) + moveq #2 (1Р/2Р/КОМ, 3 each); 013B5C lea $13b94(pc) + moveq #4 (ПАУЗА); licence 01368E lea $136ba(pc), moveq #2 / #$14; region 013DA2 lea $13dd0(pc), moveq #5 / #$18" }
   - { name: nem_013E76,    start: 0x013E76, end: 0x014013, type: nemesis, path: gfx/nemesis/nem_013E76.nem,
       tiles: 50, xor: false }
   - { name: code_main_c,   start: 0x014013, end: 0x014E00, type: code,   path: code/code_main_c.m68k }
   - { name: text_menu,     start: 0x014E00, end: 0x0151A0, type: text,   path: text/menu.txt, min_len: 4,
-      note: "menu and options strings embedded in menu data" }
-  - { name: code_main_d,   start: 0x0151A0, end: 0x016C00, type: code,   path: code/code_main_d.m68k }
+      prose: [[0x014EDA, 0x014EEC], [0x01512C, 0x01516C]],
+      note: "menu and options strings embedded in menu data; options screen layout at 01512C: column, row, text, FF",
+      evidence: "prose: disasm 014EC4 lea $14eda(pc) + moveq #$11 (title line, 18); options table 01512C-01516B seen on the options screen (emu/scenes/menu_options.txt); the old menu items 014F8C-014FA8 and 015088 are no longer read (menu_items)" }
+  - { name: code_main_d,   start: 0x0151A0, end: 0x016C00, type: code,   path: code/code_main_d.m68k,
+      strings: [[0x015318, 6], [0x01531E, 6], [0x0153AA, 6], [0x0153B0, 6], [0x0153B6, 6],
+                [0x015C48, 14], [0x016BC8, 5], [0x016BCD, 4]],
+      strings_path: text/code_main_d.txt,
+      evidence: "disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels)" }
   - { name: text_stages,   start: 0x016C00, end: 0x016E00, type: text,   path: text/stages.txt, min_len: 4,
-      note: "stage name list" }
+      prose: [[0x016CD8, 0x016DC8]],
+      note: "stage name list: 12 names, 20 characters each, centred with spaces",
+      evidence: "disasm 016C7C lea $16cd8(pc) + mulu #$14; 017176 + mulu #$14, moveq #$13" }
   - { name: code_main_e,   start: 0x016E00, end: 0x0179F2, type: code,   path: code/code_main_e.m68k,
-      note: "0179E4 move.l #$179F2 loads the ending text block" }
+      strings: [[0x01704C, 10], [0x0170F2, 13]],
+      strings_path: text/code_main_e.txt,
+      note: "0179E4 move.l #$179F2 loads the ending text block",
+      evidence: "strings: disasm 016FB4 lea $1704c(pc) + moveq #9 (map title); 0170BA lea $170f2(pc) + moveq #$c (death message)" }
   - { name: text_ending,   start: 0x0179F2, end: 0x017AF3, type: text,   path: text/ending.txt, min_len: 4,
+      prose: [[0x0179F3, 0x017AF2]],
       note: "ending screens: indent byte, text, FE between the two lines of a screen, FF ends a screen; 15-space slot at 017AE3",
       evidence: "disasm 0179E4; journal §Куда вписать титр переводчика" }
   - { name: code_main_f,   start: 0x017AF3, end: 0x01B780, type: code,   path: code/code_main_f.m68k,
@@ -127,7 +148,10 @@ segments:
       prefix: art, sheet_tiles: 512, cols: 32, palette: gray,
       note: "11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp" }
   - { name: text_dialogue, start: 0x0E9B00, end: 0x0EC300, type: text,   path: text/dialogue.txt, min_len: 4,
-      note: "NPC dialogue, credits and ending text" }
+      prose: [[0x0EBB64, 0x0EC281]],
+      messages: 0x0EBB42,  # 16 big-endian offsets from here to the dialogue messages
+      note: "NPC dialogue, credits and ending text; records before 0EBB64 are binary data that happens to be printable",
+      evidence: "prose: dialogue pages on screen from 0EBB64 (emu/scenes/dialogue_pages.txt); 0EC281 is the end of the last credits record; messages: disasm 01778E lea $ebb42.l + adda.w (a0,d1.w),a0, header = box width, lines shown - 1, then lines ending in FF; every message shown in-game by pointing entry 0 at it in a scratch ROM" }
   - { name: text_misc,     start: 0x0FB000, end: 0x0FB500, type: text,   path: text/misc.txt, min_len: 4,
       note: "misc strings; several records are printable garbage — edit with care" }
   - { name: pcm,           start: 0x0FC000, end: 0x0FFA20, type: pcm,    path: sound/pcm/samples.pcm,

@@ -1,0 +1,11 @@
+# menu_items: game text, ROM range 0116F6-011716
+# Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
+# A string may not grow: the ROM is full and edits are in place.
+# {XX} is a byte with no glyph in the font (or one that does not round-trip).
+# The main menu's four items, 8 characters each (patch segment menu_items in rom_map.yml).
+# Item 2 is also redrawn grey when no second pad is connected.
+
+0116F6:8 | 1 ИГРОК
+0116FE:8 | 2 ИГРОКА
+011706:8 | ДУЭЛЬ
+01170E:8 | ОПЦИИ

@@ -237,8 +237,6 @@ def check_assets(proj: Project) -> list[str]:
     problems: list[str] = []
     for seg in proj.map.segments:
         h = handler_for(seg)
-        if not h.committed:
-            continue
         try:
             missing = [p for p in h.sources(seg, proj.paths) if not p.exists()]
         except BuildError as exc:

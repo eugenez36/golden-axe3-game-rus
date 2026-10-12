@@ -1,6 +1,6 @@
 import pytest
 
-from ga3 import font, nemesis, rom_map
+from ga3 import font, nemesis, rom_map, table
 from ga3.cli import main
 
 from .conftest import ROOT
@@ -59,7 +59,7 @@ def test_font_art_file_roundtrip(fixtures):
     art = font.font_to_art(raw)
     glyphs = font.parse_art(art)
     assert font.art_to_font(glyphs, 96) == raw
-    assert font.free_slots(raw) == [0x3C, 0x3E, 0x7B, 0x7F]  # 0x40 is now V
+    assert font.free_slots(raw) == [0x3E, 0x7B, 0x7F]  # 0x3C is now ё, 0x40 V
 
 
 def test_committed_font_nem_matches_vram_dump(fixtures):
@@ -67,11 +67,11 @@ def test_committed_font_nem_matches_vram_dump(fixtures):
     nem = (ROOT / "assets/gfx/nemesis/font.nem").read_bytes()
     vram = (fixtures / "font_vram.4bpp").read_bytes()
     decoded = nemesis.decompress_blob(nem)
-    # the VRAM dump predates the five new glyphs; every other tile is identical
+    # the VRAM dump predates the six new glyphs; every other tile is identical
     art_rom = font.parse_art(font.font_to_art(decoded))
     art_vram = font.parse_art(font.font_to_art(vram))
     differing = sorted(b for b in art_rom if art_rom[b] != art_vram[b])
-    assert all(b in (0x2A, 0x2B, 0x40, 0x4F, 0x51) for b in differing), differing
+    assert all(b in (0x2A, 0x2B, 0x3C, 0x40, 0x4F, 0x51) for b in differing), differing
 
 
 def test_cli_help_and_map(capsys):
@@ -81,3 +81,30 @@ def test_cli_help_and_map(capsys):
     assert main(["--root", str(ROOT), "map"]) == 0
     out = capsys.readouterr().out
     assert "tiles4bpp" in out and "unknown" in out
+
+
+# small letters whose mark rises above the x-height: the row their drawing starts on
+_TALL_LOWER = {"й": 1, "ё": 0}  # the breve sits on row 1, the dots on row 0
+
+
+def test_letter_case_matches_glyph_height():
+    """A label's case must match its drawing: capitals start on row 0, small letters lower.
+
+    Guards against swapped labels such as the old ю (0x50) / Ю (0x29) mix-up,
+    which made correct in-game text read wrong in assets/text.
+    """
+    glyphs = font.parse_art_file(str(ROOT / "assets/gfx/font/font.txt"))
+    wrong = []
+    for byte, ch in sorted(table.BYTE_TO_CHAR.items()):
+        if not ch.isalpha():
+            continue
+        art = font.tile_to_art(glyphs[byte], 0)
+        top = next(i for i, row in enumerate(art) if row.strip("."))
+        if ch in _TALL_LOWER:
+            if top != _TALL_LOWER[ch]:
+                wrong.append(f"{byte:02X} {ch!r} starts on row {top}")
+            continue
+        drawn_upper = top <= 1
+        if drawn_upper != ch.isupper():
+            wrong.append(f"{byte:02X} {ch!r} starts on row {top}")
+    assert wrong == []
