@@ -136,3 +136,65 @@ def insert_strings(data: bytearray, rows: list[Row], start: int, end: int) -> in
             data[off : off + ln] = enc
             changed += 1
     return changed
+
+
+def records_at(data: bytes, spans: list[tuple[int, int]]) -> list[Row]:
+    """Records for exactly the given ``(offset, length)`` spans (strings embedded in code)."""
+    return [(off, ln, table.decode_lossless(bytes(data[off : off + ln]))) for off, ln in spans]
+
+
+def in_spans(off: int, ln: int, spans: list[tuple[int, int]]) -> bool:
+    """Whether the record ``[off, off + ln)`` lies inside one of the ``[start, end)`` spans."""
+    return any(start <= off and off + ln <= end for start, end in spans)
+
+
+# ---------------------------------------------------------------- lint
+#
+# Mechanical checks for real game text. They catch what an eye skims over in a
+# fixed-width strings file; wording and spelling stay a human review.
+
+_UPPER = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+_LOWER = _UPPER.lower()
+
+LINT_RULES: dict[str, tuple[str, str]] = {
+    # rule: (regex, what it means)
+    "capital-inside-word": (
+        rf"[{_LOWER}][{_UPPER}]",
+        "a capital after a small letter inside a word",
+    ),
+    "e-for-quote": (
+        r"^ +Э|[.!?]Э\s*$",
+        "byte 0x22 draws «Э», not a quotation mark: a reply opens with a space and ', "
+        "and closes with '",
+    ),
+    "double-space": (r"\S {2,}(?=\S)", "two or more spaces between words"),
+    "space-before-punctuation": (r"\S [,.!?:)](?=\s|$|')", "a space before punctuation"),
+    "no-space-after-punctuation": (
+        rf"[{_LOWER}][,.!?:](?=[{_UPPER}{_LOWER}])",
+        "no space after punctuation",
+    ),
+}
+
+
+def lint_text(txt: str) -> list[tuple[str, str]]:
+    """``(rule, excerpt)`` for every rule ``txt`` breaks. Trailing padding is ignored."""
+    import re
+
+    body = txt.rstrip(" ")
+    found = []
+    for rule, (pattern, _why) in LINT_RULES.items():
+        for m in re.finditer(pattern, body):
+            lo, hi = max(0, m.start() - 6), min(len(body), m.end() + 6)
+            found.append((rule, body[lo:hi]))
+    return found
+
+
+def lint(rows: list[Row], allow: dict[int, list[str]] | None = None) -> list[str]:
+    """Findings as ``OFFSET rule: «excerpt»`` lines, minus the ``allow``-ed (offset -> rules)."""
+    allow = allow or {}
+    out = []
+    for off, _ln, txt in rows:
+        for rule, excerpt in lint_text(txt):
+            if rule not in allow.get(off, ()):
+                out.append(f"{off:06X} {rule}: «{excerpt}»")
+    return out
