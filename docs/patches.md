@@ -74,6 +74,9 @@ among the first 8 sprites of the sprite list (`FFE5CA`, DMA'd to the SAT every
 frame) and appends a 2 x 1 sprite just right of the magic boxes. The list is
 never walked: the game adds sprites in order (sprite n links to n+1) and keeps
 their number in `FFEE70`, which its own end-of-list code (`000044`) uses too.
+A duel has no enemies to count, so there the counters are not drawn at all:
+the game mode (`FFF176`) is 2 for a duel against the computer and 3 once
+player 2 joins it, against 0 and 1 for the one- and two-player games.
 The two digit tiles per player go to VRAM `D700` only when the number differs
 from the one they hold (`FFC3E2` / `FFC3E3`, set to `FF` whenever the HUD is
 not shown, so they are uploaded again when it comes back). The digits are the
@@ -101,3 +104,7 @@ savestate with the same input, loses 64 frames in 1239 against 47 without it.
 players the digit tiles in VRAM match both counters, also for 10 and 99.
 The HUD art check was verified on VRAM dumped every frame across a spell and a
 stage start of a 2-player game: the digits never show without the HUD art.
+In a duel against the computer and against player 2 both HUDs are drawn and
+no counter is (`emu/scenes/duel_hud.txt`); switching the mode to a duel and
+back in a running 1-player game hides the counter and brings it back with the
+right digits, because hiding also clears the record of the digits shown.
