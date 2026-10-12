@@ -24,23 +24,23 @@ output row is the accumulator XORed with the previous row.
 
 ## The 14 blocks in this ROM
 
-| Segment | Tiles | XOR | Exact size | Pad | Ours |
-|---|---|---|---|---|---|
-| `nem_013E76` | 50 | no | 413 | — | 375 |
-| `nem_01B780` | 120 | yes | 1568 | 0 | 1563 |
-| `nem_01BDA0` | 119 | yes | 1770 | 0 | 1759 |
-| `nem_01C48A` | 120 | yes | 2112 | 2 | 2085 |
-| `nem_01CCCC` | 81 | no | 1034 | 0 | 1023 |
-| `nem_01D0D6` | 81 | no | 721 | 1 | 715 |
-| `nem_01D3A8` | 31 | yes | 425 | 1 | 412 |
-| `nem_01D552` | 21 | yes | 384 | 0 | 370 |
-| `nem_01D6D2` | 40 | yes | 396 | 0 | 393 |
-| `font` | 96 | no | 840 | — | 808 |
-| `nem_01DBAC` | 20 | no | 361 | 1 | 353 |
-| `nem_01DD16` | 78 | yes | 1369 | — | 1342 |
-| `nem_01E29A` | 18 | yes | 322 | — | 318 |
-| `nem_0295EE` | 208 | no | 2330 | — | 2264 |
-| **total** | | | **14045** | | **13780** |
+| Segment      | Tiles | XOR | Exact size | Pad | Ours      |
+|--------------|-------|-----|------------|-----|-----------|
+| `nem_013E76` | 50    | no  | 413        | —   | 375       |
+| `nem_01B780` | 120   | yes | 1568       | 0   | 1563      |
+| `nem_01BDA0` | 119   | yes | 1770       | 0   | 1759      |
+| `nem_01C48A` | 120   | yes | 2112       | 2   | 2085      |
+| `nem_01CCCC` | 81    | no  | 1034       | 0   | 1023      |
+| `nem_01D0D6` | 81    | no  | 721        | 1   | 715       |
+| `nem_01D3A8` | 31    | yes | 425        | 1   | 412       |
+| `nem_01D552` | 21    | yes | 384        | 0   | 370       |
+| `nem_01D6D2` | 40    | yes | 396        | 0   | 393       |
+| `font`       | 96    | no  | 840        | —   | 808       |
+| `nem_01DBAC` | 20    | no  | 361        | 1   | 353       |
+| `nem_01DD16` | 78    | yes | 1369       | —   | 1342      |
+| `nem_01E29A` | 18    | yes | 322        | —   | 318       |
+| `nem_0295EE` | 208   | no  | 2330       | —   | 2264      |
+| **total**    |       |     | **14045**  |     | **13780** |
 
 "Exact size" is what `ga3 nemesis size` reports: the bytes the decoder actually
 consumes. (The earlier reader-position estimate was one byte short on 12

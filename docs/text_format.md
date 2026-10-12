@@ -52,17 +52,17 @@ Pitfalls:
 One file per `text` segment of `rom_map.yml`, plus one per code segment that
 carries strings (`strings:` in the map):
 
-| Segment | File | Contents |
-|---|---|---|
-| `text_menu` | `menu.txt` | title line, options screen layout |
-| `menu_items` (patch) | `menu_items.txt` | main-menu items, 4 × 8 characters |
-| `code_main_b` | `code_main_b.txt` | `1Р` `2Р` `КОМ`, `ПАУЗА` |
-| `code_main_d` | `code_main_d.txt` | difficulty, button roles, `ИГРОК 2: СТАРТ`, score labels |
-| `text_stages` | `stages.txt` | stage names, 12 × 20 characters, centred |
-| `code_main_e` | `code_main_e.txt` | `МАРШРУТ`, `ТЫ ПОГИБ` |
-| `text_ending` | `ending.txt` | ending screens |
-| `text_dialogue` | `dialogue.txt` | NPC dialogue, credits |
-| `text_misc` | `misc.txt` | assorted; several records are printable garbage |
+| Segment              | File              | Contents                                                 |
+|----------------------|-------------------|----------------------------------------------------------|
+| `text_menu`          | `menu.txt`        | title line, options screen layout                        |
+| `menu_items` (patch) | `menu_items.txt`  | main-menu items, 4 × 8 characters                        |
+| `code_main_b`        | `code_main_b.txt` | `1Р` `2Р` `КОМ`, `ПАУЗА`                                 |
+| `code_main_d`        | `code_main_d.txt` | difficulty, button roles, `ИГРОК 2: СТАРТ`, score labels |
+| `text_stages`        | `stages.txt`      | stage names, 12 × 20 characters, centred                 |
+| `code_main_e`        | `code_main_e.txt` | `МАРШРУТ`, `ТЫ ПОГИБ`                                    |
+| `text_ending`        | `ending.txt`      | ending screens                                           |
+| `text_dialogue`      | `dialogue.txt`    | NPC dialogue, credits                                    |
+| `text_misc`          | `misc.txt`        | assorted; several records are printable garbage          |
 
 Format:
 

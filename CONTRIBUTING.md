@@ -24,11 +24,11 @@ SEGA's lawyers asleep. Conventions live in [STYLE.md](STYLE.md); setup in
 
 Every change that alters the built image must pass all of these before a PR:
 
-| # | Check | How |
-|---|---|---|
-| 1 | **Structural** | `make && ga3 diff baserom/ga3.bin build/ga3.bin` shows exactly the expected bytes; `ga3 verify --update` recorded the new hash |
-| 2 | **Round-trip** | `ga3 text verify` (text) · `make assets` leaves no diff (font / tables) · `make test` |
-| 3 | **In-game** | a scene under `emu/scenes/` run with `ga3 emu`, screenshot attached to the PR |
+| # | Check           | How                                                                                                                                |
+|---|-----------------|------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | **Structural**  | `make && ga3 diff baserom/ga3.bin build/ga3.bin` shows exactly the expected bytes; `ga3 verify --update` recorded the new hash     |
+| 2 | **Round-trip**  | `ga3 text verify` (text) · `make assets` leaves no diff (font / tables) · `make test`                                              |
+| 3 | **In-game**     | a scene under `emu/scenes/` run with `ga3 emu`, screenshot attached to the PR                                                      |
 | 4 | **VRAM parity** | graphics only: repacking unchanged tiles reproduces the same VRAM (covered by `tests/`; extend the fixture if you touch the codec) |
 
 A PR that changes the codec, the character table or the font without check 4
@@ -85,11 +85,11 @@ worth more than an unverified patch.
 
 Любая правка, меняющая собранный образ, до открытия PR проходит все четыре:
 
-| # | Проверка | Как |
-|---|---|---|
-| 1 | **Структурная** | `make && ga3 diff baserom/ga3.bin build/ga3.bin` показывает ровно ожидаемые байты; `ga3 verify --update` записал новый хеш |
-| 2 | **Round-trip** | `ga3 text verify` (текст) · `make assets` не даёт diff (шрифт / таблицы) · `make test` |
-| 3 | **В игре** | сцена из `emu/scenes/`, запущенная через `ga3 emu`; скриншот приложен к PR |
+| # | Проверка         | Как                                                                                                                        |
+|---|------------------|----------------------------------------------------------------------------------------------------------------------------|
+| 1 | **Структурная**  | `make && ga3 diff baserom/ga3.bin build/ga3.bin` показывает ровно ожидаемые байты; `ga3 verify --update` записал новый хеш |
+| 2 | **Round-trip**   | `ga3 text verify` (текст) · `make assets` не даёт diff (шрифт / таблицы) · `make test`                                     |
+| 3 | **В игре**       | сцена из `emu/scenes/`, запущенная через `ga3 emu`; скриншот приложен к PR                                                 |
 | 4 | **Паритет VRAM** | только графика: перепаковка неизменённых тайлов даёт ту же VRAM (покрыто `tests/`; расширьте фикстуру, если трогали кодек) |
 
 PR, меняющий кодек, таблицу символов или шрифт без проверки 4, будет возвращён —

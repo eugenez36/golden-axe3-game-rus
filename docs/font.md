@@ -37,10 +37,10 @@ not fit) → `ga3 assets refresh` (updates the committed `font.nem`) →
 
 ## Slots
 
-| State | Blank slots |
-|---|---|
-| original translation | `2A 2B 3C 3E 40 4F 51 7B 7F` (nine) |
-| this project | `3E 7B 7F` (three) — `2A` `(`, `2B` `)`, `4F` Ъ, `51` Ё, `3C` ё, `40` Latin V were drawn |
+| State                | Blank slots                                                                              |
+|----------------------|------------------------------------------------------------------------------------------|
+| original translation | `2A 2B 3C 3E 40 4F 51 7B 7F` (nine)                                                      |
+| this project         | `3E 7B 7F` (three) — `2A` `(`, `2B` `)`, `4F` Ъ, `51` Ё, `3C` ё, `40` Latin V were drawn |
 
 Six slots (`23`, `5B`–`5F`) are drawn — box rules, a bar, wedges — but have no
 character; `font.txt` marks them `not in table`, and they are not counted as free.
