@@ -509,6 +509,30 @@ def cmd_emu(args) -> int:
     return subprocess.call(cmd, cwd=proj.root)
 
 
+def cmd_lag(args) -> int:
+    from . import lag
+
+    proj = _proj(args)
+    exe = proj.root / "build" / "emu" / "headless_gpgx"
+    if not exe.exists():
+        return _fail(f"{exe.relative_to(proj.root)} not built; run `make emu`")
+    rom = Path(args.rom) if args.rom else proj.build_rom
+    if not rom.exists():
+        return _fail(f"{rom} not found; run `ga3 build` first")
+    seg = next((s for s in proj.map.segments if s.get("frame_wait") is not None), None)
+    if seg is None:
+        return _fail("rom_map.yml declares no frame_wait")
+    for pct in args.overclock:
+        report = lag.measure(
+            exe, rom, Path(args.scene), seg.get("frame_wait"), overclock=pct, cwd=proj.root
+        )
+        print(f"{pct:3d}%  {report.summary()}")
+        if args.verbose:
+            for after, gap in report.gaps:
+                print(f"       after frame {after}: {gap} frames")
+    return 0
+
+
 # ---------------------------------------------------------------- parser
 
 
@@ -674,6 +698,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_disasm)
 
     ramsearch.add_cli(sub)
+
+    p = sub.add_parser(
+        "lag", help="count frames the game's main loop missed while a scene runs (emulator)"
+    )
+    p.add_argument("scene", help="emulator script, e.g. emu/scenes/stage1_fight.txt")
+    p.add_argument(
+        "--overclock",
+        type=int,
+        nargs="+",
+        default=[100],
+        metavar="PCT",
+        help="68000 clock in percent; several values compare them (100..400)",
+    )
+    p.add_argument("-v", "--verbose", action="store_true", help="list every gap")
+    p.set_defaults(func=cmd_lag)
 
     p = sub.add_parser("emu", help="run a headless emulator script against the build")
     p.add_argument("script")

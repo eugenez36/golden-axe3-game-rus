@@ -157,6 +157,13 @@ still `unknown`; `ga3 map` prints the exact figure and the ranges.
 
 Progress is tracked in [milestones](https://github.com/eugenez36/golden-axe3-game-rus/milestones).
 
+## Playing
+
+Apply `build/ga3.ips` to your own dump, or run `build/ga3.bin`, in any Mega
+Drive emulator. In Genesis Plus GX (RetroArch), *System Overclock* 150–200%
+shortens the pauses while magic loads and *Remove Per-Line Sprite Limit*
+removes flicker; numbers in [docs/emulator.md](docs/emulator.md#lag-and-overclock).
+
 ## Documents
 
 [INSTALL.md](INSTALL.md) · [STYLE.md](STYLE.md) · [CONTRIBUTING.md](CONTRIBUTING.md) ·
