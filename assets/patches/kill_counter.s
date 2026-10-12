@@ -25,13 +25,17 @@
 ; the kill goes to the mark, whether the enemy's HP runs out or it falls off
 ; the stage alive (its object is freed with HP left). No mark, no kill.
 
-; victim a0, attacker a1, damage d1; replaces sub/bpl/clr, the caller then rts
+; victim a0, attacker a1, damage d1; replaces sub/bpl/clr, the caller then rts.
+; The game clears HP when sub.b leaves bit 7 set; bhi (no borrow, not zero)
+; keeps the hero alive exactly when the old HP was above the damage, which is
+; the same for every HP the game allows (0..0x7F) and every damage up to 0x80
+; -- bgt would also read an overflow (75 - 128) as "still alive" (HP 203).
 melee_a0:
         tst.b   HP(a0)
         beq.s   .done
         bsr.w   mark
         sub.b   d1,HP(a0)
-        bgt.s   .done
+        bhi.s   .done                   ; HP was above the damage (unsigned)
         clr.b   HP(a0)
         bsr.w   kill
 .done:  rts
@@ -43,7 +47,7 @@ melee_a1:
         beq.s   .done
         bsr.w   mark
         sub.b   d1,HP(a0)
-        bgt.s   .done
+        bhi.s   .done                   ; HP was above the damage (unsigned)
         clr.b   HP(a0)
         bsr.w   kill
 .done:  exg     a0,a1
@@ -64,7 +68,7 @@ magic:
 .who:   bsr.w   mark
         movea.l (sp)+,a1
         sub.b   d0,HP(a0)
-        bgt.s   .back
+        bhi.s   .back                   ; HP was above the damage (unsigned)
         clr.b   HP(a0)
         bsr.w   kill
 .back:  jmp     MAGIC_BACK
