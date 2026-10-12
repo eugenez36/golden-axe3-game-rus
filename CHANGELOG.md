@@ -18,6 +18,13 @@ hash recorded in `roms.sha1`.
   (continues, 4). `ga3 balance set lives 5`, `ga3 balance show`; the table is
   in `docs/rom_map.md`.
 
+### Fixed
+
+- Kill counter: a hit of 128 damage (a power of `0xFF` plus the carried
+  half) left the victim alive with HP 203 instead of knocking it out as the
+  original game does; the hooks now decide death with `bhi`, which matches
+  the game's `bpl` for every allowed HP. Stock moves never reach that damage.
+
 ## [0.37.400] — 2026-10-12
 
 The proofread text, the kill counter (to 999) and the bug hunt, with the
