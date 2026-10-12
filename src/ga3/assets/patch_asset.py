@@ -222,6 +222,54 @@ def _glyph_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
     return "\n".join(src) + "\n", {"BLANK_GLYPH": spec["chars"].index(" ")}
 
 
+def _vdp(addr: int, write: bool) -> int:
+    """VDP control longword for a VRAM access at ``addr`` (CD0 = 1 for a write)."""
+    return (0x4000 if write else 0) << 16 | (addr & 0x3FFF) << 16 | addr >> 14
+
+
+def _words(label: str, words: list[int]) -> list[str]:
+    src = [f"{label}:"]
+    src += [
+        f"        dc.w    {', '.join(f'${w:04X}' for w in words[i : i + 10])}"
+        for i in range(0, len(words), 10)
+    ]
+    return src
+
+
+def _panel_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
+    """PANEL_TILES, PANEL_FULL and PANEL_HALF (src/ga3/hero_panel.py), as source text."""
+    from .. import hero_panel
+
+    spec = seg.get("patch_def").get("panel")
+    if not spec:
+        return "", {}
+    glyphs = fontlib.parse_art_file(str(paths.asset(spec["art"])))
+    vram, max_tiles = spec["vram"], spec["max_tiles"]
+    try:
+        doc = hero_panel.load_data(paths.asset(spec["data"]))
+        panel = hero_panel.render(doc, glyphs, vram // 32, max_tiles)
+    except (ValueError, KeyError) as exc:
+        raise BuildError(f"{seg}: hero panel: {exc}") from None
+    tile_words = [
+        int.from_bytes(panel.tiles[i : i + 2], "big") for i in range(0, len(panel.tiles), 2)
+    ]
+    src = [f"        section {spec['section']}", "        even"]
+    src += _words("PANEL_TILES", tile_words)
+    src += _words("PANEL_FULL", [w for m in panel.full for w in m])
+    src += _words("PANEL_HALF", [w for m in panel.half for w in m])
+    fw, fh = hero_panel.FULL
+    hw, hh = hero_panel.HALF
+    return "\n".join(src) + "\n", {
+        "PANEL_TILE_WORDS": len(tile_words),
+        "PANEL_SIG": tile_words[0],
+        "PANEL_CORNER": panel.corner,
+        "PANEL_WRITE": _vdp(vram, True),
+        "PANEL_READ": _vdp(vram, False),
+        "FULL_W": fw, "FULL_H": fh, "FULL_SIZE": fw * fh * 2,
+        "HALF_W": hw, "HALF_H": hh, "HALF_SIZE": hw * hh * 2,
+    }  # fmt: skip
+
+
 def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, int]]:
     """Assemble the patch this segment belongs to: its section's bytes, its hooks, the labels."""
     pdef = seg.get("patch_def")
@@ -229,7 +277,9 @@ def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, 
     if not source.exists():
         raise BuildError(f"{seg}: missing patch source {source}")
     extra, derived = _glyph_tables(seg, paths)
-    symbols = {**(pdef.get("symbols") or {}), **derived}
+    panel_src, panel_syms = _panel_tables(seg, paths)
+    extra += panel_src
+    symbols = {**(pdef.get("symbols") or {}), **derived, **panel_syms}
     try:
         out, labels = m68k.assemble_sections(
             source.read_text(encoding="utf-8") + "\n" + extra, seg.get("sections"), symbols
@@ -283,6 +333,8 @@ class PatchHandler(Handler):
             found = [paths.asset(pdef["source"])]
             if pdef.get("glyphs"):
                 found.append(paths.asset(pdef["glyphs"]["art"]))
+            if pdef.get("panel"):
+                found += [paths.asset(pdef["panel"]["art"]), paths.asset(pdef["panel"]["data"])]
             return found
         if seg.get("strings_path") is None:
             return []  # generated from code; nothing under assets/
