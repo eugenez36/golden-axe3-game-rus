@@ -4,10 +4,10 @@
 
 [English](README.md) · **Русский**
 
-[![Platform](https://img.shields.io/badge/платформа-Sega_Mega_Drive-1F3A5F?style=for-the-badge&logo=sega&logoColor=white)](#)
-[![CPU](https://img.shields.io/badge/процессор-Motorola_68000-2F5D8A?style=for-the-badge)](#)
-[![Python](https://img.shields.io/badge/python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](#)
-[![C99](https://img.shields.io/badge/c-99-A8B9CC?style=for-the-badge&logo=c&logoColor=black)](#)
+![Platform](https://img.shields.io/badge/платформа-Sega_Mega_Drive-1F3A5F?style=for-the-badge&logo=sega&logoColor=white)
+![CPU](https://img.shields.io/badge/процессор-Motorola_68000-2F5D8A?style=for-the-badge)
+![Python](https://img.shields.io/badge/python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![C99](https://img.shields.io/badge/c-99-A8B9CC?style=for-the-badge&logo=c&logoColor=black)
 [![License](https://img.shields.io/badge/лицензия-MIT-F5B301?style=for-the-badge)](LICENSE)
 [![ROM](https://img.shields.io/badge/ROM-не_включён-D7263D?style=for-the-badge)](#правовое)
 [![CI](https://github.com/eugenez36/golden-axe3-game-rus/actions/workflows/ci.yml/badge.svg)](https://github.com/eugenez36/golden-axe3-game-rus/actions/workflows/ci.yml)
@@ -26,7 +26,7 @@
 Здесь ничего не угадано. Каждое смещение живёт в одном файле, `rom_map.yml`,
 вместе с доказательством, которое его туда привело.
 
-```
+```text
 baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ build/ga3.bin + build/ga3.ips
    (ваш, никогда                 (в репозитории,           (сверяется
     не коммитится)                ROM «до винтика»)         с roms.sha1)
@@ -35,20 +35,21 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
 ## Что сделано
 
 - **Воспроизводимая сборка.** `make` пересобирает образ из `assets/`, `make verify`
-  сверяет его с `roms.sha1`. Неизменённые ресурсы дают эталонный ROM с точностью
-  до байта.
-- **ROM, разобранный до винтика.** Заголовок и векторы в YAML, 202 строки в пяти
+  сверяет его с `roms.sha1`. Свежеизвлечённые ресурсы дают эталонный ROM байт
+  в байт, закоммиченные — сборку, записанную в `roms.sha1`.
+- **ROM, разобранный до винтика.** Заголовок и векторы в YAML, 227 строк в девяти
   текстовых файлах, шрифт как текстовый арт, 14 Nemesis-блоков, 22 индексированных
   PNG-листа тайлового арта, область PCM, таблица HP, шесть снятых палитр и листинги
   Capstone для каждого сегмента кода. Что ещё не опознано — измерено, а не спрятано:
   `ga3 map` печатает покрытие.
-- **Nemesis в обе стороны.** Распаковщик снят с дизассемблера игры и проверен по
+- **Nemesis в обе стороны.** Распаковщик воспроизведён по дизассемблированному коду игры и проверен по
   дампу VRAM (3072 из 3072 байт). Упаковщик обгоняет фирменный на всех 14 блоках
-  (13 780 против 14 045 байт) — именно поэтому сборка переиспользует исходные блоки
-  дословно, пока вы их не отредактируете.
-- **Шрифт правится как текст.** Глифы в виде `#`/`.`-арта. Дорисованы **Ё**, **Ъ**
-  и круглые скобки, которых в русификации не было; сборка отказывается от шрифта,
-  не влезающего в свой слот из 840 байт.
+  (13 780 против 14 045 байт), поэтому его вывод отличается от фирменного, и ради
+  байтовой идентичности сборка берёт исходные блоки как есть, пока вы их не
+  отредактируете.
+- **Шрифт правится как текст.** Глифы в виде `#`/`.`-арта. Дорисованы **Ё**, **ё**, **Ъ**,
+  латинская **V** и круглые скобки, которых в русификации не было; сборка не
+  принимает шрифт, не влезающий в свой слот из 840 байт.
 - **Геймплей по именам.** `ga3 balance set-hp 60 60 60 60` правит YAML-таблицу;
   адрес — забота карты.
 - **Эмулятор как измерительный прибор.** Сценарный ввод, скриншоты, дампы VDP и RAM,
@@ -106,25 +107,25 @@ flowchart LR
 
 ## Состав репозитория
 
-```
+```text
 rom_map.yml       единственный дом всех смещений ROM (сегменты в стиле splat)
 roms.sha1         sha1 эталона и сборки; `make verify`
 Makefile          venv · build · extract · verify · test · lint · assets · asm · emu · regress · clean · distclean · help
 pyproject.toml    пакет ga3 и его команда `ga3`
-baserom/          сюда кладётся ваш ROM (игнорируется git)
+baserom/          сюда кладётся ваш ROM (игнорируется)
 assets/           ROM, разобранный на части — что коммитится, см. STYLE.md
   header/         vectors.yml, header.yml
-  text/           menu · stages · ending · dialogue · misc .txt, encoding.tbl
+  text/           menu · stages · ending · dialogue · misc · menu_items · code_main_{b,d,e} .txt, encoding.tbl
   gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (индексированные)
   palettes/       *.pal, снятые в эмуляторе (источник в ROM пока не найден)
   sound/pcm/      samples.pcm
   data/           hp_table.yml
   code/asm/       листинги Capstone (генерируются)
 build/            всё производное (игнорируется): ROM, IPS, эмулятор, скриншоты, дампы, превью
-src/ga3/          тулкит: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · balance · disasm · ramsearch · cli
+src/ga3/          тулкит: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · patches · balance · disasm · ramsearch · lag · cli
 tests/            pytest; фикстуры без ROM плюс тесты, требующие ROM
 emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
-docs/             README (оглавление) · build · text_format · nemesis · font · emulator · rom_map (генерируется) · evidence/ · images/ · branding/ · ru/journal.md
+docs/             README (оглавление) · build · text_format · nemesis · font · emulator · rom_map (генерируется) · evidence/ · images/ · branding/ · ru/journal.md · ru/proofreading.md
 ```
 
 ## Карта ROM
@@ -134,7 +135,7 @@ docs/             README (оглавление) · build · text_format · nemes
 | Область | Содержимое |
 |---|---|
 | `000000–000200` | векторы и заголовок (точка входа перенесена русификаторами на `0FFA20`) |
-| `000200–01B780` | код 68000; внутри таблица HP `00E492`, Nemesis-блок `013E76`, текст меню / уровней / концовки, процедура версии и пункты главного меню в `0116B6` и дырка 234 байта после них |
+| `000200–01B780` | код 68000; внутри таблица HP `00E492`, Nemesis-блок `013E76`, текст меню / уровней / концовки, процедура версии и пункты главного меню в `0116B6` и дыра в 234 байта после них |
 | `01B780–01E3DC` | 12 Nemesis-блоков почти впритык (6 байт данных после шрифта, 43 неизвестных байта в `01E26F`), шрифт в `01D85E` (840 Б) |
 | `0295EE–029F08` | ещё один Nemesis-блок (208 тайлов) |
 | `080000–0D8000` | 11 264 несжатых тайла 4bpp |
@@ -142,7 +143,8 @@ docs/             README (оглавление) · build · text_format · nemes
 | `0FC000–0FFA20` | PCM-сэмплы |
 | `0FFA20–100000` | перенесённый входной стаб |
 
-Свободного места **818 байт** в трёх проверенных дырках (96 из исходных 914 заняли процедура версии и пункты главного меню). Около половины образа
+Свободного места **818 байт** в трёх проверенных дырах (96 из исходных 914
+заняли процедура версии и пункты главного меню). Около половины образа
 пока `unknown`; точную цифру и диапазоны печатает `ga3 map`.
 
 ## Дорожная карта

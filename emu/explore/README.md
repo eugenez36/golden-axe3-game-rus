@@ -2,7 +2,8 @@
 
 These are the runs that found the addresses recorded in `rom_map.yml`. They are
 kept for provenance, not as regression checks (`emu/scenes/` is for that), and
-they write under `build/dumps/explore/` (screenshots and dumps side by side).
+they write under `build/dumps/explore/` and `build/shots/explore/` (`hp.txt`
+keeps its screenshots next to the dumps).
 
 | Script | What it found |
 |---|---|

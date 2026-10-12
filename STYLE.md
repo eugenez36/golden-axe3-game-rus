@@ -42,10 +42,9 @@ proven: a watchpoint or breakpoint hit, a disassembly listing, a tilemap or VRAM
 dump, or an in-game screenshot after a poke. Reasoning without a run is a
 comment in the journal, not a map entry.
 
-The per-type keys a segment may carry (`min_len`, `format`, `fields`,
-`max_hud`, `tiles`, `xor`, `blob`, `first_byte`, `bg`, `ink`, `sheet_tiles`,
-`cols`, `prefix`, `palette`, `fill`) are listed in the header of `rom_map.yml`
-and explained in [docs/build.md](docs/build.md#rom_mapyml-keys).
+The per-type keys a segment may carry are explained in
+[docs/build.md](docs/build.md#rom_mapyml-keys); the header of `rom_map.yml`
+summarises them.
 
 ## Code
 

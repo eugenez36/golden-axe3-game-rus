@@ -4,10 +4,10 @@
 
 **English** · [Русский](README.ru.md)
 
-[![Platform](https://img.shields.io/badge/platform-Sega_Mega_Drive-1F3A5F?style=for-the-badge&logo=sega&logoColor=white)](#)
-[![CPU](https://img.shields.io/badge/cpu-Motorola_68000-2F5D8A?style=for-the-badge)](#)
-[![Python](https://img.shields.io/badge/python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](#)
-[![C99](https://img.shields.io/badge/c-99-A8B9CC?style=for-the-badge&logo=c&logoColor=black)](#)
+![Platform](https://img.shields.io/badge/platform-Sega_Mega_Drive-1F3A5F?style=for-the-badge&logo=sega&logoColor=white)
+![CPU](https://img.shields.io/badge/cpu-Motorola_68000-2F5D8A?style=for-the-badge)
+![Python](https://img.shields.io/badge/python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![C99](https://img.shields.io/badge/c-99-A8B9CC?style=for-the-badge&logo=c&logoColor=black)
 [![License](https://img.shields.io/badge/license-MIT-F5B301?style=for-the-badge)](LICENSE)
 [![ROM](https://img.shields.io/badge/ROM-not_included-D7263D?style=for-the-badge)](#legal)
 [![CI](https://github.com/eugenez36/golden-axe3-game-rus/actions/workflows/ci.yml/badge.svg)](https://github.com/eugenez36/golden-axe3-game-rus/actions/workflows/ci.yml)
@@ -26,7 +26,7 @@ no window, just scripts, screenshots and memory dumps.
 Nothing here is guessed. Every offset lives in one file, `rom_map.yml`, with the
 evidence that put it there.
 
-```
+```text
 baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ build/ga3.bin + build/ga3.ips
    (yours, never                 (committed,              (verified against
     committed)                    the ROM taken apart)     roms.sha1)
@@ -35,20 +35,21 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
 ## Highlights
 
 - **Reproducible build.** `make` rebuilds the image from `assets/`; `make verify`
-  checks it against `roms.sha1`. Unchanged assets give back the reference ROM
-  to the byte.
-- **The ROM, taken apart.** Header and vectors as YAML, 202 strings in five text
+  checks it against `roms.sha1`. Freshly extracted assets give back the base
+  ROM to the byte; the committed ones give the build recorded in `roms.sha1`.
+- **The ROM, taken apart.** Header and vectors as YAML, 227 strings in nine text
   files, the font as text art, 14 Nemesis blocks, 22 indexed-PNG sheets of tile
   art, the PCM region, the HP table, six captured palettes and Capstone listings
   of every code segment. What is still unidentified is measured, not hidden:
   `ga3 map` prints the coverage.
 - **Nemesis codec, both ways.** Decoder lifted from the game's disassembly and
   verified against a VRAM dump (3072/3072 bytes). The encoder beats SEGA's on
-  all 14 blocks (13 780 vs 14 045 bytes) — which is exactly why the build
-  reuses the original blocks verbatim until you edit them.
-- **Font editing in plain text.** Glyphs as `#`/`.` art. **Ё**, **Ъ** and the
-  parentheses were added to a translation that never had them; the build refuses
-  a font that would not fit its 840-byte slot.
+  all 14 blocks (13 780 vs 14 045 bytes); its output differs from SEGA's, so for
+  byte identity the build reuses the original blocks verbatim until you edit
+  them.
+- **Font editing in plain text.** Glyphs as `#`/`.` art. **Ё**, **ё**, **Ъ**,
+  Latin **V** and the parentheses were added to a translation that never had
+  them; the build refuses a font that would not fit its 840-byte slot.
 - **Gameplay by name.** `ga3 balance set-hp 60 60 60 60` edits a YAML table;
   the address is the map's business.
 - **Emulator as a measuring instrument.** Scripted input, screenshots, VDP and
@@ -106,7 +107,7 @@ flowchart LR
 
 ## Repository layout
 
-```
+```text
 rom_map.yml       the single home of every ROM offset (splat-style segments)
 roms.sha1         sha1 of the base ROM and of the build; `make verify`
 Makefile          venv · build · extract · verify · test · lint · assets · asm · emu · regress · clean · distclean · help
@@ -114,17 +115,17 @@ pyproject.toml    the ga3 package and its `ga3` command
 baserom/          put your ROM here (ignored)
 assets/           the ROM taken apart — see STYLE.md for what is committed
   header/         vectors.yml, header.yml
-  text/           menu · stages · ending · dialogue · misc .txt, encoding.tbl
+  text/           menu · stages · ending · dialogue · misc · menu_items · code_main_{b,d,e} .txt, encoding.tbl
   gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (indexed)
   palettes/       *.pal captured from the emulator (no ROM source known yet)
   sound/pcm/      samples.pcm
   data/           hp_table.yml
   code/asm/       Capstone listings (generated)
 build/            everything derived (ignored): ROM, IPS, emulator, shots, dumps, previews
-src/ga3/          the toolkit: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · balance · disasm · ramsearch · cli
+src/ga3/          the toolkit: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · patches · balance · disasm · ramsearch · lag · cli
 tests/            pytest; ROM-free fixtures plus ROM-gated tests
 emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
-docs/             README (index) · build · text_format · nemesis · font · emulator · rom_map (generated) · evidence/ · images/ · branding/ · ru/journal.md
+docs/             README (index) · build · text_format · nemesis · font · emulator · rom_map (generated) · evidence/ · images/ · branding/ · ru/journal.md · ru/proofreading.md
 ```
 
 ## ROM map
@@ -142,7 +143,8 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `0FC000–0FFA20` | PCM samples |
 | `0FFA20–100000` | the relocated entry stub |
 
-Free space: **818 bytes** in three verified holes (96 of the original 914 hold the menu-version routine and the main-menu items). About half of the image is
+Free space: **818 bytes** in three verified holes (96 of the original 914 hold
+the menu-version routine and the main-menu items). About half of the image is
 still `unknown`; `ga3 map` prints the exact figure and the ranges.
 
 ## Roadmap

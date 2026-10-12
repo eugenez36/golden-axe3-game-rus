@@ -15,7 +15,7 @@ recompression from the current art.
 
 The source of truth is `assets/gfx/font/font.txt`:
 
-```
+```text
 @ 4F  'Ъ'
 ####....
 ..##....
@@ -47,7 +47,8 @@ character; `font.txt` marks them `not in table`, and they are not counted as fre
 
 A new letter needs three edits in one commit: the glyph in `font.txt`, the
 character in `src/ga3/table.py`, and `ga3 assets refresh` for `encoding.tbl`
-and `font.nem`.
+and `font.nem`. The font is in the image, so rebuild and commit `roms.sha1`
+after `ga3 verify --update` in the same commit.
 
 ## Verification
 
@@ -57,8 +58,8 @@ and `font.nem`.
 - ё: seen in-game in the opening dialogue («Вперёд», `emu/scenes/dialogue_pages.txt`)
   and in message 1 («всё ещё»). With it the block is 834 of 840 bytes.
 - Ъ: drawn and in the table, but no text uses it. Its only use, «я разЪярЁн»
-  in message 1, broke the sentence and was restored to the translators'
-  «я разберусь» (see `docs/ru/proofreading.md`).
+  in message 1, broke the sentence; the line was restored to the translators'
+  «я разберусь» (see [ru/proofreading.md](ru/proofreading.md)).
 
 Repacking unchanged glyphs must reproduce the VRAM dump byte for byte
 (`tests/fixtures/font_vram.4bpp`); that test catches packer regressions better

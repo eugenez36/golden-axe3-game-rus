@@ -6,10 +6,10 @@ covered by that license.
 
 ## Golden Axe III (game ROM) — © SEGA
 
-The game, its code, graphics, music, text and the cartridge image (`baserom/ga3.bin` in this
-tree, supplied by the user) are the
-property of SEGA Corporation. **The ROM is not included in this repository** and must never
-be committed (see `.gitignore` and the CI guard step). Users must supply their own dump.
+The game, its code, graphics, music, text and the cartridge image
+(`baserom/ga3.bin` in this tree, supplied by the user) are the property of SEGA
+Corporation. **The ROM is not included in this repository** and must never be
+committed (see `.gitignore` and the CI guard step). Users must supply their own dump.
 
 "SEGA", "Mega Drive", "Genesis" and "Golden Axe" are trademarks of SEGA Corporation.
 This project is not affiliated with, endorsed by, or sponsored by SEGA.
@@ -39,9 +39,12 @@ in `core/vdp_ctrl.c` (`emu/patches/0001-dma-hook.patch`, 14 lines). `emu/headles
 is an original frontend that links against it.
 
 Genesis Plus GX is distributed under the following license, which applies to the core
-and to any binary built from it, including `headless_gpgx`:
+and to any binary built from it, including `headless_gpgx`. Parts of the core carry
+their own licenses, given in full in `emu/gpgx/LICENSE.txt`; `headless_gpgx` also
+compiles the Nuked OPN2 core (`core/sound/ym3438.c`, © Alexey Khokholov,
+LGPL-2.1) and the minimp3 decoder (`core/sound/minimp3`, CC0):
 
-```
+```text
 Copyright (c) 1998-2003 Charles MacDonald
 Copyright (c) 2007-2026 Eke-Eke
 Some portions copyright Nicola Salmoria and the MAME team
