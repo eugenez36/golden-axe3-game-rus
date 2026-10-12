@@ -28,8 +28,11 @@ Pitfalls:
   the first byte for a character, so if a glyph ever got a second byte,
   `decode_lossless()` would export the other one as `{XX}` and the file would
   still round-trip exactly. `{XX}` must be two hex digits.
-- `0x71` is «й» (the «и» glyph plus a breve) and `0x50` is «ю»; at 8×8 they
-  are easy to confuse, which produces «магическию» instead of «магический».
+- `0x29` is lower-case «ю» and `0x50` upper-case «Ю» (seen in-game: «МЕНЮ» on
+  the options screen is `0x50`). Earlier versions of the table had the two labels
+  swapped, so correct words read as «следуЮщий» in the text files.
+  `test_letter_case_matches_glyph_height` now checks every letter's case
+  against its drawing. `0x71` is «й» (the «и» glyph plus a breve).
 - `0x4F` Ъ, `0x51` Ё, `0x2A` `(`, `0x2B` `)` and `0x40` Latin `V` (for the
   version in the main menu) were drawn by this project. The original
   translation did not have them. Lower-case `v` encodes to the same byte.

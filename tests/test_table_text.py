@@ -27,9 +27,11 @@ def test_unknown_char_raises():
 
 
 def test_case_fallback():
-    # the font has only lower-case «ю» (0x50) and upper «Ю» (0x29): both map
-    assert table.encode("ю") == b"\x50"
-    assert table.encode("Ю") == b"\x29"
+    # «ю» and «Ю» are two glyphs (0x29 low, 0x50 tall); letters with one case only
+    # fall back to it
+    assert table.encode("ю") == b"\x29"
+    assert table.encode("Ю") == b"\x50"
+    assert table.encode("й") == table.encode("Й") == b"\x71"
 
 
 def test_tbl_format_has_every_byte():

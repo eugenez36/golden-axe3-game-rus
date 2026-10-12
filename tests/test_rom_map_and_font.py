@@ -1,6 +1,6 @@
 import pytest
 
-from ga3 import font, nemesis, rom_map
+from ga3 import font, nemesis, rom_map, table
 from ga3.cli import main
 
 from .conftest import ROOT
@@ -81,3 +81,26 @@ def test_cli_help_and_map(capsys):
     assert main(["--root", str(ROOT), "map"]) == 0
     out = capsys.readouterr().out
     assert "tiles4bpp" in out and "unknown" in out
+
+
+# letters whose glyph rises above the x-height although they are lower case
+_TALL_LOWER = {"й"}  # the breve sits on row 1
+
+
+def test_letter_case_matches_glyph_height():
+    """A label's case must match its drawing: capitals start on row 0, small letters lower.
+
+    Guards against swapped labels such as the old ю (0x50) / Ю (0x29) mix-up,
+    which made correct in-game text read wrong in assets/text.
+    """
+    glyphs = font.parse_art_file(str(ROOT / "assets/gfx/font/font.txt"))
+    wrong = []
+    for byte, ch in sorted(table.BYTE_TO_CHAR.items()):
+        if not ch.isalpha():
+            continue
+        art = font.tile_to_art(glyphs[byte], 0)
+        top = next(i for i, row in enumerate(art) if row.strip("."))
+        drawn_upper = top == 0 or (top == 1 and ch not in _TALL_LOWER)
+        if drawn_upper != ch.isupper():
+            wrong.append(f"{byte:02X} {ch!r} starts on row {top}")
+    assert wrong == []
