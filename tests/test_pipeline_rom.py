@@ -65,7 +65,8 @@ def test_text_roundtrip_over_all_segments(project, baserom):
         ):
             assert text.table.encode(txt) == bytes(baserom.data[off : off + ln])
             count += 1
-    assert count == 202
+    # 202 before Latin V took byte 0x40: three runs of binary data now read as text
+    assert count == 205
 
 
 def test_pristine_free_font_slots(project, baserom):
@@ -78,8 +79,8 @@ def test_pristine_free_font_slots(project, baserom):
     #  because the menu swaps the background index -- both are in the table)
     blank = [0x20 + i for i in range(96) if font.is_blank(raw, i) and 0x20 + i not in (0x20, 0x25)]
     assert blank == [0x2A, 0x2B, 0x3C, 0x3E, 0x40, 0x4F, 0x51, 0x7B, 0x7F]
-    # ... four of which this project has since assigned (Ё Ъ and the parentheses)
-    assert font.free_slots(raw) == [0x3C, 0x3E, 0x40, 0x7B, 0x7F]
+    # ... five of which this project has since assigned (Ё Ъ, the parentheses and V)
+    assert font.free_slots(raw) == [0x3C, 0x3E, 0x7B, 0x7F]
 
 
 def test_loading_a_wrong_rom_is_refused(project, tmp_path):

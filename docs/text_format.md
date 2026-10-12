@@ -30,8 +30,12 @@ Pitfalls:
   still round-trip exactly. `{XX}` must be two hex digits.
 - `0x71` is «й» (the «и» glyph plus a breve) and `0x50` is «ю»; at 8×8 they
   are easy to confuse, which produces «магическию» instead of «магический».
-- `0x4F` Ъ, `0x51` Ё, `0x2A` `(` and `0x2B` `)` were drawn by this project.
-  The original translation did not have them.
+- `0x4F` Ъ, `0x51` Ё, `0x2A` `(`, `0x2B` `)` and `0x40` Latin `V` (for the
+  version in the main menu) were drawn by this project. The original
+  translation did not have them. Lower-case `v` encodes to the same byte.
+  Because `0x40` is now printable, a few runs of binary data inside the text
+  segments read as slightly longer "strings" on a fresh `ga3 extract`; the
+  committed text files keep the old records, which are equally valid.
 
 ## Strings files (`assets/text/*.txt`)
 

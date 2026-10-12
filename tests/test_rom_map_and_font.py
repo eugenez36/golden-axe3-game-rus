@@ -59,7 +59,7 @@ def test_font_art_file_roundtrip(fixtures):
     art = font.font_to_art(raw)
     glyphs = font.parse_art(art)
     assert font.art_to_font(glyphs, 96) == raw
-    assert font.free_slots(raw) == [0x3C, 0x3E, 0x40, 0x7B, 0x7F]
+    assert font.free_slots(raw) == [0x3C, 0x3E, 0x7B, 0x7F]  # 0x40 is now V
 
 
 def test_committed_font_nem_matches_vram_dump(fixtures):
@@ -67,11 +67,11 @@ def test_committed_font_nem_matches_vram_dump(fixtures):
     nem = (ROOT / "assets/gfx/nemesis/font.nem").read_bytes()
     vram = (fixtures / "font_vram.4bpp").read_bytes()
     decoded = nemesis.decompress_blob(nem)
-    # the VRAM dump predates the four new glyphs; every other tile is identical
+    # the VRAM dump predates the five new glyphs; every other tile is identical
     art_rom = font.parse_art(font.font_to_art(decoded))
     art_vram = font.parse_art(font.font_to_art(vram))
     differing = sorted(b for b in art_rom if art_rom[b] != art_vram[b])
-    assert all(b in (0x2A, 0x2B, 0x4F, 0x51) for b in differing), differing
+    assert all(b in (0x2A, 0x2B, 0x40, 0x4F, 0x51) for b in differing), differing
 
 
 def test_cli_help_and_map(capsys):

@@ -40,7 +40,7 @@ not fit) → `ga3 assets refresh` (updates the committed `font.nem`) →
 | State | Blank slots |
 |---|---|
 | original translation | `2A 2B 3C 3E 40 4F 51 7B 7F` (nine) |
-| this project | `3C 3E 40 7B 7F` (five) — `2A` `(`, `2B` `)`, `4F` Ъ, `51` Ё were drawn |
+| this project | `3C 3E 7B 7F` (four) — `2A` `(`, `2B` `)`, `4F` Ъ, `51` Ё, `40` Latin V were drawn |
 
 Six slots (`23`, `5B`–`5F`) are drawn — box rules, a bar, wedges — but have no
 character; `font.txt` marks them `not in table`, and they are not counted as free.
@@ -53,6 +53,7 @@ and `font.nem`.
 
 - Ё: seen in-game, `docs/images/newletters.png`.
 - `(` `)`: seen in-game, `docs/images/parens.png`.
+- V: seen in-game in the main menu version line, `emu/scenes/menu.txt`.
 - Ъ: verified in the font data only. It appears in the second NPC's line
   («Не волнуйся, я разЪярЁн!»), which needs playing into stage 1;
   `emu/scenes/dialogue_pages.txt` is the scene to extend for that.
