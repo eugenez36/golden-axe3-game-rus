@@ -15,9 +15,9 @@ header checksum `9BB5`, entry point `0FFA20`.
 | pcm | 14880 | 1.4% |
 | nemesis | 14050 | 1.3% |
 | text | 13217 | 1.3% |
-| patch | 886 | 0.1% |
+| patch | 894 | 0.1% |
 | header | 512 | 0.0% |
-| free | 28 | 0.0% |
+| free | 20 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
 
@@ -60,8 +60,7 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `01E3DC–0295EE` | unknown | unk_01E3DC |  |  |
 | `0295EE–029F08` | nemesis | nem_0295EE | `gfx/nemesis/nem_0295EE.nem` | 208 tiles |
 | `029F08–05AEAA` | unknown | unk_029F08 |  |  |
-| `05AEAA–05AFC6` | patch | kill_counter_hud |  | filled with 0x00; kill counter: frame hook, sprite-list walk, counter sprites |
-| `05AFC6–05AFCE` | free | free_05AFC6 |  | filled with 0x00; 8 bytes |
+| `05AEAA–05AFCE` | patch | kill_counter_hud |  | filled with 0x00; kill counter: frame hook, sprite-list walk, counter sprites |
 | `05AFCE–05B30A` | unknown | unk_05AFCE |  |  |
 | `05B30A–05B41A` | patch | kill_counter_tiles |  | filled with 0x00; kill counter: digit tile upload, 1bpp glyphs from the font art |
 | `05B41A–05B42E` | free | free_05B41A |  | filled with 0x00; 20 bytes |

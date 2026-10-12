@@ -143,6 +143,8 @@ hud:
         lea     SPRITES.w,a0
         suba.l  a2,a2
         suba.l  a3,a3
+        cmpi.w  #DUEL,MODE.w            ; a duel has no enemies to count:
+        bcc.s   .show                   ; no counters (and both caches reset)
         move.w  SPR_COUNT.w,d2
         beq.s   .show
         cmpi.w  #MAX_SPRITES,d2
