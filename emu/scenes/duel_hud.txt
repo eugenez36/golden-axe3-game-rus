@@ -1,0 +1,17 @@
+# Duel against the computer: main menu -> ДУЭЛЬ -> hero -> stage -> fight.
+# Both HUDs are drawn, the kill counter boxes are not (MODE 2 and up is a duel).
+include _boot.inc
+press down 6
+press down 6
+wait 20
+press start 10
+wait 167
+press start 10
+wait 600
+press start 10
+wait 300
+press start 10
+wait 400
+hold right 60
+screenshot build/shots/duel_hud.png 2
+dump vram build/dumps/duel_hud_vram.bin
