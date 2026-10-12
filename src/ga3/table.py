@@ -9,7 +9,7 @@ menu tilemap (ИГРОК=DUH0R, ВДВОЕМ=BLB0NM, ДУЭЛЬ=LE"KV, ОПЦИ�
 by the tilemap of the first stage's dialogue.
 
 Pitfalls worth remembering:
-  * Digits 0 and 3 are the same glyphs as «О» and «З»; there are no separate digits.
+  * Digits 0 and 3 are the same glyphs as «О» and «З»; those two have no glyphs of their own.
   * Ж (0x26) and ж (0x3B) are distinct upper- and lower-case glyphs; no byte of
     this table shares its character with another. Should a glyph ever get a
     second byte, the reverse table keeps the first one and ``decode_lossless``

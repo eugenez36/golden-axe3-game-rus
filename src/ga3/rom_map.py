@@ -213,6 +213,20 @@ def coverage_report(rm: RomMap) -> str:
     return "\n".join(lines)
 
 
+def _md_text(text: str) -> str:
+    """Free text for a Markdown table cell: escape what Markdown would eat.
+
+    ``*`` would start emphasis and ``<word>`` would be dropped as an HTML tag,
+    except inside code spans (between backticks); ``|`` would split the cell
+    even there, so it is escaped everywhere.
+    """
+    parts = str(text).split("`")
+    for i in range(0, len(parts), 2):  # even parts are outside code spans
+        for ch in "\\*<":
+            parts[i] = parts[i].replace(ch, "\\" + ch)
+    return "`".join(parts).replace("|", "\\|")
+
+
 def markdown_table(rm: RomMap) -> str:
     """The ROM map as a Markdown table (feeds docs/rom_map.md and the README)."""
     lines = [
@@ -228,9 +242,9 @@ def markdown_table(rm: RomMap) -> str:
         if "fill" in s.attrs:
             notes.append(f"filled with 0x{s.attrs['fill']:02X}")
         if "note" in s.attrs:
-            notes.append(str(s.attrs["note"]))
+            notes.append(_md_text(s.attrs["note"]))
         if "evidence" in s.attrs:
-            notes.append(f"*evidence: {s.attrs['evidence']}*")
+            notes.append(f"*evidence: {_md_text(s.attrs['evidence'])}*")
         lines.append(
             f"| `{s.start:06X}–{s.end:06X}` | {s.type} | {s.name} | "
             f"{'`' + s.path + '`' if s.path else ''} | {'; '.join(notes)} |"

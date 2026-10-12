@@ -11,7 +11,7 @@ SEGA's lawyers asleep. Conventions live in [STYLE.md](STYLE.md); setup in
 ### Ground rules
 
 1. **The ROM never enters git.** Not the reference, not a build, not a "demo".
-   `.gitignore` blocks `*.bin`, the pre-commit hook and CI fail on any ROM-shaped
+   `.gitignore` blocks `*.bin`; the pre-commit hook and CI fail on any ROM-shaped
    file. Changes are made to the files in `assets/` and reviewed as diffs; the
    build produces the IPS.
 2. **The base ROM is read-only.** Tools read `baserom/ga3.bin` and write to
@@ -73,7 +73,7 @@ worth more than an unverified patch.
 ### Правила лагеря
 
 1. **ROM в git не попадает никогда.** Ни эталон, ни сборка, ни «демо».
-   `.gitignore` режет `*.bin`, pre-commit и CI падают на любом файле, похожем на
+   `.gitignore` режет `*.bin`; pre-commit и CI падают на любом файле, похожем на
    ROM. Правки вносятся в файлы `assets/` и читаются как diff; IPS порождает сборка.
 2. **Эталон только для чтения.** Инструменты читают `baserom/ga3.bin` и пишут в
    `build/`. Если команда хочет изменить эталон — это баг.
@@ -98,8 +98,8 @@ PR, меняющий кодек, таблицу символов или шриф
 ### Порядок работы
 
 ```bash
-git checkout -b quest/короткое-имя        # новые возможности
-git checkout -b glitch/короткое-имя       # исправления
+git checkout -b quest/short-name          # новые возможности
+git checkout -b glitch/short-name         # исправления
 # правки в assets/… или src/ga3/…
 make && ga3 verify --update && make test && make lint
 ga3 emu emu/scenes/menu_verify.txt        # или сцена, показывающая вашу правку
@@ -111,9 +111,10 @@ ga3 emu emu/scenes/menu_verify.txt        # или сцена, показыва�
 - PR вливаются **squash'ем**; заголовок PR становится заголовком коммита.
 - Любой PR в `main` требует **хотя бы одного одобряющего ревью** не от автора;
   новый push сбрасывает прежние одобрения. Владелец в крайнем случае может
-  влить PR без ревью — только через PR, не прямым push. GitHub следит за этим
-  набором правил из `.github/scripts/protect-main.sh` (для приватного
-  репозитория нужен GitHub Pro; пока его нет, правило держится на нас).
+  влить PR без ревью, но только через PR, а не прямым push. На стороне GitHub
+  это обеспечивает набор правил (ruleset), который создаёт
+  `.github/scripts/protect-main.sh` (для приватного репозитория нужен
+  GitHub Pro; пока его нет, правило держится на нас).
 - Заполняйте шаблон PR. Чеклист там не для красоты.
 - Новые смещения — в `rom_map.yml`, никогда в код.
 - `ruff` закреплён дважды: в `pyproject.toml` (`[dev]`) и в

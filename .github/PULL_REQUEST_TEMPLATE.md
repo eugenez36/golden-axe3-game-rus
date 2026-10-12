@@ -13,7 +13,7 @@
 - [ ] **Structural** — `ga3 diff baserom/ga3.bin build/ga3.bin` shows only the expected bytes; `ga3 verify --update` run
 - [ ] **Round-trip** — `ga3 text verify` passes / `make assets` leaves no diff / `make test` green
 - [ ] **In-game** — scene run with `ga3 emu emu/scenes/…` · screenshot below
-- [ ] **VRAM parity** — re-packing unchanged data gives byte-identical VRAM (graphics only; tick N/A otherwise)
+- [ ] **VRAM parity** — repacking unchanged data gives byte-identical VRAM (graphics only; tick N/A otherwise)
 
 ## Proof
 

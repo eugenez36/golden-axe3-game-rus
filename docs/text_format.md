@@ -8,7 +8,7 @@ Text is stored as plain bytes, one per glyph, and the font is uploaded to VRAM
 so that **tile index == text byte** (byte `0x20` is tile 0 of the font block).
 The NEWGAME translators put Cyrillic onto the Latin positions:
 
-```
+```text
 ИГРОК  = 44 55 48 30 52    (the bytes read "DUH0R" in ASCII)
 ВДВОЕМ = 42 4C 42 30 4E 4D
 ОПЦИИ  = 30 47 57 44 44
@@ -22,7 +22,8 @@ stage's dialogue tilemap (`docs/images/menu_main.png`, `dialogue.png`).
 Pitfalls:
 
 - Digits `0` and `3` are the same glyphs as «О» and «З»; the font has no
-  separate digits. `encode()` maps both characters to the same byte.
+  separate glyphs for those two digits. `encode()` maps each digit and its
+  letter to the same byte.
 - Ж (`0x26`) and ж (`0x3B`) are distinct upper- and lower-case glyphs; no
   byte of the table shares its character with another. The reverse table keeps
   the first byte for a character, so if a glyph ever got a second byte,
@@ -56,7 +57,7 @@ carries strings (`strings:` in the map):
 | `text_menu` | `menu.txt` | title line, options screen layout |
 | `menu_items` (patch) | `menu_items.txt` | main-menu items, 4 × 8 characters |
 | `code_main_b` | `code_main_b.txt` | `1Р` `2Р` `КОМ`, `ПАУЗА` |
-| `code_main_d` | `code_main_d.txt` | difficulty, button roles, `НАЖМИ СТАРТ 2`, score labels |
+| `code_main_d` | `code_main_d.txt` | difficulty, button roles, `ИГРОК 2: СТАРТ`, score labels |
 | `text_stages` | `stages.txt` | stage names, 12 × 20 characters, centred |
 | `code_main_e` | `code_main_e.txt` | `МАРШРУТ`, `ТЫ ПОГИБ` |
 | `text_ending` | `ending.txt` | ending screens |
@@ -65,7 +66,7 @@ carries strings (`strings:` in the map):
 
 Format:
 
-```
+```text
 # comment
 HEXOFFSET:DECLENGTH | text
 0179F3:24 | Наши воины (Гена и Женя)
@@ -111,7 +112,7 @@ wording and are not edited.
 
 `0179F2–017AF3`, loaded by `move.l #$179F2` at `0179E4`. Each screen is:
 
-```
+```text
 <indent byte> <line 1> FE <indent byte> <line 2> FF
 ```
 
@@ -126,6 +127,7 @@ moving anything.
 
 Not possible in place. Free space is 818 bytes in three holes
 (`011716`, `05AEAA`, `05B30A`; the first 96 bytes at `0116B6` now hold the
-menu-version routine and the relocated main-menu items) plus a probable 170-byte filler at `01B6D6`.
+menu-version routine and the relocated main-menu items) plus a probable
+170-byte filler at `01B6D6`.
 Relocating a string means finding and rewriting its pointer; no pointer table
 has been mapped yet. `Rom.expand()` to 2 MiB exists for when that day comes.

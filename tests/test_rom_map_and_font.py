@@ -43,6 +43,20 @@ def test_map_fills_gaps():
     assert rm.coverage() == {"unknown": 0xF0, "code": 0x10}
 
 
+@pytest.mark.parametrize(
+    "text, cell",
+    [
+        ("draws 'V <package version>'", r"draws 'V \<package version>'"),  # not an HTML tag
+        ("C8A0 + n*0100 with attr", r"C8A0 + n\*0100 with attr"),  # no emphasis
+        ("a | b", r"a \| b"),  # the cell does not split
+        ("`f * len` and *x*", r"`f * len` and \*x\*"),  # code spans stay as they are
+        ("`a|b`", r"`a\|b`"),  # GFM splits cells on | even inside code spans
+    ],
+)
+def test_markdown_cells_escape_what_markdown_would_eat(text, cell):
+    assert rom_map._md_text(text) == cell
+
+
 def test_font_art_identity():
     glyph = b"\xcc" * 32  # blank glyph: all background
     art = font.tile_to_art(glyph, 0)

@@ -6,8 +6,8 @@ described in `rom_map.yml`, not stored here).
 
 Editing workflow:
 
-1. `ga3 extract --png` writes the decoded tiles next to each block as `.4bpp`
-   (gitignored) and previews into `build/preview/`.
+1. `ga3 extract` writes the decoded tiles next to each block as `.4bpp`
+   (gitignored); with `--png` it also writes previews into `build/preview/`.
 2. Edit the `.4bpp` (or render it to a PNG with `ga3 tiles render --file …`,
    edit, and import back with `ga3 tiles import --indexed`).
 3. `ga3 build` recompresses only blocks whose tiles changed and refuses a block

@@ -6,16 +6,16 @@ has to be installed: the headless emulator is built from the submodule.
 
 ## 1. Dependencies
 
-**Ubuntu / Debian / WSL**
+### Ubuntu / Debian / WSL
 
 ```bash
 sudo apt install build-essential zlib1g-dev python3.12 python3.12-venv git
 ```
 
-**macOS (Homebrew)**
+### macOS (Homebrew)
 
 ```bash
-brew install python@3.12 make git      # clang and zlib come with the Xcode tools
+brew install python@3.12 git           # clang, zlib and make come with the Xcode tools
 ```
 
 **Windows**: install WSL (Ubuntu) and follow the Ubuntu steps inside it. Keep
@@ -37,14 +37,17 @@ fork: upstream plus one 14-line commit (`emu/patches/0001-dma-hook.patch`).
 ## 3. Python environment
 
 ```bash
-make venv          # python3 -m venv .venv && pip install -e ".[dev,disasm]"
+make venv          # $(PYTHON) -m venv .venv && pip install -e ".[dev,disasm]"
 source .venv/bin/activate
 ga3 --version
 ```
 
+If `python3` is older than 3.12 (Ubuntu 22.04, the macOS system Python), name
+the interpreter: `make venv PYTHON=python3.12`.
+
 `make` targets use `.venv/bin/…` directly, so activating is optional. Every
-`ga3` command finds the project by walking up to `rom_map.yml`; from elsewhere
-pass `--root PATH` or set `GA3_ROOT`.
+`ga3` command finds the project in `$GA3_ROOT` when it is set, otherwise by
+walking up to `rom_map.yml`; `--root PATH` overrides both.
 
 ## 4. The base ROM
 

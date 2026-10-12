@@ -10,6 +10,7 @@
 | [rom_map.md](rom_map.md) | you need the full segment table (generated from `rom_map.yml`, do not edit) |
 | [evidence/](evidence/README.md) | you want to see the logs and screenshots behind a map entry |
 | [ru/journal.md](ru/journal.md) | you want the whole story in Russian: how each address was found, dead ends included |
+| [ru/proofreading.md](ru/proofreading.md) | you want the proofreading decisions behind the text (in Russian) |
 
 `images/` holds the seven screenshots the documents cite; `branding/` the README
 banner and the social-preview image.

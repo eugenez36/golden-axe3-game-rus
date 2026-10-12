@@ -17,9 +17,10 @@ file with a SEGA header anywhere in the tree.
 Check it with:
 
 ```bash
-sha1sum -c roms.sha1      # or: ga3 info
+sha1sum -c --ignore-missing roms.sha1   # or compare with: ga3 info
 ```
 
 `ga3 extract` and `ga3 build` refuse to run against an image whose SHA-1 does
 not match `rom_map.yml`. To work with a different dump on purpose, pass
-`--rom PATH` (the check is then skipped for extraction).
+`--rom PATH` (the check is then skipped for both commands; a note is printed
+when the SHA-1 differs).

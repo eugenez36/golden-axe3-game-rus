@@ -30,7 +30,7 @@ Encoder notes (why it matches or beats SEGA's packer on all 14 blocks of this RO
 --------------------------------------------------------------------------------
 * Rare symbols are cheaper inline. A table entry costs 2 bytes plus ``f * len``
   bits of stream; inline costs 13 bits per occurrence and nothing in the table,
-  so a symbol earns its table slot only when ``f * (13 - len) < 16``.
+  so a symbol earns its table slot only when ``f * (13 - len) >= 16``.
 * Code lengths come from package-merge, not from a heuristic: plain Huffman
   yields codes longer than 8 bits, which the format cannot hold.
 * The four reserved table entries (0xFC..0xFF) are modelled as four zero-weight

@@ -16,9 +16,11 @@ make regress                               # every scene in emu/scenes/, one per
 ```
 
 Command line: `--rom FILE` (required), `--script FILE` (`-` reads stdin),
-`--frames N` (run this many frames when there is no script), `--png FILE`
-(screenshot at the end), `--scale N`, `--quiet`. `ga3 emu SCRIPT` supplies
-`--rom build/ga3.bin` and passes anything after the script through.
+`--frames N` (run this many frames when there is no script; default 600),
+`--png FILE` (screenshot at the end), `--scale N`, `--overclock PCT`
+(100..400, see [Lag and overclock](#lag-and-overclock)), `--quiet`, `-h`.
+`ga3 emu SCRIPT` supplies `--rom build/ga3.bin` (or the global `--rom`) and
+passes anything after the script through.
 
 ## The core
 
@@ -40,7 +42,7 @@ spaces, at most three are read.
 | `wait N` | advance N frames (60 per second) |
 | `press BTNS [N]` | press for N frames, release for N (default 6) |
 | `hold BTNS N` | hold for N frames |
-| `pad2 BTNS [N]` | the same on the second pad |
+| `pad2 BTNS [N]` | hold on the second pad for N frames (default 1), no release phase |
 | `screenshot PATH [S]` | PNG, integer scale S; directories are created |
 | `dump WHAT PATH` | `vram cram vsram wram zram sat satvram regs` |
 | `watchlog PATH` | file for watchpoint / breakpoint / DMA lines |
@@ -51,7 +53,10 @@ spaces, at most three are read.
 | `clearwatch` | remove RAM and VRAM watchpoints (breakpoints stay) |
 | `poke8 / poke16 ADDR VAL` | patch Work RAM (hex, 68000 address; the byte swap is handled) |
 | `state save\|load PATH` | savestate |
-| `reset`, `status`, `echo`, `quiet` | |
+| `reset` | reset the console |
+| `status` | print the frame, the viewport and the watch hits |
+| `echo TEXT` | print up to three words |
+| `quiet` | silence progress messages |
 
 Buttons: `up down left right a b c x y z start mode`, joined with `+`.
 
@@ -107,6 +112,10 @@ Also: the game addresses RAM as `FFFFxxxx` while the bus carries 24 bits, so
 watchpoints mask addresses with `FFFFFF` and account for access width.
 CRAM is stored in GPGX's packed 9-bit little-endian form;
 `ga3.palette.gpgx_cram_to_words()` turns a dump into standard CRAM words.
+Dumps are taken between frames, while the game may already be rebuilding what
+it rebuilds every frame: the sprite list in Work RAM (`FFE5CA`) is often
+half-built at that point. To see what was on screen, dump `satvram`
+(the table the VDP actually used) or `vram`.
 
 ## Finding a variable: the HP example
 

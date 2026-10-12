@@ -1,13 +1,14 @@
 # assets/ — the ROM, taken apart
 
-Everything under this directory is produced by `ga3 extract` from the base ROM
-and consumed by `ga3 build`. Each file corresponds to one segment of
+Most of this directory is produced by `ga3 extract` from the base ROM and
+consumed by `ga3 build` (palettes are emulator captures, listings come from
+`ga3 asm`). Each file corresponds to one segment of
 [`rom_map.yml`](../rom_map.yml); that file, not this tree, is where offsets live.
 
 | Directory | Contents | Edit with | Committed |
 |---|---|---|---|
 | `header/` | `vectors.yml` (64 longs), `header.yml` (cartridge header, `auto` checksum) | any editor | yes |
-| `text/` | one strings file per text segment (`menu`, `stages`, `ending`, `dialogue`, `misc`); `encoding.tbl` for external tools | any editor; see [docs/text_format.md](../docs/text_format.md) | yes (`encoding.tbl` is generated) |
+| `text/` | one strings file per text segment (`menu`, `stages`, `ending`, `dialogue`, `misc`), the strings inside code segments (`code_main_b`/`d`/`e`) and the menu-items patch (`menu_items`); `encoding.tbl` for external tools | any editor; see [docs/text_format.md](../docs/text_format.md) | yes (`encoding.tbl` is generated) |
 | `gfx/font/` | `font.txt`, the 96 glyphs as `#`/`.` art | any editor; see [docs/font.md](../docs/font.md) | yes |
 | `gfx/nemesis/` | the 14 compressed blocks (`.nem`), decoded tiles next to them (`.4bpp`) | `ga3 tiles render/import`; see [README](gfx/nemesis/README.md) | `.nem` yes, `.4bpp` no |
 | `gfx/tiles/` | `art_00..21.png`: 11 264 uncompressed tiles in 22 indexed sheets, grey placeholder palette | an editor that keeps indexed colour (Aseprite, GIMP in indexed mode) | yes |

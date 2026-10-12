@@ -9,7 +9,7 @@ VRAM dump: the decoded font matches all 3072 bytes the game uploads.
 
 ## Format
 
-```
+```text
 word    header: bit 15 = XOR mode, bits 0..14 = tile count
 ...     code table, terminated by FF
 ...     bit stream, MSB first
@@ -44,7 +44,7 @@ output row is the accumulator XORed with the previous row.
 
 "Exact size" is what `ga3 nemesis size` reports: the bytes the decoder actually
 consumes. (The earlier reader-position estimate was one byte short on 12
-blocks, which is why the journal says 14033.) "Pad" is the base ROM's zero
+blocks; the journal has since been recalculated with `ga3 nemesis size`.) "Pad" is the base ROM's zero
 word-alignment after the block; the map's `end` includes it. The twelve blocks
 from `01B780` lie nearly back to back: the six bytes after the font
 (`44 18 FD 63 E8 00`) are data, not padding, and 43 unidentified bytes sit
@@ -56,9 +56,9 @@ The first version lost by about 400 bytes. Three changes closed the gap:
 
 1. **Rare symbols are cheaper inline.** A table entry costs 2 bytes plus
    `f × len` stream bits; inline costs 13 bits per occurrence and no table
-   space. Keep a symbol in the table only if `f × (13 − len) < 16`. On XOR
-   blocks SEGA's packer keeps 56 table symbols where the naive approach kept a
-   hundred — nearly 100 bytes.
+   space. Keep a symbol in the table only if `f × (13 − len) ≥ 16`; below that
+   it goes inline. On XOR blocks SEGA's packer keeps 56 table symbols where the
+   naive approach kept a hundred — nearly 100 bytes.
 2. **Package-merge for code lengths.** Plain Huffman produces codes longer than
    8 bits, which the format cannot store; package-merge solves the depth-limited
    problem exactly.
