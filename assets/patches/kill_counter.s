@@ -7,8 +7,9 @@
 ; the build appends to the tiles section from the font art.
 ;
 ; Counting: the three places that take hit points from an object jump here.
-; Each subtracts as before; when an enemy's HP goes from above zero to zero
-; and the hit came from a player, that player's counter goes up (to 99).
+; Each subtracts as before and marks the enemy with the player who hit it;
+; when the enemy dies (HP to zero, or freed alive because it fell off the
+; stage), the marked player's counter goes up (to 99).
 ; Display: every frame, just before the game waits for VBlank, the sprite list
 ; is walked; for each player whose HUD is on screen two digit tiles go to free
 ; VRAM and one 2x1 sprite is appended right of the HUD.
@@ -18,63 +19,96 @@
 
         section count
 
+; Every hit by a player marks the victim with that player (LAST_HIT: 1 or 2);
+; the kill goes to the mark, whether the enemy's HP runs out or it falls off
+; the stage alive (its object is freed with HP left). No mark, no kill.
+
 ; victim a0, attacker a1, damage d1; replaces sub/bpl/clr, the caller then rts
 melee_a0:
         tst.b   HP(a0)
         beq.s   .done
+        bsr.w   mark
         sub.b   d1,HP(a0)
         bgt.s   .done
         clr.b   HP(a0)
-        bsr.s   credit
+        bsr.w   kill
 .done:  rts
 
 ; victim a1, attacker a0, damage d1
 melee_a1:
-        tst.b   HP(a1)
+        exg     a0,a1
+        tst.b   HP(a0)
         beq.s   .done
-        sub.b   d1,HP(a1)
+        bsr.w   mark
+        sub.b   d1,HP(a0)
         bgt.s   .done
-        clr.b   HP(a1)
-        exg     a0,a1
-        bsr.s   credit
-        exg     a0,a1
-.done:  rts
+        clr.b   HP(a0)
+        bsr.w   kill
+.done:  exg     a0,a1
+        rts
 
 ; magic: victim a0, damage d0, caster in CASTER (0 player 1, 1 player 2)
 magic:
         tst.b   HP(a0)
         beq.s   .back
-        sub.b   d0,HP(a0)
-        bgt.s   .back
-        clr.b   HP(a0)
         move.l  a1,-(sp)
         lea     P1.w,a1
         tst.w   CASTER.w
         beq.s   .who
         lea     P2.w,a1
         cmpi.w  #1,CASTER.w
-        bne.s   .skip
-.who:   bsr.s   credit
-.skip:  movea.l (sp)+,a1
+        beq.s   .who
+        suba.l  a1,a1                   ; an enemy's magic marks nobody
+.who:   bsr.w   mark
+        movea.l (sp)+,a1
+        sub.b   d0,HP(a0)
+        bgt.s   .back
+        clr.b   HP(a0)
+        bsr.w   kill
 .back:  jmp     MAGIC_BACK
 
-; victim a0, attacker a1: count the kill when an enemy falls to a player
-credit:
-        move.l  a2,-(sp)
+; an object is freed (replaces the first six bytes of the clear routine):
+; marked and still alive means it fell after a player's hit
+on_free:
+        tst.b   LAST_HIT(a0)
+        beq.s   .orig
+        tst.b   HP(a0)
+        beq.s   .orig                   ; died of a hit: counted then
+        bsr.s   kill
+.orig:  movea.l a0,a1
+        moveq   #0,d2
+        move.w  $E(a0),d1
+        jmp     FREE_BACK
+
+; victim a0, attacker a1: mark an enemy with the player who hit it
+mark:
         cmpa.w  #P1,a0
         beq.s   .done
         cmpa.w  #P2,a0
         beq.s   .done
-        lea     KILLS.w,a2
         cmpa.w  #P1,a1
+        bne.s   .p2
+        move.b  #1,LAST_HIT(a0)
+        bra.s   .done
+.p2:    cmpa.w  #P2,a1
+        bne.s   .done
+        move.b  #2,LAST_HIT(a0)
+.done:  rts
+
+; enemy a0 is dead: count it for the player in its mark (to 99), clear the mark
+kill:
+        move.l  a2,-(sp)
+        lea     KILLS.w,a2
+        cmpi.b  #1,LAST_HIT(a0)
         beq.s   .count
         addq.w  #1,a2
-        cmpa.w  #P2,a1
+        cmpi.b  #2,LAST_HIT(a0)
         bne.s   .done
 .count: cmpi.b  #99,(a2)
         bcc.s   .done
         addq.b  #1,(a2)
-.done:  movea.l (sp)+,a2
+.done:  clr.b   LAST_HIT(a0)
+        movea.l (sp)+,a2
         rts
 
 ; ---------------------------------------------------------------- reset

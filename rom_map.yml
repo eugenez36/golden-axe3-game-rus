@@ -58,6 +58,8 @@ patches:                         # assembled patches: source in assets/patches/,
     source: patches/kill_counter.s
     symbols:
       HP: 0x142                    # object: hit points (byte)
+      LAST_HIT: 0x15D              # object byte the game never writes: player who hit it last (1/2)
+      FREE_BACK: 0x00C800          # object clear routine, after the bytes the free hook replaced
       P1: 0xC7A4                   # player 1 object
       P2: 0xC904                   # player 2 object
       CASTER: 0xDC4E               # magic in progress: 0 player 1, 1 player 2, 2+ enemies (word)
@@ -86,10 +88,11 @@ patches:                         # assembled patches: source in assets/patches/,
         - [0x000E74, "93 29 01 42 6A 04", melee_a1]   # sub.b d1,$142(a1); bpl
         - [0x00F8BC, "91 28 01 42 6A 04", magic]      # sub.b d0,$142(a0); bpl
         - [0x014FF6, "31 F8 F1 60 F1 76", new_game]   # move.w $f160.w,$f176.w
+        - [0x00C7F8, "22 48 74 00 32 28", on_free]    # movea.l a0,a1; moveq #0,d2; move.w $e(a0),d1 (first word)
       hud:
         - [0x00F006, "46 FC 20 00 08 B8", frame]      # move #$2000,sr; bclr #0,$c70a.w (first word)
     glyphs: { section: tiles, art: gfx/font/font.txt, chars: "0123456789 ", ink: 0x06, bg: 0x0C }
-    evidence: "objects: disasm 00EA28-00EA5A (slots 0x160 apart), magic bp 00F874 a2=FFC7A4 a3=FFC904; HP +0x142: watch -> 000E74 (enemy hits the player), magic kill 00F8BC/00F8C2 then 00C808 frees the slot; caster: disasm 00F62E ($dc4e selects c7a4/c904); mode: disasm 014FEA-014FFC; frame wait: disasm 00F006; sprite list: dmalog src FFE5CA dst BC00 len 0140 (VBlank 0109E6), HUD sprites 31E/32E/33E and 34A/35A/36A in a 2P game; VRAM D700-DFFF: vwatch over all 13 stages (level select), no write after the stage starts; palette 0 identical on all 13 stages (colour 6 white, 12 blue); KILLS: watch FFC000-FFC765 over stages 1/3B/5B/8, never written after boot"
+    evidence: "objects: disasm 00EA28-00EA5A (slots 0x160 apart), magic bp 00F874 a2=FFC7A4 a3=FFC904; HP +0x142: watch -> 000E74 (enemy hits the player), magic kill 00F8BC/00F8C2 then 00C808 frees the slot; caster: disasm 00F62E ($dc4e selects c7a4/c904); mode: disasm 014FEA-014FFC; frame wait: disasm 00F006; sprite list: dmalog src FFE5CA dst BC00 len 0140 (VBlank 0109E6), HUD sprites 31E/32E/33E and 34A/35A/36A in a 2P game; VRAM D700-DFFF: vwatch over all 13 stages (level select), no write after the stage starts; palette 0 identical on all 13 stages (colour 6 white, 12 blue); KILLS: watch FFC000-FFC765 over stages 1/3B/5B/8, never written after boot; LAST_HIT +0x15D: watch in all enemy slots over all 13 stages, written only by the object clear (00C80E); falls: stage 5A, an enemy hit to HP 4 flies off the ledge and its slot is freed through 00C7F8 with HP left (no other code writes enemy HP)"
 
 segments:
   - { name: vectors,       start: 0x000000, end: 0x000100, type: header, path: header/vectors.yml,
@@ -115,11 +118,9 @@ segments:
       header_item: 1, width_imm: 0x014FAF, width_was: 7,
       note: "main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6",
       evidence: "disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings" }
-  - { name: kill_counter_count, start: 0x011716, size: 0xA0, type: patch, fill: 0xFF,
+  - { name: kill_counter_count, start: 0x011716, end: 0x011800, type: patch, fill: 0xFF,
       patch: kill_counter, section: count,
-      note: "kill counter: the damage hooks and the new-game reset (assets/patches/kill_counter.s)" }
-  - { name: free_0117B6,   start: 0x0117B6, end: 0x011800, type: free,   fill: 0xFF,
-      note: "74 bytes" }
+      note: "kill counter: the damage and object-free hooks and the new-game reset (assets/patches/kill_counter.s)" }
   - { name: code_main_b,   start: 0x011800, end: 0x013E76, type: code,   path: code/code_main_b.m68k,
       strings: [[0x013752, 3], [0x013755, 3], [0x013758, 3], [0x013B94, 5]],
       strings_path: text/code_main_b.txt,

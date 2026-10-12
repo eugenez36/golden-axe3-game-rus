@@ -15,9 +15,9 @@ header checksum `9BB5`, entry point `0FFA20`.
 | pcm | 14880 | 1.4% |
 | nemesis | 14050 | 1.3% |
 | text | 13217 | 1.3% |
-| patch | 712 | 0.1% |
+| patch | 786 | 0.1% |
 | header | 512 | 0.0% |
-| free | 202 | 0.0% |
+| free | 128 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
 
@@ -33,8 +33,7 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `00E496–0116B6` | code | code_main_a | `code/code_main_a.m68k` | includes the healing cap at 00E49C and HP pair update at 010544 |
 | `0116B6–0116F6` | patch | menu_version |  | filled with 0xFF; draws 'V <package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6; *evidence: disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)* |
 | `0116F6–011716` | patch | menu_items |  | filled with 0xFF; main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6; *evidence: disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings* |
-| `011716–0117B6` | patch | kill_counter_count |  | filled with 0xFF; kill counter: the damage hooks and the new-game reset (assets/patches/kill_counter.s) |
-| `0117B6–011800` | free | free_0117B6 |  | filled with 0xFF; 74 bytes |
+| `011716–011800` | patch | kill_counter_count |  | filled with 0xFF; kill counter: the damage and object-free hooks and the new-game reset (assets/patches/kill_counter.s) |
 | `011800–013E76` | code | code_main_b | `code/code_main_b.m68k` | NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2; ASCII SEGA licence text 0136BA (3x21) and region lock text 013DD0 (6x25), not in the game font, left as code; *evidence: strings: disasm 01373C lea $13752(pc,d1.w) + moveq #2 (1Р/2Р/КОМ, 3 each); 013B5C lea $13b94(pc) + moveq #4 (ПАУЗА); licence 01368E lea $136ba(pc), moveq #2 / #$14; region 013DA2 lea $13dd0(pc), moveq #5 / #$18* |
 | `013E76–014013` | nemesis | nem_013E76 | `gfx/nemesis/nem_013E76.nem` | 50 tiles |
 | `014013–014E00` | code | code_main_c | `code/code_main_c.m68k` |  |

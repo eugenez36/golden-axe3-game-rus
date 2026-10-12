@@ -50,11 +50,21 @@ places take hit points away and now jump to the patch:
 | `000E04` | `a0` | `a1` (hits) |
 | `000E74` | `a1` | `a0` (hits) |
 | `00F8BC` | `a0` | the caster in `$DC4E`: 0 player 1, 1 player 2 (magic) |
+| `00C7F8` | `a0` (object being freed) | the mark: counts an enemy that fell after a player's hit |
 
-Each subtracts as before; when an enemy's hit points go from above zero to
-zero and the hit came from a player, that player's byte at `FFC3E0`/`FFC3E1`
-goes up, to 99. Deaths without a player's hit (a fall) are not counted. The
-counters live in Work RAM the game never writes after boot (watched over the
+Each subtracts as before and marks the enemy with the player who hit it (a
+byte at `+0x15D` of the object, which the game itself never writes and clears
+with the object). The kill goes to the marked player, to 99, in their byte at
+`FFC3E0`/`FFC3E1`:
+
+- when the enemy's hit points run out (the three hooks above), or
+- when the enemy's object is freed while it still has hit points: it fell off
+  the stage after a player's hit (hook on the object clear routine `00C7F8`;
+  seen on stage 5A, where an enemy knocked off a ledge is freed with HP left).
+
+An enemy no player hit counts for nobody, also when it falls by itself. An
+enemy that leaves the screen alive after a player's hit would count as well;
+none was seen doing that on the 13 stages. The counters live in Work RAM the game never writes after boot (watched over the
 stages); choosing a game mode in the main menu (`014FF6`) clears them, so they
 carry over from stage to stage.
 
