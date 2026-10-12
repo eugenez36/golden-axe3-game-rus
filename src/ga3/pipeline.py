@@ -13,6 +13,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import constants
 from . import rom_map as rm
 from .assets import BuildError, Paths, handler_for
 from .rom import Rom, apply_ips, make_ips
@@ -108,6 +109,12 @@ def extract_all(proj: Project, rom: Rom, only: set[str] | None = None, log=print
             more = f" (+{len(files) - 2})" if len(files) > 2 else ""
             log(f"  {seg.start:06X}-{seg.end:06X}  {seg.type:9s} {seg.name:18s} -> {rel}{more}")
         written.extend(files)
+    if proj.map.constants and (not only or "constants" in only):
+        files = constants.extract(rom, proj.map, proj.paths)
+        count = len(proj.map.constants)
+        for f in files:
+            log(f"  constants: {count} value(s) -> {os.path.relpath(f, proj.root)}")
+        written.extend(files)
     return written
 
 
@@ -127,6 +134,11 @@ def build(proj: Project, base: Rom, out: Path | None = None, ips: bool = True, l
             raise PipelineError(str(exc)) from None
         if note:
             log(f"  {seg.start:06X}-{seg.end:06X}  {seg.name:18s} {note}")
+    try:
+        for note in constants.build(rom, proj.map, proj.paths):
+            log(f"  {note}")
+    except BuildError as exc:
+        raise PipelineError(str(exc)) from None
     problems = []
     for seg in proj.map.segments:
         verify = getattr(handler_for(seg), "verify_built", None)
@@ -250,6 +262,11 @@ def check_assets(proj: Project) -> list[str]:
             problems.append(str(exc))
             continue
         problems.extend(f"{seg}: missing {os.path.relpath(p, proj.root)}" for p in missing)
+    problems.extend(
+        f"constants: missing {os.path.relpath(p, proj.root)}"
+        for p in constants.sources(proj.map, proj.paths)
+        if not p.exists()
+    )
     return problems
 
 
@@ -269,5 +286,6 @@ def check_map(proj: Project, rom: Rom) -> list[str]:
         problems.append(f"header serial {rom.serial!r} != rom_map.yml {serial!r}")
     for seg in proj.map.segments:
         problems.extend(handler_for(seg).check(rom, seg))
+    problems.extend(constants.check(rom, proj.map))
     problems.extend(check_assets(proj))
     return problems
