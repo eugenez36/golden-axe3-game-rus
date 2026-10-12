@@ -64,8 +64,9 @@ patches:                         # assembled patches: source in assets/patches/,
       P2: 0xC904                   # player 2 object
       CASTER: 0xDC4E               # magic in progress: 0 player 1, 1 player 2, 2+ enemies (word)
       MAGIC_BACK: 0x00F8C6         # magic damage loop, after the HP update
-      KILLS: 0xC3E0                # counters: player 1, player 2 (bytes; never cleared by the game)
-      SHOWN: 0xC3E2                # number in each player's digit tiles, FF: upload again (bytes)
+      KILLS: 0xC3E0                # counters: player 1, player 2 (words; never cleared by the game)
+      KILLS_MAX: 999               # a counter stops here (three digits)
+      SHOWN: 0xC3E4                # number in each player's digit tiles, FFFF: upload again (words)
       MODE_SRC: 0xF160             # main-menu cursor
       MODE: 0xF176                 # chosen game mode
       DUEL: 2                      # MODE from here up is a duel (2 against the computer, 3 against player 2)
@@ -80,8 +81,8 @@ patches:                         # assembled patches: source in assets/patches/,
       HUD_P2: 0x36A                # tile of player 2's third HUD block
       COUNTER_DX: 10               # counter sprite: just right of the magic boxes
       COUNTER_DY: 12               # centred on the magic boxes
-      COUNTER_SIZE: 0x04           # 2 x 1 cells
-      DIGITS_VRAM: 0xD700          # 4 tiles: player 1 at 6B8-6B9, player 2 at 6BA-6BB
+      COUNTER_SIZE: 0x08           # 3 x 1 cells
+      DIGITS_VRAM: 0xD700          # 6 tiles: player 1 at 6B8-6BA, player 2 at 6BB-6BD
       COUNTER_ATTR: 0x86B8         # priority, palette 0, tile 6B8 (DIGITS_VRAM / 32)
       VDP_CTRL: 0xC00004
       VDP_DATA: 0xC00000
@@ -95,7 +96,7 @@ patches:                         # assembled patches: source in assets/patches/,
       hud:
         - [0x00F006, "46 FC 20 00 08 B8", frame]      # move #$2000,sr; bclr #0,$c70a.w (first word)
     glyphs: { section: tiles, art: gfx/font/font.txt, chars: "0123456789 ", ink: 0x06, bg: 0x0C }
-    evidence: "objects: disasm 00EA28-00EA5A (slots 0x160 apart), magic bp 00F874 a2=FFC7A4 a3=FFC904; HP +0x142: watch -> 000E74 (enemy hits the player), magic kill 00F8BC/00F8C2 then 00C808 frees the slot; caster: disasm 00F62E ($dc4e selects c7a4/c904); mode: disasm 014FEA-014FFC; frame wait: disasm 00F006; sprite list: dmalog src FFE5CA dst BC00 len 0140 (VBlank 0109E6), HUD sprites 31E/32E/33E and 34A/35A/36A in a 2P game; VRAM D700-DFFF: vwatch over all 13 stages (level select), no write after the stage starts; palette 0 identical on all 13 stages (colour 6 white, 12 blue); KILLS: watch FFC000-FFC765 over stages 1/3B/5B/8, never written after boot; LAST_HIT +0x15D: watch in all enemy slots over all 13 stages, written only by the object clear (00C80E); sprite count: watch FFEE70 (cleared each frame by 00D896, raised by the builders 00C8FC/00C964/00CA4C, which link sprite n to n+1), the game ends the list at 000044 from $EE70 just before 00F006; duel: MODE after the menu is 0 for 1 player, 1 for 2 players, 2 for a duel against the computer and 3 once player 2 joins it (dump after each, emulator); 014FEA never copies the options item (cursor 3) to MODE; SHOWN FFC3E2-3: in the FFC000-FFC765 range never written after boot; HUD art: VRAM dumped every frame across a spell and a stage start (2P, stage 1): the game clears tiles 31E-36D while a spell fills the screen and reloads them 6-12 frames after the HUD sprites return, one block at a time, each block starting with a non-zero border word; falls: stage 5A, an enemy hit to HP 4 flies off the ledge and its slot is freed through 00C7F8 with HP left (no other code writes enemy HP)"
+    evidence: "objects: disasm 00EA28-00EA5A (slots 0x160 apart), magic bp 00F874 a2=FFC7A4 a3=FFC904; HP +0x142: watch -> 000E74 (enemy hits the player), magic kill 00F8BC/00F8C2 then 00C808 frees the slot; caster: disasm 00F62E ($dc4e selects c7a4/c904); mode: disasm 014FEA-014FFC; frame wait: disasm 00F006; sprite list: dmalog src FFE5CA dst BC00 len 0140 (VBlank 0109E6), HUD sprites 31E/32E/33E and 34A/35A/36A in a 2P game; VRAM D700-DFFF: vwatch over all 13 stages (level select), no write after the stage starts; palette 0 identical on all 13 stages (colour 6 white, 12 blue); KILLS: watch FFC000-FFC765 over stages 1/3B/5B/8, never written after boot; LAST_HIT +0x15D: watch in all enemy slots over all 13 stages, written only by the object clear (00C80E); sprite count: watch FFEE70 (cleared each frame by 00D896, raised by the builders 00C8FC/00C964/00CA4C, which link sprite n to n+1), the game ends the list at 000044 from $EE70 just before 00F006; duel: MODE after the menu is 0 for 1 player, 1 for 2 players, 2 for a duel against the computer and 3 once player 2 joins it (dump after each, emulator); 014FEA never copies the options item (cursor 3) to MODE; KILLS FFC3E0-3 and SHOWN FFC3E4-7 (words): in the FFC000-FFC765 range never written after boot; HUD art: VRAM dumped every frame across a spell and a stage start (2P, stage 1): the game clears tiles 31E-36D while a spell fills the screen and reloads them 6-12 frames after the HUD sprites return, one block at a time, each block starting with a non-zero border word; falls: stage 5A, an enemy hit to HP 4 flies off the ledge and its slot is freed through 00C7F8 with HP left (no other code writes enemy HP)"
 
 segments:
   - { name: vectors,       start: 0x000000, end: 0x000100, type: header, path: header/vectors.yml,
@@ -192,10 +193,10 @@ segments:
   - { name: kill_counter_hud, start: 0x05AEAA, size: 0x124, type: patch, fill: 0x00,
       patch: kill_counter, section: hud,
       note: "kill counter: frame hook, sprite-list walk, counter sprites" }
-  - { name: kill_counter_tiles, start: 0x05B30A, size: 0x110, type: patch, fill: 0x00,
+  - { name: kill_counter_tiles, start: 0x05B30A, size: 0x120, type: patch, fill: 0x00,
       patch: kill_counter, section: tiles,
       note: "kill counter: digit tile upload, 1bpp glyphs from the font art" }
-  - { name: free_05B41A,   start: 0x05B41A, end: 0x05B42E, type: free,   fill: 0x00, note: "20 bytes" }
+  - { name: free_05B42A,   start: 0x05B42A, end: 0x05B42E, type: free,   fill: 0x00, note: "4 bytes" }
   - { name: art_main,      start: 0x080000, end: 0x0D8000, type: tiles4bpp, path: gfx/tiles,
       prefix: art, sheet_tiles: 512, cols: 32, palette: gray,
       note: "11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp" }

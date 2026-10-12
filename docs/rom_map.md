@@ -15,11 +15,11 @@ header checksum `9BB5`, entry point `0FFA20`.
 | pcm | 14880 | 1.4% |
 | nemesis | 14050 | 1.3% |
 | text | 13217 | 1.3% |
-| patch | 894 | 0.1% |
+| patch | 910 | 0.1% |
 | header | 512 | 0.0% |
-| free | 20 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
+| free | 4 | 0.0% |
 
 ## Segments
 
@@ -62,8 +62,8 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `029F08–05AEAA` | unknown | unk_029F08 |  |  |
 | `05AEAA–05AFCE` | patch | kill_counter_hud |  | filled with 0x00; kill counter: frame hook, sprite-list walk, counter sprites |
 | `05AFCE–05B30A` | unknown | unk_05AFCE |  |  |
-| `05B30A–05B41A` | patch | kill_counter_tiles |  | filled with 0x00; kill counter: digit tile upload, 1bpp glyphs from the font art |
-| `05B41A–05B42E` | free | free_05B41A |  | filled with 0x00; 20 bytes |
+| `05B30A–05B42A` | patch | kill_counter_tiles |  | filled with 0x00; kill counter: digit tile upload, 1bpp glyphs from the font art |
+| `05B42A–05B42E` | free | free_05B42A |  | filled with 0x00; 4 bytes |
 | `05B42E–080000` | unknown | unk_05B42E |  |  |
 | `080000–0D8000` | tiles4bpp | art_main | `gfx/tiles` | 11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp |
 | `0D8000–0E9B00` | unknown | unk_0D8000 |  |  |

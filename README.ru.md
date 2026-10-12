@@ -171,7 +171,7 @@ docs/             README (оглавление) · build · text_format · nemes
 эмуляторе Mega Drive. В Genesis Plus GX (RetroArch) опция *System Overclock*
 150–200% сокращает паузы при загрузке магии, а *Remove Per-Line Sprite Limit*
 убирает мерцание спрайтов; замеры — в [docs/emulator.md](docs/emulator.md#lag-and-overclock).
-Синяя плашка справа от HUD каждого игрока считает убитых им врагов (до 99);
+Синяя плашка справа от HUD каждого игрока считает убитых им врагов (до 999);
 счёт обнуляется при выборе режима в главном меню, в дуэли плашки нет.
 
 ## Документы

@@ -54,8 +54,8 @@ places take hit points away and now jump to the patch:
 
 Each subtracts as before and marks the enemy with the player who hit it (a
 byte at `+0x15D` of the object, which the game itself never writes and clears
-with the object). The kill goes to the marked player, to 99, in their byte at
-`FFC3E0`/`FFC3E1`:
+with the object). The kill goes to the marked player, up to 999, in their word
+at `FFC3E0` (player 1) / `FFC3E2` (player 2):
 
 - when the enemy's hit points run out (the three hooks above), or
 - when the enemy's object is freed while it still has hit points: it fell off
@@ -71,14 +71,17 @@ the main menu (`014FF6`) clears them, so they carry over from stage to stage.
 **Display.** Before the game waits for VBlank (`00F006`) the patch looks for
 the third HUD block of each player present (tiles `33E` / `36A`, 4 x 3 cells)
 among the first 8 sprites of the sprite list (`FFE5CA`, DMA'd to the SAT every
-frame) and appends a 2 x 1 sprite just right of the magic boxes. The list is
+frame) and appends a 3 x 1 sprite just right of the magic boxes: three digits
+for each player, right-aligned with blanks for missing leading digits
+(`  7`, ` 42`, `999`). The list is
 never walked: the game adds sprites in order (sprite n links to n+1) and keeps
 their number in `FFEE70`, which its own end-of-list code (`000044`) uses too.
 A duel has no enemies to count, so there the counters are not drawn at all:
 the game mode (`FFF176`) is 2 for a duel against the computer and 3 once
 player 2 joins it, against 0 and 1 for the one- and two-player games.
-The two digit tiles per player go to VRAM `D700` only when the number differs
-from the one they hold (`FFC3E2` / `FFC3E3`, set to `FF` whenever the HUD is
+The three digit tiles per player (`6B8–6BA` for player 1, `6BB–6BD` for
+player 2, at VRAM `D700`) are uploaded only when the number differs from the
+one they hold (words `FFC3E4` / `FFC3E6`, set to `FFFF` whenever the HUD is
 not shown, so they are uploaded again when it comes back). The digits are the
 dialogue font's own glyphs, packed to 1 bit a pixel at build time, drawn in
 palette 0's white on blue like a dialogue box. `D700-DFFF` (the unused window
@@ -101,7 +104,11 @@ as without the patch. A busy 2-player fight on stage 6A, replayed from one
 savestate with the same input, loses 64 frames in 1239 against 47 without it.
 (The first version walked the whole list and redrew the digits every frame:
 297 there, a visible slowdown.) After bot play on all 13 stages with two
-players the digit tiles in VRAM match both counters, also for 10 and 99.
+players the digit tiles in VRAM match both counters, also for 7, 42, 100, 105
+and 999 (`emu/scenes/kill_counter_999.txt`: one player from 998 stops at 999
+after live kills; two players show 7 / 105 and 999 / 999). Three digits
+(words, two divisions) did not change `ga3 lag`: still 233 of 3438 on
+`stage1_fight`, 62 in 1239 on the 6A fight.
 The HUD art check was verified on VRAM dumped every frame across a spell and a
 stage start of a 2-player game: the digits never show without the HUD art.
 In a duel against the computer and against player 2 both HUDs are drawn and
