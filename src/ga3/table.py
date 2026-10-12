@@ -158,7 +158,9 @@ def format_tbl() -> str:
     on the О and З glyphs) are listed as comments: most table readers take the
     *last* line for a byte, and a live ``30=0`` would make О dump as 0. Control
     bytes use the dumper conventions ``*FF`` (end of line) and ``/FE`` (end of
-    screen).
+    string). ``FF`` ends every line of the dialogue and the menus, which is most
+    of the text; only the ending screens use ``FE``, between their two lines
+    (docs/text_format.md), so one table cannot match both layouts.
     """
     lines = [
         "# Golden Axe III (RUS) -- NEWGAME 2003 character table",
@@ -175,7 +177,8 @@ def format_tbl() -> str:
         "# 30=0",
         "# 33=3",
         "",
-        "# control bytes",
+        "# control bytes: FF ends each line of the dialogue and the menus; the",
+        "# ending screens are <line> FE <line> FF (see docs/text_format.md)",
         "*FF",
         "/FE",
     ]
