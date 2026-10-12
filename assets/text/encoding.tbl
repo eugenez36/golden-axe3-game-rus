@@ -95,6 +95,7 @@
 # 30=0
 # 33=3
 
-# control bytes
+# control bytes: FF ends each line of the dialogue and the menus; the
+# ending screens are <line> FE <line> FF (see docs/text_format.md)
 *FF
 /FE
