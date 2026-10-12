@@ -8,15 +8,17 @@
 #   make assets     refresh derived-but-committed files (encoding.tbl, font.nem, docs/rom_map.md)
 #   make asm        Capstone listings for every code segment -> assets/code/asm/
 #   make emu        build the headless Genesis Plus GX frontend -> build/emu/headless_gpgx
-#   make regress    run every emu/scenes/*.txt against build/ga3.bin
+#   make regress    run every emu/scenes/*.txt against build/ga3.bin, JOBS at a time
 #   make clean      rm -rf build/
 #   make distclean  clean + virtualenv + caches
 #   make venv       create .venv and install ga3 with the [dev,disasm] extras
 #   make help       print this list
 #
-# Variables: PYTHON (interpreter used to create .venv), GPGX (emulator core dir).
+# Variables: PYTHON (interpreter used to create .venv), GPGX (emulator core dir),
+#            JOBS (parallel scenes and emulator compiles; default: CPU count).
 
 PYTHON   ?= python3
+JOBS     ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
 VENV     ?= .venv
 GA3      ?= $(VENV)/bin/ga3
 PYTEST   ?= $(VENV)/bin/pytest
@@ -55,12 +57,12 @@ asm: $(GA3) $(BASEROM)
 
 emu:
 	$(MAKE) -C emu/headless check-core GPGX=$(GPGX)
-	$(MAKE) -C emu/headless GPGX=$(GPGX) BUILD=$(CURDIR)/build/emu
+	$(MAKE) -C emu/headless -j$(JOBS) GPGX=$(GPGX) BUILD=$(CURDIR)/build/emu
 
 regress: build emu
-	@for s in $(SCENES); do \
-	  echo "== $$s"; $(EMU) --rom $(BUILDROM) --script $$s --quiet || exit 1; \
-	done
+	@# scenes write disjoint files, so they run in parallel; xargs fails if any scene does
+	@printf '%s\n' $(SCENES) | xargs -P $(JOBS) -I{} \
+	  sh -c 'echo "== {}"; $(EMU) --rom $(BUILDROM) --script {} --quiet || { echo "FAILED {}"; exit 1; }'
 
 clean:
 	rm -rf build/
