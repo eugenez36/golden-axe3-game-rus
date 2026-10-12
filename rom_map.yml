@@ -71,8 +71,14 @@ segments:
       vram_end: 0xCD4C, attr: 0xE000,
       note: "draws 'V <package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6",
       evidence: "disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)" }
-  - { name: free_0116F6,   start: 0x0116F6, end: 0x011800, type: free,   fill: 0xFF,
-      note: "266 bytes" }
+  - { name: menu_items,    start: 0x0116F6, size: 0x20,    type: patch,  fill: 0xFF,
+      routine: menu_items, strings_path: text/menu_items.txt, item_width: 8, items: 4,
+      items_lea: 0x014F6A, items_was: 0x014F8C, header_lea: 0x015060, header_was: 0x015088,
+      header_item: 1, width_imm: 0x014FAF, width_was: 7,
+      note: "main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6",
+      evidence: "disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings" }
+  - { name: free_011716,   start: 0x011716, end: 0x011800, type: free,   fill: 0xFF,
+      note: "234 bytes" }
   - { name: code_main_b,   start: 0x011800, end: 0x013E76, type: code,   path: code/code_main_b.m68k,
       strings: [[0x013752, 3], [0x013755, 3], [0x013758, 3], [0x013B94, 5]],
       strings_path: text/code_main_b.txt,
@@ -82,9 +88,9 @@ segments:
       tiles: 50, xor: false }
   - { name: code_main_c,   start: 0x014013, end: 0x014E00, type: code,   path: code/code_main_c.m68k }
   - { name: text_menu,     start: 0x014E00, end: 0x0151A0, type: text,   path: text/menu.txt, min_len: 4,
-      prose: [[0x014EDA, 0x014EEC], [0x014F8C, 0x014FA8], [0x015088, 0x01508F], [0x01512E, 0x01516A]],
+      prose: [[0x014EDA, 0x014EEC], [0x01512C, 0x01516C]],
       note: "menu and options strings embedded in menu data; options screen layout at 01512C: column, row, text, FF",
-      evidence: "prose: disasm 014EC4 lea $14eda(pc) + moveq #$11 (title line, 18); 014F68 lea + moveq #3 x 7 (menu items); options table 01512C-015169 seen on the options screen (emu/scenes/menu_options.txt)" }
+      evidence: "prose: disasm 014EC4 lea $14eda(pc) + moveq #$11 (title line, 18); options table 01512C-01516B seen on the options screen (emu/scenes/menu_options.txt); the old menu items 014F8C-014FA8 and 015088 are no longer read (menu_items)" }
   - { name: code_main_d,   start: 0x0151A0, end: 0x016C00, type: code,   path: code/code_main_d.m68k,
       strings: [[0x015318, 6], [0x01531E, 6], [0x0153AA, 6], [0x0153B0, 6], [0x0153B6, 6],
                 [0x015C48, 14], [0x016BC8, 5], [0x016BCD, 4]],

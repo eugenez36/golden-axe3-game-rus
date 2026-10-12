@@ -2,9 +2,9 @@
 
 import pytest
 
-from ga3 import nemesis, patches, text
+from ga3 import nemesis, text
 from ga3 import pipeline as pl
-from ga3.assets import Paths
+from ga3.assets import Paths, handler_for
 from ga3.rom import Rom, apply_ips
 
 pytestmark = pytest.mark.rom
@@ -22,19 +22,29 @@ def test_map_check_passes(project, baserom):
 
 
 def _generated_ranges(project) -> list[tuple[int, int]]:
-    """Bytes the build generates rather than takes from assets: patch slots and their hooks."""
+    """Bytes the build generates rather than takes from assets: patch slots and their edits."""
+    from ga3.assets.patch_asset import edits
+
     out = []
     for seg in project.map.by_type("patch"):
-        out += [(seg.start, seg.end), (seg.get("hook"), seg.get("hook") + 6)]
+        out += [(seg.start, seg.end), *((e.at, e.end) for e in edits(seg))]
     return out
 
 
 def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
     """Outside the generated patches, freshly extracted assets rebuild the base ROM exactly."""
+    from ga3.assets.patch_asset import edits
+
     scratch = pl.Project(
         project.root, project.map, Paths(project.root, tmp_path / "assets", tmp_path / "build")
     )
     pl.extract_all(scratch, baserom, log=lambda *_: None)
+    # a patch's strings are committed sources with no counterpart in the base ROM
+    for seg in project.map.by_type("patch"):
+        for src in handler_for(seg).sources(seg, project.paths):
+            dst = scratch.paths.asset(str(src.relative_to(project.paths.assets)))
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(src.read_bytes())
     built = pl.build(scratch, baserom, out=tmp_path / "out.bin", log=lambda *_: None)
     generated = _generated_ranges(project)
     assert generated, "rom_map.yml declares no patch; drop this masking"
@@ -47,8 +57,8 @@ def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
         image[0x18E:0x190] = b"\0\0"
     assert masked[0] == masked[1]
     for seg in project.map.by_type("patch"):
-        hook = seg.get("hook")
-        assert built.data[hook : hook + 6] == patches.jmp_abs(seg.start)
+        for e in edits(seg):
+            assert bytes(built.data[e.at : e.end]) == e.new
 
 
 def test_committed_assets_build_to_recorded_sha1(project, baserom, tmp_path):

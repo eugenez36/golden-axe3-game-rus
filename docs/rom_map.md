@@ -15,9 +15,9 @@ header checksum `9BB5`, entry point `0FFA20`.
 | pcm | 14880 | 1.4% |
 | nemesis | 14050 | 1.3% |
 | text | 13217 | 1.3% |
-| free | 850 | 0.1% |
+| free | 818 | 0.1% |
 | header | 512 | 0.0% |
-| patch | 64 | 0.0% |
+| patch | 96 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
 
@@ -32,11 +32,12 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `00E492–00E496` | table | hp_table | `data/hp_table.yml` | format u8; start and maximum HP of the four playable characters; slot->character order still to be proven; *evidence: watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0* |
 | `00E496–0116B6` | code | code_main_a | `code/code_main_a.m68k` | includes the healing cap at 00E49C and HP pair update at 010544 |
 | `0116B6–0116F6` | patch | menu_version |  | filled with 0xFF; draws 'V <package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6; *evidence: disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)* |
-| `0116F6–011800` | free | free_0116F6 |  | filled with 0xFF; 266 bytes |
+| `0116F6–011716` | patch | menu_items |  | filled with 0xFF; main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6; *evidence: disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings* |
+| `011716–011800` | free | free_011716 |  | filled with 0xFF; 234 bytes |
 | `011800–013E76` | code | code_main_b | `code/code_main_b.m68k` | NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2; ASCII SEGA licence text 0136BA (3x21) and region lock text 013DD0 (6x25), not in the game font, left as code; *evidence: strings: disasm 01373C lea $13752(pc,d1.w) + moveq #2 (1Р/2Р/КОМ, 3 each); 013B5C lea $13b94(pc) + moveq #4 (ПАУЗА); licence 01368E lea $136ba(pc), moveq #2 / #$14; region 013DA2 lea $13dd0(pc), moveq #5 / #$18* |
 | `013E76–014013` | nemesis | nem_013E76 | `gfx/nemesis/nem_013E76.nem` | 50 tiles |
 | `014013–014E00` | code | code_main_c | `code/code_main_c.m68k` |  |
-| `014E00–0151A0` | text | text_menu | `text/menu.txt` | menu and options strings embedded in menu data; options screen layout at 01512C: column, row, text, FF; *evidence: prose: disasm 014EC4 lea $14eda(pc) + moveq #$11 (title line, 18); 014F68 lea + moveq #3 x 7 (menu items); options table 01512C-015169 seen on the options screen (emu/scenes/menu_options.txt)* |
+| `014E00–0151A0` | text | text_menu | `text/menu.txt` | menu and options strings embedded in menu data; options screen layout at 01512C: column, row, text, FF; *evidence: prose: disasm 014EC4 lea $14eda(pc) + moveq #$11 (title line, 18); options table 01512C-01516B seen on the options screen (emu/scenes/menu_options.txt); the old menu items 014F8C-014FA8 and 015088 are no longer read (menu_items)* |
 | `0151A0–016C00` | code | code_main_d | `code/code_main_d.m68k` | *evidence: disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels)* |
 | `016C00–016E00` | text | text_stages | `text/stages.txt` | stage name list: 12 names, 20 characters each, centred with spaces; *evidence: disasm 016C7C lea $16cd8(pc) + mulu #$14; 017176 + mulu #$14, moveq #$13* |
 | `016E00–0179F2` | code | code_main_e | `code/code_main_e.m68k` | 0179E4 move.l #$179F2 loads the ending text block; *evidence: strings: disasm 016FB4 lea $1704c(pc) + moveq #9 (map title); 0170BA lea $170f2(pc) + moveq #$c (death message)* |

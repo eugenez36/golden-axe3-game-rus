@@ -53,7 +53,8 @@ carries strings (`strings:` in the map):
 
 | Segment | File | Contents |
 |---|---|---|
-| `text_menu` | `menu.txt` | title line, main menu, options screen labels |
+| `text_menu` | `menu.txt` | title line, options screen layout |
+| `menu_items` (patch) | `menu_items.txt` | main-menu items, 4 × 8 characters |
 | `code_main_b` | `code_main_b.txt` | `1Р` `2Р` `КОМ`, `ПАУЗА` |
 | `code_main_d` | `code_main_d.txt` | difficulty, button roles, `НАЖМИ СТАРТ 2`, score labels |
 | `text_stages` | `stages.txt` | stage names, 12 × 20 characters, centred |
@@ -123,8 +124,8 @@ moving anything.
 
 ## Growing text
 
-Not possible in place. Free space is 850 bytes in three holes
-(`0116F6`, `05AEAA`, `05B30A`; the first 64 bytes at `0116B6` now hold the
-menu-version routine) plus a probable 170-byte filler at `01B6D6`.
+Not possible in place. Free space is 818 bytes in three holes
+(`011716`, `05AEAA`, `05B30A`; the first 96 bytes at `0116B6` now hold the
+menu-version routine and the relocated main-menu items) plus a probable 170-byte filler at `01B6D6`.
 Relocating a string means finding and rewriting its pointer; no pointer table
 has been mapped yet. `Rom.expand()` to 2 MiB exists for when that day comes.
