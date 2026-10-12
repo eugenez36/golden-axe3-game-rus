@@ -8,15 +8,15 @@ addresses. A pull request that hard-codes `0x01D85E` in Python will be sent back
 
 ## What is committed
 
-| Kind | Committed | Where |
-|---|---|---|
-| Human-editable representation of ROM data | yes | `assets/` (text, YAML, text art, indexed PNG, `.pal`, `.tbl`) |
-| Compressed blocks that must round-trip byte-exactly | yes | `assets/gfx/nemesis/*.nem` |
-| Small verbatim regions with no better form yet | yes | `assets/sound/pcm/*.pcm` |
-| Verbatim copies of code and unidentified ranges | **no** | `assets/code/*.m68k`, `assets/raw/*.raw` (extracted for browsing, gitignored) |
-| Generated listings and tables | yes, marked generated | `assets/code/asm/*.s`, `assets/text/encoding.tbl`, `docs/rom_map.md` |
-| Anything derived from the build | **no** | `build/` |
-| The ROM | **never** | `baserom/` (ignored), CI guard, pre-commit hook |
+| Kind                                                | Committed             | Where                                                                         |
+|-----------------------------------------------------|-----------------------|-------------------------------------------------------------------------------|
+| Human-editable representation of ROM data           | yes                   | `assets/` (text, YAML, text art, indexed PNG, `.pal`, `.tbl`)                 |
+| Compressed blocks that must round-trip byte-exactly | yes                   | `assets/gfx/nemesis/*.nem`                                                    |
+| Small verbatim regions with no better form yet      | yes                   | `assets/sound/pcm/*.pcm`                                                      |
+| Verbatim copies of code and unidentified ranges     | **no**                | `assets/code/*.m68k`, `assets/raw/*.raw` (extracted for browsing, gitignored) |
+| Generated listings and tables                       | yes, marked generated | `assets/code/asm/*.s`, `assets/text/encoding.tbl`, `docs/rom_map.md`          |
+| Anything derived from the build                     | **no**                | `build/`                                                                      |
+| The ROM                                             | **never**             | `baserom/` (ignored), CI guard, pre-commit hook                               |
 
 The repository plus a base ROM reproduces the image; the repository alone must
 not. When a new asset type gets a human-editable form, its verbatim copy stops
