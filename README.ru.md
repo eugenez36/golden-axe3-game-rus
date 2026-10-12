@@ -176,7 +176,8 @@ docs/             README (оглавление) · build · text_format · nemes
 
 ## Документы
 
-[INSTALL.md](INSTALL.md) · [STYLE.md](STYLE.md) · [CONTRIBUTING.md](CONTRIBUTING.md) ·
+[INSTALL.md](INSTALL.md) · [CHANGELOG.md](CHANGELOG.md) · [STYLE.md](STYLE.md) ·
+[CONTRIBUTING.md](CONTRIBUTING.md) ·
 [docs/build.md](docs/build.md) · [docs/text_format.md](docs/text_format.md) ·
 [docs/nemesis.md](docs/nemesis.md) · [docs/font.md](docs/font.md) ·
 [docs/emulator.md](docs/emulator.md) · [docs/patches.md](docs/patches.md) ·
