@@ -53,6 +53,49 @@ palettes:                        # CRAM captured in the emulator; no ROM source 
   stage1:           { path: palettes/stage1.pal,           source: "emu/explore/enter.txt, e4" }
   stage1_dialogue:  { path: palettes/stage1_dialogue.pal,  source: "emu/scenes/dialogue.txt, first NPC dialogue" }
 
+patches:                         # assembled patches: source in assets/patches/, one segment per section
+  kill_counter:
+    source: patches/kill_counter.s
+    symbols:
+      HP: 0x142                    # object: hit points (byte)
+      LAST_HIT: 0x15D              # object byte the game never writes: player who hit it last (1/2)
+      FREE_BACK: 0x00C800          # object clear routine, after the bytes the free hook replaced
+      P1: 0xC7A4                   # player 1 object
+      P2: 0xC904                   # player 2 object
+      CASTER: 0xDC4E               # magic in progress: 0 player 1, 1 player 2, 2+ enemies (word)
+      MAGIC_BACK: 0x00F8C6         # magic damage loop, after the HP update
+      KILLS: 0xC3E0                # counters: player 1, player 2 (bytes; never cleared by the game)
+      SHOWN: 0xC3E2                # number in each player's digit tiles, FF: upload again (bytes)
+      MODE_SRC: 0xF160             # main-menu cursor
+      MODE: 0xF176                 # chosen game mode
+      VBLANK_FLAG: 0xC70A
+      WAIT_BACK: 0x00F010          # frame wait, after the flag is cleared
+      SPRITES: 0xE5CA              # sprite list in Work RAM, DMA'd to the SAT every VBlank
+      SPR_COUNT: 0xEE70            # sprites in the list this frame (word; the game adds them in order)
+      MAX_SPRITES: 80
+      HUD_SCAN: 8                  # HUD blocks are among the first sprites of the list
+      HUD_SIZE: 0x0E               # their third block is 4 x 3 cells
+      HUD_P1: 0x33E                # tile of player 1's third HUD block
+      HUD_P2: 0x36A                # tile of player 2's third HUD block
+      COUNTER_DX: 10               # counter sprite: just right of the magic boxes
+      COUNTER_DY: 12               # centred on the magic boxes
+      COUNTER_SIZE: 0x04           # 2 x 1 cells
+      DIGITS_VRAM: 0xD700          # 4 tiles: player 1 at 6B8-6B9, player 2 at 6BA-6BB
+      COUNTER_ATTR: 0x86B8         # priority, palette 0, tile 6B8 (DIGITS_VRAM / 32)
+      VDP_CTRL: 0xC00004
+      VDP_DATA: 0xC00000
+    hooks:                         # [address, base-ROM bytes (hex), label]: each becomes jmp label.l
+      count:
+        - [0x000E04, "93 28 01 42 6A 04", melee_a0]   # sub.b d1,$142(a0); bpl
+        - [0x000E74, "93 29 01 42 6A 04", melee_a1]   # sub.b d1,$142(a1); bpl
+        - [0x00F8BC, "91 28 01 42 6A 04", magic]      # sub.b d0,$142(a0); bpl
+        - [0x014FF6, "31 F8 F1 60 F1 76", new_game]   # move.w $f160.w,$f176.w
+        - [0x00C7F8, "22 48 74 00 32 28", on_free]    # movea.l a0,a1; moveq #0,d2; move.w $e(a0),d1 (first word)
+      hud:
+        - [0x00F006, "46 FC 20 00 08 B8", frame]      # move #$2000,sr; bclr #0,$c70a.w (first word)
+    glyphs: { section: tiles, art: gfx/font/font.txt, chars: "0123456789 ", ink: 0x06, bg: 0x0C }
+    evidence: "objects: disasm 00EA28-00EA5A (slots 0x160 apart), magic bp 00F874 a2=FFC7A4 a3=FFC904; HP +0x142: watch -> 000E74 (enemy hits the player), magic kill 00F8BC/00F8C2 then 00C808 frees the slot; caster: disasm 00F62E ($dc4e selects c7a4/c904); mode: disasm 014FEA-014FFC; frame wait: disasm 00F006; sprite list: dmalog src FFE5CA dst BC00 len 0140 (VBlank 0109E6), HUD sprites 31E/32E/33E and 34A/35A/36A in a 2P game; VRAM D700-DFFF: vwatch over all 13 stages (level select), no write after the stage starts; palette 0 identical on all 13 stages (colour 6 white, 12 blue); KILLS: watch FFC000-FFC765 over stages 1/3B/5B/8, never written after boot; LAST_HIT +0x15D: watch in all enemy slots over all 13 stages, written only by the object clear (00C80E); sprite count: watch FFEE70 (cleared each frame by 00D896, raised by the builders 00C8FC/00C964/00CA4C, which link sprite n to n+1), the game ends the list at 000044 from $EE70 just before 00F006; SHOWN FFC3E2-3: in the FFC000-FFC765 range never written after boot; HUD art: VRAM dumped every frame across a spell and a stage start (2P, stage 1): the game clears tiles 31E-36D while a spell fills the screen and reloads them 6-12 frames after the HUD sprites return, one block at a time, each block starting with a non-zero border word; falls: stage 5A, an enemy hit to HP 4 flies off the ledge and its slot is freed through 00C7F8 with HP left (no other code writes enemy HP)"
+
 segments:
   - { name: vectors,       start: 0x000000, end: 0x000100, type: header, path: header/vectors.yml,
       note: "mostly FFFFFFFF; code squeezed into unused vectors from 0x40" }
@@ -79,8 +122,9 @@ segments:
       header_item: 1, width_imm: 0x014FAF, width_was: 7,
       note: "main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6",
       evidence: "disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings" }
-  - { name: free_011716,   start: 0x011716, end: 0x011800, type: free,   fill: 0xFF,
-      note: "234 bytes" }
+  - { name: kill_counter_count, start: 0x011716, end: 0x011800, type: patch, fill: 0xFF,
+      patch: kill_counter, section: count,
+      note: "kill counter: the damage and object-free hooks and the new-game reset (assets/patches/kill_counter.s)" }
   - { name: code_main_b,   start: 0x011800, end: 0x013E76, type: code,   path: code/code_main_b.m68k,
       strings: [[0x013752, 3], [0x013755, 3], [0x013758, 3], [0x013B94, 5]],
       strings_path: text/code_main_b.txt,
@@ -144,8 +188,14 @@ segments:
       tiles: 18, xor: true }
   - { name: nem_0295EE,    start: 0x0295EE, end: 0x029F08, type: nemesis, path: gfx/nemesis/nem_0295EE.nem,
       tiles: 208, xor: false }
-  - { name: free_05AEAA,   start: 0x05AEAA, end: 0x05AFCE, type: free,   fill: 0x00, note: "292 bytes" }
-  - { name: free_05B30A,   start: 0x05B30A, end: 0x05B42E, type: free,   fill: 0x00, note: "292 bytes" }
+  - { name: kill_counter_hud, start: 0x05AEAA, size: 0x11C, type: patch, fill: 0x00,
+      patch: kill_counter, section: hud,
+      note: "kill counter: frame hook, sprite-list walk, counter sprites" }
+  - { name: free_05AFC6,   start: 0x05AFC6, end: 0x05AFCE, type: free,   fill: 0x00, note: "8 bytes" }
+  - { name: kill_counter_tiles, start: 0x05B30A, size: 0x110, type: patch, fill: 0x00,
+      patch: kill_counter, section: tiles,
+      note: "kill counter: digit tile upload, 1bpp glyphs from the font art" }
+  - { name: free_05B41A,   start: 0x05B41A, end: 0x05B42E, type: free,   fill: 0x00, note: "20 bytes" }
   - { name: art_main,      start: 0x080000, end: 0x0D8000, type: tiles4bpp, path: gfx/tiles,
       prefix: art, sheet_tiles: 512, cols: 32, palette: gray,
       note: "11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp" }

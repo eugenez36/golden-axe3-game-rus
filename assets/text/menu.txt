@@ -4,12 +4,7 @@
 # {XX} is a byte with no glyph in the font (or one that does not round-trip).
 # In-game strings are separated by 0xFF; here each string is one record.
 
-014E0B:4 | ДЕгО
-014E2F:10 |          ф
-014E5B:4 | Яа,ф
 014EDA:18 |    2ООЗ NЕWGАМЕ   
-014FE2:5 | а,Егф
-014FFB:5 | мЕгКч
 
 # options screen layout 01512C-01516B: column, row, text, FF per label; 00 ends the table.
 # Labels lost their trailing spaces to make room for «МУЗ.» and «ЗВУК» (was «МУЗ», «СЕ»).

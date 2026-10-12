@@ -221,3 +221,99 @@ def test_menu_items_refuses_code_that_drifted(tmp_path):
     far = _items_segment(items_was=0x9000)
     with pytest.raises(BuildError, match="cannot reach"):
         handler_for(far).build(_items_image(), far, _paths(tmp_path))
+
+
+# ---------------------------------------------------------------- assembled patches (kill counter)
+
+
+def _real_project():
+    from ga3.pipeline import open_project
+
+    from .conftest import ROOT
+
+    return open_project(ROOT)
+
+
+def test_kill_counter_assembles_into_its_three_slots():
+    from ga3.assets.patch_asset import assembled
+
+    proj = _real_project()
+    segs = {
+        s.get("section"): s for s in proj.map.by_type("patch") if s.get("patch") == "kill_counter"
+    }
+    assert set(segs) == {"count", "hud", "tiles"}
+    labels = None
+    for section, seg in segs.items():
+        body, todo, labels = assembled(seg, proj.paths)
+        assert 0 < len(body) <= seg.size, f"{section}: {len(body)} B in a {seg.size} B slot"
+        for e in todo:  # every hook is a jmp into this patch
+            assert e.new[:2] == b"\x4e\xf9"
+            target = int.from_bytes(e.new[2:], "big")
+            assert any(s.start <= target < s.end for s in segs.values())
+    assert labels["melee_a0"] == segs["count"].start
+    assert labels["frame"] == segs["hud"].start
+    assert labels["tiles"] == segs["tiles"].start
+
+
+def test_kill_counter_glyphs_come_from_the_font_art():
+    from ga3 import font as fontlib
+    from ga3.assets.patch_asset import _glyph_tables
+
+    proj = _real_project()
+    seg = next(s for s in proj.map.by_type("patch") if s.get("section") == "tiles")
+    src, derived = _glyph_tables(seg, proj.paths)
+    assert derived == {"BLANK_GLYPH": 10}
+    rows = [
+        int(b.strip("$"), 16)
+        for line in src.splitlines()
+        if "dc.b" in line
+        for b in line.split("dc.b")[1].replace(" ", "").split(",")
+    ]
+    assert len(rows) == 11 * 8
+    art = fontlib.parse_art_file(str(proj.paths.asset("gfx/font/font.txt")))
+    one = art[table.encode("1")[0]]
+    for y in range(8):
+        row = "".join(
+            "#" if (one[y * 4 + x // 2] >> (4 if x % 2 == 0 else 0) & 0xF) == 6 else "."
+            for x in range(8)
+        )
+        assert row == f"{rows[8 + y]:08b}".replace("1", "#").replace("0", ".")
+    assert rows[10 * 8 : 11 * 8] == [0] * 8  # the blank glyph
+
+
+def test_verify_built_catches_a_later_overwrite(tmp_path):
+    seg, rom = _segment(), _image()
+    h = handler_for(seg)
+    h.build(rom, seg, _paths(tmp_path))
+    assert h.verify_built(rom, seg) == []
+    rom.data[HOOK + 2] ^= 0xFF  # a later segment writes over the hook
+    assert any("overwrote the edit at 0x000100" in p for p in h.verify_built(rom, seg))
+    rom.data[0x201] ^= 0xFF
+    assert any("overwrote the patch's slot" in p for p in h.verify_built(rom, seg))
+
+
+def test_map_attaches_patch_definitions_and_rejects_bad_ones():
+    from ga3 import rom_map
+
+    def doc(segments, patches):
+        return {"rom": {"size": 0x1000}, "patches": patches, "segments": segments}
+
+    seg = lambda name, start, section: {  # noqa: E731
+        "name": name,
+        "start": start,
+        "size": 0x10,
+        "type": "patch",
+        "patch": "p",
+        "section": section,
+    }
+    m = rom_map.parse(doc([seg("a", 0x100, "x"), seg("b", 0x200, "y")], {"p": {"source": "s.s"}}))
+    a = m.by_name("a")
+    assert a.get("patch_def") == {"source": "s.s"} and a.get("sections") == {"x": 0x100, "y": 0x200}
+    with pytest.raises(rom_map.RomMapError, match="not defined under patches"):
+        rom_map.parse(doc([seg("a", 0x100, "x")], {}))
+    with pytest.raises(rom_map.RomMapError, match="given twice"):
+        rom_map.parse(doc([seg("a", 0x100, "x"), seg("b", 0x200, "x")], {"p": {}}))
+    bad = seg("a", 0x100, "x")
+    del bad["section"]
+    with pytest.raises(rom_map.RomMapError, match="needs section"):
+        rom_map.parse(doc([bad], {"p": {}}))

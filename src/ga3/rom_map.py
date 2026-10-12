@@ -140,9 +140,40 @@ def parse(doc: dict[str, Any], source: str = "rom_map.yml") -> RomMap:
             raise RomMapError(f"{s} extends past rom.size 0x{size:X}")
         prev = s
 
+    _attach_patches(doc.get("patches") or {}, ordered)
     filled = fill_gaps(ordered, size)
     palettes = dict(doc.get("palettes") or {})
     return RomMap(rom, palettes, filled, source)
+
+
+def _attach_patches(patches: dict[str, Any], segments: list[Segment]) -> None:
+    """Give every ``patch: NAME`` segment its patch definition and all section origins.
+
+    A patch assembled from one source into several free-space slots is one entry
+    under the top-level ``patches:`` key; each slot is a ``patch`` segment with
+    ``patch: NAME`` and ``section: SECTION``. The handler then sees, on its own
+    segment, ``patch_def`` (that entry) and ``sections`` (section -> start).
+    """
+    if not isinstance(patches, dict):
+        raise RomMapError("patches: expected a mapping of patch name -> definition")
+    by_patch: dict[str, dict[str, Segment]] = {}
+    for seg in segments:
+        name = seg.get("patch")
+        if name is None:
+            continue
+        if name not in patches:
+            raise RomMapError(f"{seg}: patch {name!r} is not defined under patches:")
+        section = seg.get("section")
+        if not isinstance(section, str):
+            raise RomMapError(f"{seg}: a segment of patch {name!r} needs section: NAME")
+        if section in by_patch.setdefault(name, {}):
+            raise RomMapError(f"patch {name!r}: section {section!r} is given twice")
+        by_patch[name][section] = seg
+    for name, slots in by_patch.items():
+        sections = {sec: seg.start for sec, seg in slots.items()}
+        for seg in slots.values():
+            seg.attrs["patch_def"] = patches[name]
+            seg.attrs["sections"] = sections
 
 
 def fill_gaps(segments: list[Segment], size: int) -> list[Segment]:

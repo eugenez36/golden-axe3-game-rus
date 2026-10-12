@@ -23,28 +23,30 @@ def test_map_check_passes(project, baserom):
 
 def _generated_ranges(project) -> list[tuple[int, int]]:
     """Bytes the build generates rather than takes from assets: patch slots and their edits."""
-    from ga3.assets.patch_asset import edits
+    from ga3.assets.patch_asset import touched
 
     out = []
     for seg in project.map.by_type("patch"):
-        out += [(seg.start, seg.end), *((e.at, e.end) for e in edits(seg))]
+        out += [(seg.start, seg.end), *touched(seg)]
     return out
 
 
 def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
     """Outside the generated patches, freshly extracted assets rebuild the base ROM exactly."""
-    from ga3.assets.patch_asset import edits
+    from ga3.assets.patch_asset import assembled, edits
 
     scratch = pl.Project(
         project.root, project.map, Paths(project.root, tmp_path / "assets", tmp_path / "build")
     )
     pl.extract_all(scratch, baserom, log=lambda *_: None)
-    # a patch's strings are committed sources with no counterpart in the base ROM
+    # a patch's own sources (strings, assembly) have no counterpart in the base ROM;
+    # files extraction did produce (the font art) stay as extracted
     for seg in project.map.by_type("patch"):
         for src in handler_for(seg).sources(seg, project.paths):
             dst = scratch.paths.asset(str(src.relative_to(project.paths.assets)))
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            dst.write_bytes(src.read_bytes())
+            if not dst.exists():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                dst.write_bytes(src.read_bytes())
     built = pl.build(scratch, baserom, out=tmp_path / "out.bin", log=lambda *_: None)
     generated = _generated_ranges(project)
     assert generated, "rom_map.yml declares no patch; drop this masking"
@@ -57,7 +59,12 @@ def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
         image[0x18E:0x190] = b"\0\0"
     assert masked[0] == masked[1]
     for seg in project.map.by_type("patch"):
-        for e in edits(seg):
+        if seg.get("patch_def") is not None:
+            body, todo, _labels = assembled(seg, project.paths)
+            assert bytes(built.data[seg.start : seg.start + len(body)]) == body
+        else:
+            todo = edits(seg)
+        for e in todo:
             assert bytes(built.data[e.at : e.end]) == e.new
 
 
