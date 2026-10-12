@@ -78,11 +78,11 @@ toolchain reproduces the committed build byte for byte.
 
 ## Troubleshooting
 
-| Symptom | Cause / fix |
-|---|---|
-| `error: baserom/ga3.bin is missing` | step 4 |
-| `sha1 … does not match rom_map.yml` | a different dump or a patched image; use `ga3 extract --rom PATH` only if you know why |
-| `emu/gpgx/core not found` | `git submodule update --init` |
-| `vdp_ctrl.c lacks the dma_hook` | the submodule is on upstream instead of `ga3/dma-hook`; `git -C emu/gpgx checkout ga3/dma-hook` |
-| `Pillow is required` | Pillow is a core dependency, so the venv is stale: `make venv` (or `pip install -e .` inside it) |
+| Symptom                                                | Cause / fix                                                                                      |
+|--------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| `error: baserom/ga3.bin is missing`                    | step 4                                                                                           |
+| `sha1 … does not match rom_map.yml`                    | a different dump or a patched image; use `ga3 extract --rom PATH` only if you know why           |
+| `emu/gpgx/core not found`                              | `git submodule update --init`                                                                    |
+| `vdp_ctrl.c lacks the dma_hook`                        | the submodule is on upstream instead of `ga3/dma-hook`; `git -C emu/gpgx checkout ga3/dma-hook`  |
+| `Pillow is required`                                   | Pillow is a core dependency, so the venv is stale: `make venv` (or `pip install -e .` inside it) |
 | `sha1 differs from rom_map.yml` (a note, not an error) | you passed `--rom PATH`; the image is used as is, only the default `baserom/ga3.bin` is verified |

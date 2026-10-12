@@ -5,11 +5,11 @@ Three kinds of change go beyond text, font and tables. All of them are
 space, and they change a few bytes of the game's code elsewhere, each checked
 against what the base ROM holds there before anything is written.
 
-| Patch | What it does | Kind |
-|---|---|---|
-| `menu_version` | `V x.y.z` at the bottom right of the main menu | routine in `ga3.patches` |
-| `menu_items` | main-menu items 8 characters wide (`1 ИГРОК / 2 ИГРОКА / ДУЭЛЬ / ОПЦИИ`) | routine in `ga3.patches` |
-| `kill_counter` | enemies killed by each player, next to their HUD | assembled from `assets/patches/kill_counter.s` |
+| Patch          | What it does                                                             | Kind                                           |
+|----------------|--------------------------------------------------------------------------|------------------------------------------------|
+| `menu_version` | `V x.y.z` at the bottom right of the main menu                           | routine in `ga3.patches`                       |
+| `menu_items`   | main-menu items 8 characters wide (`1 ИГРОК / 2 ИГРОКА / ДУЭЛЬ / ОПЦИИ`) | routine in `ga3.patches`                       |
+| `kill_counter` | enemies killed by each player, next to their HUD                         | assembled from `assets/patches/kill_counter.s` |
 
 After a build the pipeline checks that no later segment overwrote a patch's
 slot or edits (a text record covering code did exactly that once).
@@ -45,11 +45,11 @@ is checked by disassembling the output with Capstone (`tests/test_m68k.py`).
 apart; player 1 at `FFC7A4`, player 2 at `FFC904`, enemies from `FFCA64`). Three
 places take hit points away and now jump to the patch:
 
-| Hook | Victim | Attacker |
-|---|---|---|
-| `000E04` | `a0` | `a1` (hits) |
-| `000E74` | `a1` | `a0` (hits) |
-| `00F8BC` | `a0` | the caster in `$DC4E`: 0 player 1, 1 player 2 (magic) |
+| Hook     | Victim                    | Attacker                                                 |
+|----------|---------------------------|----------------------------------------------------------|
+| `000E04` | `a0`                      | `a1` (hits)                                              |
+| `000E74` | `a1`                      | `a0` (hits)                                              |
+| `00F8BC` | `a0`                      | the caster in `$DC4E`: 0 player 1, 1 player 2 (magic)    |
 | `00C7F8` | `a0` (object being freed) | the mark: counts an enemy that fell after a player's hit |
 
 Each subtracts as before and marks the enemy with the player who hit it (a

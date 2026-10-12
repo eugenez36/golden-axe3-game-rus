@@ -36,27 +36,27 @@ present. Objects go to `build/emu/obj/`, the core tree stays clean.
 Scripts are line oriented, `#` starts a comment, arguments cannot contain
 spaces, at most three are read.
 
-| Command | Meaning |
-|---|---|
-| `include PATH` | run another script here; relative to the including file, nesting ≤ 8 |
-| `wait N` | advance N frames (60 per second) |
-| `press BTNS [N]` | press for N frames, release for N (default 6) |
-| `hold BTNS N` | hold for N frames |
-| `pad2 BTNS [N]` | hold on the second pad for N frames (default 1), no release phase |
-| `screenshot PATH [S]` | PNG, integer scale S; directories are created |
-| `dump WHAT PATH` | `vram cram vsram wram zram sat satvram regs` |
-| `watchlog PATH` | file for watchpoint / breakpoint / DMA lines |
-| `watch ADDR LEN [NAME]` | 68000 write watchpoint (hex address **and** length) |
-| `vwatch ADDR LEN [NAME]` | VRAM write watchpoint, including DMA (logs `dma_src`) |
-| `bp ADDR` | dump A0–A6 / D0–D3 whenever ADDR executes |
-| `dmalog on\|off` | log every DMA transfer with its source |
-| `clearwatch` | remove RAM and VRAM watchpoints (breakpoints stay) |
-| `poke8 / poke16 ADDR VAL` | patch Work RAM (hex, 68000 address; the byte swap is handled) |
-| `state save\|load PATH` | savestate |
-| `reset` | reset the console |
-| `status` | print the frame, the viewport and the watch hits |
-| `echo TEXT` | print up to three words |
-| `quiet` | silence progress messages |
+| Command                   | Meaning                                                              |
+|---------------------------|----------------------------------------------------------------------|
+| `include PATH`            | run another script here; relative to the including file, nesting ≤ 8 |
+| `wait N`                  | advance N frames (60 per second)                                     |
+| `press BTNS [N]`          | press for N frames, release for N (default 6)                        |
+| `hold BTNS N`             | hold for N frames                                                    |
+| `pad2 BTNS [N]`           | hold on the second pad for N frames (default 1), no release phase    |
+| `screenshot PATH [S]`     | PNG, integer scale S; directories are created                        |
+| `dump WHAT PATH`          | `vram cram vsram wram zram sat satvram regs`                         |
+| `watchlog PATH`           | file for watchpoint / breakpoint / DMA lines                         |
+| `watch ADDR LEN [NAME]`   | 68000 write watchpoint (hex address **and** length)                  |
+| `vwatch ADDR LEN [NAME]`  | VRAM write watchpoint, including DMA (logs `dma_src`)                |
+| `bp ADDR`                 | dump A0–A6 / D0–D3 whenever ADDR executes                            |
+| `dmalog on\|off`          | log every DMA transfer with its source                               |
+| `clearwatch`              | remove RAM and VRAM watchpoints (breakpoints stay)                   |
+| `poke8 / poke16 ADDR VAL` | patch Work RAM (hex, 68000 address; the byte swap is handled)        |
+| `state save\|load PATH`   | savestate                                                            |
+| `reset`                   | reset the console                                                    |
+| `status`                  | print the frame, the viewport and the watch hits                     |
+| `echo TEXT`               | print up to three words                                              |
+| `quiet`                   | silence progress messages                                            |
 
 Buttons: `up down left right a b c x y z start mode`, joined with `+`.
 
@@ -78,11 +78,11 @@ screenshots are byte-identical to a build without the option.
 
 `emu/scenes/stage1_fight.txt` (stage 1 combat, magic four times):
 
-| 68000 clock | frames lost | longest pauses |
-|---|---|---|
-| 100% | 233 of 3438 (6.8%) | 74, 49, 48, 35 |
-| 150% | 149 of 3439 (4.3%) | 48, 32, 30, 23 |
-| 200% | 112 of 3439 (3.3%) | 37, 24, 23, 18 |
+| 68000 clock | frames lost        | longest pauses |
+|-------------|--------------------|----------------|
+| 100%        | 233 of 3438 (6.8%) | 74, 49, 48, 35 |
+| 150%        | 149 of 3439 (4.3%) | 48, 32, 30, 23 |
+| 200%        | 112 of 3439 (3.3%) | 37, 24, 23, 18 |
 
 Ordinary fighting runs one loop per frame. The losses are pauses while
 graphics are decompressed: magic (`NemDec` at `0122FC` unpacks the spell's
