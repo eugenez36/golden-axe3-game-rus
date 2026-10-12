@@ -133,8 +133,13 @@ types, `path` (relative to `assets/`). Optional keys by type:
 | `patch`        | `routine` (builder in `ga3.patches`), `hook` + `hook_bytes` (six base-ROM bytes, hex, replaced by `jmp`), `fill` (of the free space it occupies); `menu_version` adds `return_to`, `vram_end` (plane A cell just past the text), `attr` (tile attribute word); `menu_items` instead takes `strings_path`, `item_width`, `items`, `items_lea`/`items_was` and `header_lea`/`header_was`/`header_item` (lea displacement words and the strings they pointed at), `width_imm`/`width_was` (the `moveq` that sets the width); an assembled patch takes `patch` (its entry under the top-level `patches:` key: `source`, `symbols`, `hooks`, `glyphs`) and `section` (the source section placed in this slot) |
 
 The `rom:` block records `title`, `serial`, `size`, `sha1`, `md5`,
-`header_checksum` and `entry_point`; `size`, `sha1`, `serial`,
-`header_checksum` and `entry_point` are enforced. `palettes:` lists the
+`header_checksum` and `entry_point` of the **base** dump; `size`, `sha1`,
+`serial`, `header_checksum` and `entry_point` are enforced. `build_size`
+(optional, a multiple of 128 KiB up to 4 MiB) expands the built image: the new
+bytes are `FF`, segments may lie up to it (the map declares them `free`), the
+header's ROM end and checksum follow on save, and the IPS describes the new
+space with RLE records (a 1 MiB expansion costs a few hundred bytes). This
+image uses `build_size: 0x200000`. `palettes:` lists the
 emulator CRAM captures under `assets/palettes/` (not build inputs).
 
 `constants:` holds numbers that sit inside code as instruction operands
