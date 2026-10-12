@@ -21,9 +21,16 @@ class TextHandler(Handler):
     committed = True
 
     def extract(self, rom: Rom, seg: Segment, paths: Paths) -> list[Path]:
-        rows = text.find_strings(
-            rom.data, seg.start, seg.end, seg.get("min_len", text.DEFAULT_MIN_LEN)
-        )
+        min_len = seg.get("min_len", text.DEFAULT_MIN_LEN)
+        prose = seg.get("prose")
+        if prose is None:
+            rows = text.find_strings(rom.data, seg.start, seg.end, min_len)
+        else:
+            # only real text: printable runs clipped to the prose spans, so no
+            # record ever covers code that merely decodes as text
+            rows = [
+                row for start, end in prose for row in text.find_strings(rom.data, start, end, 1)
+            ]
         body = text.format_strings_file(rows, seg.name, seg.start, seg.end)
         return [write_text(paths.asset(seg.path), body)]
 

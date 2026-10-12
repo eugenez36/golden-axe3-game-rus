@@ -127,6 +127,13 @@ def build(proj: Project, base: Rom, out: Path | None = None, ips: bool = True, l
             raise PipelineError(str(exc)) from None
         if note:
             log(f"  {seg.start:06X}-{seg.end:06X}  {seg.name:18s} {note}")
+    problems = []
+    for seg in proj.map.segments:
+        verify = getattr(handler_for(seg), "verify_built", None)
+        if verify is not None:
+            problems += verify(rom, seg)
+    if problems:
+        raise PipelineError("\n".join(problems))
     rom.save(out or proj.build_rom, fix_header=True)
     log(f"wrote {rom.path}  sha1 {rom.sha1()}  checksum 0x{rom.stored_checksum():04X}")
     if ips:

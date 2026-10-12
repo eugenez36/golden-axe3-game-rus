@@ -17,9 +17,15 @@ the builder:
     table, and set the immediate of ``moveq #width-1,d7`` at ``width_imm``
     (was ``width_was`` characters).
 
+Assembled patches (``patch: NAME`` + ``section: SECTION``, defined under the
+top-level ``patches:`` key) are written in ``assets/patches/*.s`` and built by
+``ga3.m68k``: every section lands at the start of its segment, and the hooks
+listed for a section become ``jmp label.l`` over the six bytes they name.
+
 ``fill`` is the free-space byte the unused tail of the slot keeps. Every edit
 is checked against the image before anything is written, so a map that drifted
-from the code fails the build instead of corrupting it.
+from the code fails the build instead of corrupting it; after the whole build
+the pipeline checks again that no later segment overwrote a patch.
 """
 
 from __future__ import annotations
@@ -28,7 +34,8 @@ import struct
 from dataclasses import dataclass
 from pathlib import Path
 
-from .. import patches, table, text
+from .. import font as fontlib
+from .. import m68k, patches, table, text
 from ..rom import Rom
 from ..rom_map import Segment
 from .base import BuildError, Handler, Paths
@@ -157,8 +164,101 @@ def _routine(seg: Segment):
         raise BuildError(f"{seg}: unknown routine {seg.get('routine')!r}") from None
 
 
+# ---------------------------------------------------------------- assembled patches
+
+
+def _hooks(seg: Segment) -> list[tuple[int, bytes, str]]:
+    """``(address, expected bytes, label)`` for the hooks of this segment's section."""
+    pdef, section = seg.get("patch_def"), seg.get("section")
+    out = []
+    for item in (pdef.get("hooks") or {}).get(section, []):
+        if not (isinstance(item, list) and len(item) == 3 and isinstance(item[0], int)):
+            raise BuildError(f"{seg}: hook {item!r} must be [0xADDRESS, 'hex bytes', label]")
+        try:
+            expect = bytes.fromhex(item[1])
+        except (TypeError, ValueError):
+            raise BuildError(f"{seg}: hook bytes {item[1]!r} are not hex") from None
+        if len(expect) != HOOK_SIZE:
+            raise BuildError(f"{seg}: a hook replaces {HOOK_SIZE} bytes, got {len(expect)}")
+        out.append((item[0], expect, str(item[2])))
+    return out
+
+
+def _glyph_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
+    """GLYPHS (1bpp rows) and NIBBLES (4bpp words) from the font art, as source text."""
+    spec = seg.get("patch_def").get("glyphs")
+    if not spec:
+        return "", {}
+    glyphs = fontlib.parse_art_file(str(paths.asset(spec["art"])))
+    ink, bg = spec["ink"], spec["bg"]
+    rows = []
+    for ch in spec["chars"]:
+        tile = glyphs[table.encode(ch)[0]]
+        for y in range(8):
+            bits = 0
+            for x in range(8):
+                byte = tile[y * 4 + x // 2]
+                px = byte >> 4 if x % 2 == 0 else byte & 0xF
+                if px not in (ink, bg):
+                    raise BuildError(f"{seg}: glyph {ch!r} uses colour {px}, not ink/bg")
+                bits = bits << 1 | (px == ink)
+            rows.append(bits)
+    nibbles = []
+    for n in range(16):
+        word = 0
+        for bit in (8, 4, 2, 1):
+            word = word << 4 | (ink if n & bit else bg)
+        nibbles.append(word)
+    src = [f"        section {spec['section']}", "GLYPHS:"]
+    src += [
+        f"        dc.b    {', '.join(f'${b:02X}' for b in rows[i : i + 8])}"
+        for i in range(0, len(rows), 8)
+    ]
+    src += ["NIBBLES:"]
+    src += [
+        f"        dc.w    {', '.join(f'${w:04X}' for w in nibbles[i : i + 8])}"
+        for i in range(0, 16, 8)
+    ]
+    return "\n".join(src) + "\n", {"BLANK_GLYPH": spec["chars"].index(" ")}
+
+
+def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, int]]:
+    """Assemble the patch this segment belongs to: its section's bytes, its hooks, the labels."""
+    pdef = seg.get("patch_def")
+    source = paths.asset(pdef["source"])
+    if not source.exists():
+        raise BuildError(f"{seg}: missing patch source {source}")
+    extra, derived = _glyph_tables(seg, paths)
+    symbols = {**(pdef.get("symbols") or {}), **derived}
+    try:
+        out, labels = m68k.assemble_sections(
+            source.read_text(encoding="utf-8") + "\n" + extra, seg.get("sections"), symbols
+        )
+    except m68k.AsmError as exc:
+        raise BuildError(f"{seg}: {source.name}: {exc}") from None
+    todo = []
+    for at, expect, label in _hooks(seg):
+        if label not in labels:
+            raise BuildError(f"{seg}: hook at {at:06X} names unknown label {label!r}")
+        todo.append(Edit(at, expect, patches.jmp_abs(labels[label])))
+    return out[seg.get("section")], todo, labels
+
+
+def touched(seg: Segment) -> list[tuple[int, int]]:
+    """Every byte range a patch segment writes outside its own slot (no assembly needed)."""
+    if seg.get("patch_def") is not None:
+        return [(at, at + len(expect)) for at, expect, _l in _hooks(seg)]
+    return [(e.at, e.end) for e in edits(seg)]
+
+
+def _expected(seg: Segment) -> list[tuple[int, bytes]]:
+    if seg.get("patch_def") is not None:
+        return [(at, expect) for at, expect, _l in _hooks(seg)]
+    return [(e.at, e.expect) for e in edits(seg)]
+
+
 def edits(seg: Segment) -> list[Edit]:
-    """The edits a patch segment makes outside its slot, validated against the slot."""
+    """The edits a routine patch segment makes outside its slot, validated against the slot."""
     found = _routine(seg)[0](seg)
     for e in found:
         if e.at < seg.end and seg.start < e.end:
@@ -166,15 +266,24 @@ def edits(seg: Segment) -> list[Edit]:
     return found
 
 
-def _edit_problem(rom: Rom, seg: Segment, e: Edit) -> str | None:
-    found = bytes(rom.data[e.at : e.end])
-    if found == e.expect:
+def _edit_problem(rom: Rom, seg: Segment, at: int, expect: bytes) -> str | None:
+    found = bytes(rom.data[at : at + len(expect)])
+    if found == expect:
         return None
-    return f"{seg}: 0x{e.at:06X} holds {found.hex(' ')}, expected {e.expect.hex(' ')}"
+    return f"{seg}: 0x{at:06X} holds {found.hex(' ')}, expected {expect.hex(' ')}"
 
 
 class PatchHandler(Handler):
+    def __init__(self):
+        self._applied: dict[str, tuple[bytes, list[Edit]]] = {}
+
     def sources(self, seg: Segment, paths: Paths) -> list[Path]:
+        pdef = seg.get("patch_def")
+        if pdef is not None:
+            found = [paths.asset(pdef["source"])]
+            if pdef.get("glyphs"):
+                found.append(paths.asset(pdef["glyphs"]["art"]))
+            return found
         if seg.get("strings_path") is None:
             return []  # generated from code; nothing under assets/
         return [_strings_path(seg, paths)]
@@ -183,23 +292,43 @@ class PatchHandler(Handler):
         return []  # the slot is free space in the base ROM; the sources are committed
 
     def build(self, rom: Rom, seg: Segment, paths: Paths) -> str | None:
-        todo = edits(seg)
-        problems = [p for e in todo if (p := _edit_problem(rom, seg, e))]
+        if seg.get("patch_def") is not None:
+            body, todo, _labels = assembled(seg, paths)
+        else:
+            todo = edits(seg)
+            body = None
+        problems = [p for e in todo if (p := _edit_problem(rom, seg, e.at, e.expect))]
         if problems:
             raise BuildError("\n".join(problems))
-        body = _routine(seg)[1](seg, paths)
+        if body is None:
+            body = _routine(seg)[1](seg, paths)
         self.place(rom, seg, body, pad=seg.get("fill", 0xFF))
         for e in todo:
             rom.data[e.at : e.end] = e.new
-        where = ", ".join(f"{e.at:06X}" for e in todo)
-        return f"{seg.get('routine')}: {len(body)} B, edits at {where}"
+        self._applied[seg.name] = (bytes(rom.data[seg.start : seg.end]), todo)
+        where = ", ".join(f"{e.at:06X}" for e in todo) or "none"
+        what = seg.get("routine") or f"{seg.get('patch')}/{seg.get('section')}"
+        return f"{what}: {len(body)} B, edits at {where}"
+
+    def verify_built(self, rom: Rom, seg: Segment) -> list[str]:
+        """After the whole build: the slot and every edit still hold what this patch wrote."""
+        if seg.name not in self._applied:
+            return []
+        slot, todo = self._applied[seg.name]
+        problems = []
+        if bytes(rom.data[seg.start : seg.end]) != slot:
+            problems.append(f"{seg}: a later segment overwrote the patch's slot")
+        for e in todo:
+            if bytes(rom.data[e.at : e.end]) != e.new:
+                problems.append(f"{seg}: a later segment overwrote the edit at 0x{e.at:06X}")
+        return problems
 
     def check(self, rom: Rom, seg: Segment) -> list[str]:
         try:
-            todo = edits(seg)
+            expected = _expected(seg)
         except BuildError as exc:
             return [str(exc)]
-        problems = [p for e in todo if (p := _edit_problem(rom, seg, e))]
+        problems = [p for at, exp in expected if (p := _edit_problem(rom, seg, at, exp))]
         fill = seg.get("fill")
         if fill is None:
             problems.append(f"{seg}: patch without the fill byte of the space it occupies")
