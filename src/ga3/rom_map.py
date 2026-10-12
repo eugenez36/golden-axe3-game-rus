@@ -21,7 +21,8 @@ import yaml
 
 PASSTHROUGH_TYPES = frozenset({"code", "data", "free", "unknown"})
 ASSET_TYPES = frozenset({"header", "table", "text", "tiles4bpp", "nemesis", "pcm", "raw"})
-ALL_TYPES = PASSTHROUGH_TYPES | ASSET_TYPES
+GENERATED_TYPES = frozenset({"patch"})
+ALL_TYPES = PASSTHROUGH_TYPES | ASSET_TYPES | GENERATED_TYPES
 
 
 class RomMapError(ValueError):

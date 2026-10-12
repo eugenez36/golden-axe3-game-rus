@@ -4,7 +4,8 @@ A handler knows how to turn a byte range of the ROM into editable files
 (``extract``) and how to put those files back (``build``). It never knows an
 address: offsets arrive with the ``Segment``. Passthrough types (code, data,
 free, unknown) are copied out for browsing but taken from the base ROM on
-build unless a local file overrides them.
+build unless a local file overrides them. ``patch`` segments are generated
+from ``ga3.patches`` and hook into code elsewhere.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from __future__ import annotations
 from .base import BuildError, Handler, Paths
 from .header import HeaderHandler
 from .nemesis_asset import FontArtHandler, NemesisHandler
+from .patch_asset import PatchHandler
 from .raw_asset import RawHandler
 from .table_asset import TableHandler
 from .text_asset import TextHandler
@@ -29,6 +31,7 @@ HANDLERS: dict[str, Handler] = {
     "data": RawHandler(committed=False),
     "unknown": RawHandler(committed=False),
     "free": RawHandler(committed=False, is_free=True),
+    "patch": PatchHandler(),
 }
 
 _FONT = FontArtHandler()

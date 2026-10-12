@@ -1,0 +1,15 @@
+# Main menu -> ОПЦИИ -> back. The version line («V x.y.z», bottom right, drawn
+# by the menu_version patch) must be on both menu shots and absent on options.
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+screenshot build/shots/menu_options_sel.png 2
+press start 10
+wait 90
+screenshot build/shots/options.png 2
+press start 10
+wait 90
+dump vram build/dumps/menu_back_vram.bin
+screenshot build/shots/menu_back.png 2

@@ -6,7 +6,8 @@ Two kinds of test image:
   the SHA-1 recorded in ``rom_map.yml``; they are skipped, not failed, when it
   is absent so that CI runs green without the copyrighted image.
 * ``synthetic_project`` -- an 8 KiB image built here from the committed
-  fixtures, with its own ``rom_map.yml`` covering every segment type. It lets
+  fixtures, with its own ``rom_map.yml`` covering every extractable segment type
+  (``patch`` is exercised in ``test_patches.py``). It lets
   the asset handlers, the pipeline and the CLI run end to end without the ROM.
 """
 
