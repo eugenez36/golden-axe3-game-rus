@@ -42,12 +42,16 @@ Pitfalls:
 
 ## Strings files (`assets/text/*.txt`)
 
-One file per `text` segment of `rom_map.yml`:
+One file per `text` segment of `rom_map.yml`, plus one per code segment that
+carries strings (`strings:` in the map):
 
 | Segment | File | Contents |
 |---|---|---|
-| `text_menu` | `menu.txt` | menu and options labels |
-| `text_stages` | `stages.txt` | stage name list |
+| `text_menu` | `menu.txt` | title line, main menu, options screen labels |
+| `code_main_b` | `code_main_b.txt` | `1Р` `2Р` `КОМ`, `ПАУЗА` |
+| `code_main_d` | `code_main_d.txt` | difficulty, button roles, `НАЖМИ СТАРТ 2`, score labels |
+| `text_stages` | `stages.txt` | stage names, 12 × 20 characters, centred |
+| `code_main_e` | `code_main_e.txt` | `МАРШРУТ`, `ТЫ ПОГИБ` |
 | `text_ending` | `ending.txt` | ending screens |
 | `text_dialogue` | `dialogue.txt` | NPC dialogue, credits |
 | `text_misc` | `misc.txt` | assorted; several records are printable garbage |
@@ -66,9 +70,35 @@ Edit only the text right of `|`. Rules enforced by `ga3 build`:
 2. the encoded string may not be longer than `DECLENGTH`,
 3. the record must lie inside its segment.
 
-Shorter strings are padded with spaces (`0x20`). The records come from a scan
-for runs of printable bytes, so a few capture neighbouring data bytes that
-happen to be printable — edit the meaningful part only.
+Shorter strings are padded with spaces (`0x20`). The records of a `text`
+segment first came from a scan for runs of printable bytes, so many capture
+data that happens to be printable. Real text is declared in the map:
+
+- `prose: [[start, end], ...]` on a `text` segment lists where the game's text
+  lives; records of real text were narrowed to the exact string (a record must
+  never cover code bytes such as `4E 75`, `rts`, which decode as «Ег»).
+- `strings: [[offset, length], ...]` with `strings_path` on a `code`/`data`
+  segment declares strings embedded in code, each proven by the `lea` that
+  loads it and the loop that draws it. The build writes exactly those spans and
+  refuses records the map does not declare.
+
+The English texts are SEGA's licence and region-lock messages in plain ASCII
+(`0136BA`, `013DD0`). They are drawn with another font, are standard SEGA
+wording and are not edited.
+
+## Checking text
+
+- `ga3 text verify` — every strings file against the table and its segment.
+- `ga3 text lint` — mechanical checks of the prose only: a capital inside a
+  word, «Э» (byte `0x22`) where a quotation mark was meant, double spaces, a
+  space before punctuation, no space after it. Findings kept on purpose are
+  listed per segment in `lint_allow: {0xOFFSET: [rule, ...]}`. Spelling and
+  wording remain a human review.
+- `ga3 text preview [--changed] [-o DIR]` — renders the prose with the current
+  font art, one PNG per strings file, for text that is hard to reach in the
+  emulator (the ending, duel results).
+- `ga3 text export` re-extracts every strings file **from the ROM** and so
+  discards the translation's edits; it is for a fresh start only.
 
 ## Structure of the ending block
 

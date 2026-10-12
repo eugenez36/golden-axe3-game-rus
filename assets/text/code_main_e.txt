@@ -1,0 +1,8 @@
+# code_main_e: game text, ROM range 016E00-0179F2
+# Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
+# A string may not grow: the ROM is full and edits are in place.
+# {XX} is a byte with no glyph in the font (or one that does not round-trip).
+# In-game strings are separated by 0xFF; here each string is one record.
+
+01704C:10 |   МАРШРУТ 
+0170F2:13 |   ТЫ ПОГИБ   
