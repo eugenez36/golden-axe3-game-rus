@@ -1,3 +1,3 @@
 # sha1sum -c roms.sha1   (base ROM first, then every build product)
 e9538c0542b4a05050f5b68d279cddb06559ae20  baserom/ga3.bin
-cfbf4fa99fb5e05ed6cf5dbdd51238ee64b5db99  build/ga3.bin
+e3eaf40dc1b76e11cf2fb2bf999b4fd17f2c809d  build/ga3.bin

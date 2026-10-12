@@ -19,9 +19,9 @@ Pitfalls worth remembering:
     Earlier versions of this table swapped the two labels, which made correct
     text such as «следующий» read as «следуЮщий» in assets/text. 0x71 is «й»
     (the «и» glyph plus a breve).
-  * Ъ (0x4F), Ё (0x51), the parentheses (0x2A, 0x2B) and Latin V (0x40, for the
-    menu version) were drawn into free slots by this project; the original
-    translation did not have them.
+  * Ъ (0x4F), Ё (0x51), ё (0x3C), the parentheses (0x2A, 0x2B) and Latin V
+    (0x40, for the menu version) were drawn into free slots by this project;
+    the original translation did not have them.
 """
 
 from __future__ import annotations
@@ -59,6 +59,7 @@ BYTE_TO_CHAR: dict[int, str] = {
     0x3F: "?",
     0x60: "'",
     # capitals
+    0x3C: "ё",  # added by this project
     0x40: "V",  # Latin, for the menu version; added by this project
     0x41: "А", 0x42: "В", 0x43: "С", 0x44: "И", 0x45: "У", 0x46: "Ф",
     0x47: "П", 0x48: "Р", 0x49: "Ш", 0x4A: "Х", 0x4B: "Л", 0x4C: "Д",
