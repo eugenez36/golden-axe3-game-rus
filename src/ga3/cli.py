@@ -190,6 +190,12 @@ def _rom_map_doc(proj: pipeline.Project) -> str:
     for t, n in sorted(cov.items(), key=lambda kv: -kv[1]):
         lines.append(f"| {t} | {n} | {100.0 * n / total:.1f}% |")
     lines += ["", "## Segments", "", rom_map.markdown_table(proj.map)]
+    if proj.map.constants:
+        lines += [
+            f"## Constants (instruction operands, values in `assets/{proj.map.constants_path}`)",
+            "",
+            rom_map.constants_table(proj.map),
+        ]
     if proj.map.palettes:
         lines += ["## Palettes (emulator CRAM captures, not build inputs)", ""]
         for name, meta in proj.map.palettes.items():
@@ -467,14 +473,37 @@ def cmd_font(args) -> int:
 
 
 def cmd_balance(args) -> int:
+    from . import constants
+
     proj = _proj(args)
     seg = proj.map.by_name("hp_table")
     path = proj.paths.asset(seg.path)
     values = balance.read_hp(path)
+    cpath = proj.paths.asset(proj.map.constants_path) if proj.map.constants else None
     if args.balcmd == "show":
         print(f"HP table ({seg.path}, ROM {seg.start:06X}):")
         for k, v in values.items():
             print(f"  {k:10s} {v:3d} (0x{v:02X})")
+        if cpath is not None:
+            current = constants.read_values(cpath)
+            print(f"Constants ({proj.map.constants_path}):")
+            for c in proj.map.constants.values():
+                where = ", ".join(f"{s.at:06X}" for s in c.sites)
+                print(f"  {c.name:10s} {current.get(c.name, '?'):>3} ({c.format} at {where})")
+        return 0
+    if args.balcmd == "set":
+        if cpath is None:
+            return _fail("rom_map.yml declares no constants")
+        try:
+            old, warnings = balance.set_constant(proj.map, cpath, args.name, int(args.value, 0))
+        except ValueError as exc:
+            return _fail(str(exc))
+        for w in warnings:
+            print("  warning: " + w, file=sys.stderr)
+        print(
+            f"{args.name}: {old} -> {int(args.value, 0)}  "
+            f"(written to {proj.map.constants_path}; run `ga3 build`)"
+        )
         return 0
     new = [int(v, 0) for v in args.values]
     if len(new) != len(values):
@@ -688,6 +717,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_parser("show")
     q = s.add_parser("set-hp")
     q.add_argument("values", nargs="+")
+    q = s.add_parser("set", help="one gameplay constant (rom_map.yml constants:), e.g. lives 5")
+    q.add_argument("name")
+    q.add_argument("value")
     p.set_defaults(func=cmd_balance)
 
     p = sub.add_parser("disasm", help="m68000 disassembly window (needs the [disasm] extra)")

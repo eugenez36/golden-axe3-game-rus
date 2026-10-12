@@ -74,6 +74,13 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `0FC000–0FFA20` | pcm | pcm | `sound/pcm/samples.pcm` | PCM sample data; sample table and rate unknown |
 | `0FFA20–100000` | code | entry_stub | `code/entry_stub.m68k` | the translators' relocated entry point; *evidence: reset vector at 0x4 = 000FFA20* |
 
+## Constants (instruction operands, values in `assets/data/gameplay.yml`)
+
+| Constant | Format | Instructions | Notes |
+|---|---|---|---|
+| lives | u8 | `00E420`, `00E6E8` | spare lives of each player (object +0x13C), shown as one digit next to the portrait; *evidence: dumps every 300 frames while player 1 dies three times on stage 1: FFC8E0 (P1 object +0x13C) goes 2, 1, 0 with the HUD digit; watch FFC8E0: set by 00E420 when the stage starts, decremented by 00697A (subq.b #1,$13c(a0)) at each death; the only other writers of +0x13C are 00E6E8 (move.b #2, next to subq.b #1,$c77c.w: a continue), 003EC0 (subq) and 010416 (addq.b #1, an extra life)* |
+| credits | u8 | `0003B6` | continues per game («КРЕДИТЫ 4» on the continue screen); *evidence: watch FFC77C from boot: written once by 0003B6 (move.b #4,$c77c.w) when a game starts; 00E6CE subq.b #1,$c77c.w on each continue (with 00E6E8 restoring the lives); the continue screen shows «КРЕДИТЫ 4»; 00E624 / 00E68E test it for zero* |
+
 ## Palettes (emulator CRAM captures, not build inputs)
 
 - `title` — `palettes/title.pal` — emu/scenes/title.txt, title screen

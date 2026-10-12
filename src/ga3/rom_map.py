@@ -50,12 +50,44 @@ class Segment:
         return f"{self.name} [{self.start:06X}-{self.end:06X}] {self.type}"
 
 
+CONSTANT_WIDTH = {"u8": 1, "u16": 2}
+
+
+@dataclass(frozen=True)
+class Site:
+    """One instruction that carries a constant: its address, its base-ROM bytes
+    (hex in the map) and the offset of the operand inside them."""
+
+    at: int
+    expect: bytes
+    offset: int
+
+
+@dataclass
+class Constant:
+    """A number inside the game's code (an instruction operand), edited by name."""
+
+    name: str
+    format: str
+    sites: list[Site]
+    attrs: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def width(self) -> int:
+        return CONSTANT_WIDTH[self.format]
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.attrs.get(key, default)
+
+
 @dataclass
 class RomMap:
     rom: dict[str, Any]
     palettes: dict[str, dict[str, Any]]
     segments: list[Segment]
     source: str = "rom_map.yml"
+    constants: dict[str, Constant] = field(default_factory=dict)
+    constants_path: str | None = None
 
     @property
     def size(self) -> int:
@@ -143,7 +175,57 @@ def parse(doc: dict[str, Any], source: str = "rom_map.yml") -> RomMap:
     _attach_patches(doc.get("patches") or {}, ordered)
     filled = fill_gaps(ordered, size)
     palettes = dict(doc.get("palettes") or {})
-    return RomMap(rom, palettes, filled, source)
+    path, constants = _parse_constants(doc.get("constants"), size)
+    return RomMap(rom, palettes, filled, source, constants, path)
+
+
+def _parse_constants(block: Any, size: int) -> tuple[str | None, dict[str, Constant]]:
+    """The top-level ``constants:`` key: numbers inside code, edited by name.
+
+    ``path`` is the asset file (relative to ``assets/``) holding the values;
+    under ``values`` every constant has ``format`` (u8 | u16), ``sites`` --
+    ``[address, "base-ROM bytes of the instruction", operand offset]`` for each
+    instruction that carries it -- and, like a segment, ``evidence`` (required),
+    ``note`` and ``max_hud``.
+    """
+    if not block:
+        return None, {}
+    if not isinstance(block, dict) or not isinstance(block.get("path"), str):
+        raise RomMapError("constants: expected a mapping with path: and values:")
+    values = block.get("values")
+    if not isinstance(values, dict) or not values:
+        raise RomMapError("constants: values: must map constant names to definitions")
+    out: dict[str, Constant] = {}
+    for name, d in values.items():
+        where = f"constants.{name}"
+        if not isinstance(d, dict):
+            raise RomMapError(f"{where}: expected a mapping")
+        fmt = d.get("format", "u8")
+        if fmt not in CONSTANT_WIDTH:
+            raise RomMapError(f"{where}: format must be one of {sorted(CONSTANT_WIDTH)}")
+        if not d.get("evidence"):
+            raise RomMapError(f"{where}: evidence is required (how the address was proven)")
+        raw_sites = d.get("sites")
+        if not isinstance(raw_sites, list) or not raw_sites:
+            raise RomMapError(f'{where}: sites: expected [[address, "hex bytes", offset], ...]')
+        sites = []
+        for i, s in enumerate(raw_sites):
+            if not (isinstance(s, list) and len(s) == 3 and isinstance(s[1], str)):
+                raise RomMapError(f'{where}.sites[{i}]: expected [address, "hex bytes", offset]')
+            at = _int(s[0], f"{where}.sites[{i}] address")
+            offset = _int(s[2], f"{where}.sites[{i}] offset")
+            try:
+                expect = bytes.fromhex(s[1])
+            except ValueError:
+                raise RomMapError(f"{where}.sites[{i}]: {s[1]!r} is not hex bytes") from None
+            if offset + CONSTANT_WIDTH[fmt] > len(expect):
+                raise RomMapError(f"{where}.sites[{i}]: the operand runs past the bytes given")
+            if at + len(expect) > size:
+                raise RomMapError(f"{where}.sites[{i}]: 0x{at:06X} is past rom.size")
+            sites.append(Site(at, expect, offset))
+        attrs = {k: v for k, v in d.items() if k not in ("format", "sites")}
+        out[name] = Constant(name, fmt, sites, attrs)
+    return block["path"], out
 
 
 def _attach_patches(patches: dict[str, Any], segments: list[Segment]) -> None:
@@ -225,6 +307,20 @@ def _md_text(text: str) -> str:
         for ch in "\\*<":
             parts[i] = parts[i].replace(ch, "\\" + ch)
     return "`".join(parts).replace("|", "\\|")
+
+
+def constants_table(rm: RomMap) -> str:
+    """The ``constants:`` block as a Markdown table (feeds docs/rom_map.md)."""
+    lines = [
+        "| Constant | Format | Instructions | Notes |",
+        "|---|---|---|---|",
+    ]
+    for c in rm.constants.values():
+        sites = ", ".join(f"`{s.at:06X}`" for s in c.sites)
+        notes = [_md_text(c.get("note", ""))] if c.get("note") else []
+        notes.append(f"*evidence: {_md_text(c.get('evidence'))}*")
+        lines.append(f"| {c.name} | {c.format} | {sites} | {'; '.join(notes)} |")
+    return "\n".join(lines) + "\n"
 
 
 def markdown_table(rm: RomMap) -> str:

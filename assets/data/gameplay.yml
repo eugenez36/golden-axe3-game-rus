@@ -1,0 +1,7 @@
+# Gameplay constants: numbers inside the game's code, edited by name.
+# Where each one sits is in rom_map.yml (constants:); `ga3 balance` edits this file.
+# lives (u8, at 00E420, 00E6E8): spare lives of each player (object +0x13C), shown as one digit next to the portrait
+# credits (u8, at 0003B6): continues per game («КРЕДИТЫ 4» on the continue screen)
+values:
+  lives: 2
+  credits: 4

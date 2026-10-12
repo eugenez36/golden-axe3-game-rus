@@ -50,8 +50,10 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
 - **Font editing in plain text.** Glyphs as `#`/`.` art. **Ё**, **ё**, **Ъ**,
   Latin **V** and the parentheses were added to a translation that never had
   them; the build refuses a font that would not fit its 840-byte slot.
-- **Gameplay by name.** `ga3 balance set-hp 60 60 60 60` edits a YAML table;
-  the address is the map's business.
+- **Gameplay by name.** `ga3 balance set-hp 60 60 60 60` edits the HP table,
+  `ga3 balance set lives 5` / `set credits 9` the spare lives and continues
+  (numbers inside the code, each instruction checked against the base ROM);
+  the addresses are the map's business.
 - **New code in 68000 assembly.** Patches live in `assets/patches/*.s`, are
   assembled by the built-in `ga3.m68k` (every instruction form checked with
   Capstone) and hook the game only where the base ROM holds the expected
@@ -124,7 +126,7 @@ assets/           the ROM taken apart — see STYLE.md for what is committed
   gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (indexed)
   palettes/       *.pal captured from the emulator (no ROM source known yet)
   sound/pcm/      samples.pcm
-  data/           hp_table.yml
+  data/           hp_table.yml, gameplay.yml (lives, credits)
   code/asm/       Capstone listings (generated)
 build/            everything derived (ignored): ROM, IPS, emulator, shots, dumps, previews
 src/ga3/          the toolkit: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · patches · m68k · balance · disasm · ramsearch · lag · cli

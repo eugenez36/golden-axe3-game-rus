@@ -55,3 +55,28 @@ def validate_hp(values: list[int], max_hud: int | None = None) -> list[str]:
                 f"slot {i}: HP {v} exceeds the HUD bar width ({max_hud}); the excess is invisible"
             )
     return warnings
+
+
+def set_constant(rm, path: Path, name: str, value: int) -> tuple[int, list[str]]:
+    """Write one gameplay constant (``constants:`` in rom_map.yml) to its asset file.
+
+    Returns the previous value and warnings; raises ValueError for an unknown
+    name or a value its format cannot hold.
+    """
+    from . import constants
+
+    if name not in rm.constants:
+        raise ValueError(f"no constant {name!r}; known: {', '.join(rm.constants)}")
+    c = rm.constants[name]
+    limit = (1 << (8 * c.width)) - 1
+    if not 0 <= value <= limit:
+        raise ValueError(f"{name} {value} is outside 0..{limit} ({c.format})")
+    warnings = []
+    max_hud = c.get("max_hud")
+    if max_hud is not None and value > max_hud:
+        warnings.append(f"{name} {value} is more than the HUD can draw ({max_hud})")
+    values = constants.read_values(path)
+    old = values.get(name)
+    values[name] = value
+    constants.write_values(path, values, rm)
+    return old, warnings
