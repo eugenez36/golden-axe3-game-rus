@@ -172,7 +172,7 @@ Drive emulator. In Genesis Plus GX (RetroArch), *System Overclock* 150–200%
 shortens the pauses while magic loads and *Remove Per-Line Sprite Limit*
 removes flicker; numbers in [docs/emulator.md](docs/emulator.md#lag-and-overclock).
 The small blue box right of each HUD counts the enemies that player has killed
-(up to 99); it starts from zero when a game mode is chosen in the main menu
+(up to 999); it starts from zero when a game mode is chosen in the main menu
 and is not shown in a duel.
 
 ## Documents

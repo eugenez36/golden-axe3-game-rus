@@ -11,9 +11,10 @@ follow the roadmap in the README (`ga3 --version`, shown in the main menu as
 ### Added
 
 - **Kill counter** next to each player's HUD (#11, #17): enemies killed by
-  that player, up to 99; the kill goes to the player who hit the enemy last,
-  falls off the stage included. Reset when a game mode is chosen, not shown in
-  a duel. Written in 68000 assembly (`assets/patches/kill_counter.s`).
+  that player, up to 999 (three digits for each player); the kill goes to the
+  player who hit the enemy last, falls off the stage included. Reset when a
+  game mode is chosen, not shown in a duel. Written in 68000 assembly
+  (`assets/patches/kill_counter.s`).
 - **`ga3.m68k`**, a two-pass 68000 assembler for patch sources; every
   supported instruction form is checked by disassembling it with Capstone
   (#11).
@@ -24,8 +25,8 @@ follow the roadmap in the README (`ga3 --version`, shown in the main menu as
   gained `--overclock PCT` (#10). Player settings for Genesis Plus GX in the
   README.
 - `make regress` runs the scenes in parallel, one per CPU (#9).
-- Scenes `game_over.txt` (map screen with score and rank) and `duel_hud.txt`
-  (#16, #17).
+- Scenes `game_over.txt` (map screen with score and rank), `duel_hud.txt` and
+  `kill_counter_999.txt` (#16, #17).
 - `align-md-tables` pre-commit hook: Markdown tables stay aligned (#14).
 - Docs: `docs/patches.md`, `docs/ru/proofreading.md`, a bug-hunt entry in the
   journal.
