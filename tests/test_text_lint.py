@@ -12,7 +12,7 @@ from ga3.cli import main
 from ga3.rom import Rom
 from ga3.rom_map import Segment
 
-from .conftest import Synth
+from .conftest import ROOT, Synth
 
 # ---------------------------------------------------------------- rules
 
@@ -182,3 +182,8 @@ def test_cli_lint_and_preview(synthetic_extracted, capsys):
         assert im.size == (6 * 8, 3 * 8)  # widest record x 3 records, 8x8 glyphs
     assert run(s, "text", "preview", "-o", str(out_dir / "c"), "--changed") == 0
     assert "(1 strings)" in capsys.readouterr().out.splitlines()[-1]
+
+
+def test_committed_game_text_is_lint_clean():
+    """The real strings files pass ``ga3 text lint`` (deliberate findings: ``lint_allow``)."""
+    assert main(["--root", str(ROOT), "text", "lint"]) == 0

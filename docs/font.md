@@ -54,9 +54,9 @@ and `font.nem`.
 - Ё: seen in-game, `docs/images/newletters.png`.
 - `(` `)`: seen in-game, `docs/images/parens.png`.
 - V: seen in-game in the main menu version line, `emu/scenes/menu.txt`.
-- Ъ: verified in the font data only. It appears in the second NPC's line
-  («Не волнуйся, я разЪярЁн!»), which needs playing into stage 1;
-  `emu/scenes/dialogue_pages.txt` is the scene to extend for that.
+- Ъ: drawn and in the table, but no text uses it. Its only use, «я разЪярЁн»
+  in message 1, broke the sentence and was restored to the translators'
+  «я разберусь» (see `docs/ru/proofreading.md`).
 
 Repacking unchanged glyphs must reproduce the VRAM dump byte for byte
 (`tests/fixtures/font_vram.4bpp`); that test catches packer regressions better

@@ -108,3 +108,38 @@ def test_loading_a_wrong_rom_is_refused(project, tmp_path):
     with pytest.raises(pl.PipelineError, match="sha1"):
         pl.load_baserom(project, bad)
     Rom.load(bad)  # plain loading is still allowed
+
+
+def _message_lines(data: bytes, start: int, end: int) -> int:
+    """FF-terminated lines of the dialogue message at ``start`` (header skipped), up to ``end``."""
+    lines, pos = 0, start + 2
+    while pos < end and data[pos] != 0x00:
+        stop = data.index(0xFF, pos)
+        if stop >= end:
+            break
+        lines += 1
+        pos = stop + 1
+    return lines
+
+
+def test_every_dialogue_box_shows_all_its_lines(project, baserom, tmp_path):
+    """Header byte 1 is the number of lines shown minus one; a smaller value cuts text off.
+
+    Message 1 had 4 lines and a 3-line box, so «в округе.'» never appeared.
+    """
+    import struct
+
+    built = pl.build(project, baserom, out=tmp_path / "out.bin", ips=False, log=lambda *_: None)
+    data = bytes(built.data)
+    seg = project.map.by_name("text_dialogue")
+    table_at = seg.get("messages")
+    starts = sorted(table_at + o for o in struct.unpack_from(">16H", data, table_at))
+    bounds = dict(zip(starts, [*starts[1:], None], strict=True))
+    wrong = []
+    for start, nxt in bounds.items():
+        shown = data[start + 1] + 1
+        lines = _message_lines(data, start, nxt or seg.end)
+        # the last message is followed by another text block, not by a message
+        if (lines != shown) if nxt else (lines < shown):
+            wrong.append(f"{start:06X}: {lines} lines, box shows {shown}")
+    assert wrong == []

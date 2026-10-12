@@ -143,8 +143,10 @@ segments:
       note: "11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp" }
   - { name: text_dialogue, start: 0x0E9B00, end: 0x0EC300, type: text,   path: text/dialogue.txt, min_len: 4,
       prose: [[0x0EBB64, 0x0EC281]],
+      messages: 0x0EBB42,  # 16 big-endian offsets from here to the dialogue messages
+      lint_allow: { 0x0EBBD8: [capital-inside-word] },  # «ВперЁд»: the font has no lower-case ё (see docs/ru/proofreading.md)
       note: "NPC dialogue, credits and ending text; records before 0EBB64 are binary data that happens to be printable",
-      evidence: "prose: dialogue pages on screen from 0EBB64 (emu/scenes/dialogue_pages.txt); 0EC281 is the end of the last credits record" }
+      evidence: "prose: dialogue pages on screen from 0EBB64 (emu/scenes/dialogue_pages.txt); 0EC281 is the end of the last credits record; messages: disasm 01778E lea $ebb42.l + adda.w (a0,d1.w),a0, header = box width, lines shown - 1, then lines ending in FF; every message shown in-game by pointing entry 0 at it in a scratch ROM" }
   - { name: text_misc,     start: 0x0FB000, end: 0x0FB500, type: text,   path: text/misc.txt, min_len: 4,
       note: "misc strings; several records are printable garbage — edit with care" }
   - { name: pcm,           start: 0x0FC000, end: 0x0FFA20, type: pcm,    path: sound/pcm/samples.pcm,

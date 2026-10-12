@@ -1,13 +1,15 @@
-# Four consecutive dialogue pages (every 300 frames): the Ё / Ъ / ( ) glyph check.
-# The credits pages are a separate scene, credits_pages.txt.
+# The opening dialogue typing out, 100 frames apart: the last shot holds all
+# seven lines (the box closes about 340 frames in). The Ё / ( ) glyph check.
+# Every other message can be shown here too: point entry 0 of the message table
+# (text_dialogue `messages` in rom_map.yml) at it in a scratch copy of the ROM.
 include _to_dialogue.inc
 screenshot build/shots/dialogue_p1.png 2
-wait 300
+wait 100
 screenshot build/shots/dialogue_p2.png 2
 dump vram build/dumps/dialogue_p2_vram.bin
-wait 300
+wait 100
 screenshot build/shots/dialogue_p3.png 2
 dump vram build/dumps/dialogue_p3_vram.bin
-wait 300
+wait 100
 screenshot build/shots/dialogue_p4.png 2
 dump vram build/dumps/dialogue_p4_vram.bin

@@ -65,7 +65,7 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `05B42E–080000` | unknown | unk_05B42E |  |  |
 | `080000–0D8000` | tiles4bpp | art_main | `gfx/tiles` | 11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp |
 | `0D8000–0E9B00` | unknown | unk_0D8000 |  |  |
-| `0E9B00–0EC300` | text | text_dialogue | `text/dialogue.txt` | NPC dialogue, credits and ending text; records before 0EBB64 are binary data that happens to be printable; *evidence: prose: dialogue pages on screen from 0EBB64 (emu/scenes/dialogue_pages.txt); 0EC281 is the end of the last credits record* |
+| `0E9B00–0EC300` | text | text_dialogue | `text/dialogue.txt` | NPC dialogue, credits and ending text; records before 0EBB64 are binary data that happens to be printable; *evidence: prose: dialogue pages on screen from 0EBB64 (emu/scenes/dialogue_pages.txt); 0EC281 is the end of the last credits record; messages: disasm 01778E lea $ebb42.l + adda.w (a0,d1.w),a0, header = box width, lines shown - 1, then lines ending in FF; every message shown in-game by pointing entry 0 at it in a scratch ROM* |
 | `0EC300–0FB000` | unknown | unk_0EC300 |  |  |
 | `0FB000–0FB500` | text | text_misc | `text/misc.txt` | misc strings; several records are printable garbage — edit with care |
 | `0FB500–0FC000` | unknown | unk_0FB500 |  |  |
