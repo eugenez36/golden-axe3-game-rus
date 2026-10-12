@@ -134,66 +134,81 @@ frame:
         bclr    #0,VBLANK_FLAG.w
         jmp     WAIT_BACK
 
-; Registers in hud: a0 sprite list, a4 last sprite, d2 next free index,
+; Registers in hud: a0 sprite list, a4 last sprite, d2 sprites in the list,
 ; a2 / a3 the HUD block of player 1 / 2 (0 when that HUD is not shown).
+; The game adds sprites in order (sprite n links to n+1) and keeps their number
+; in SPR_COUNT, which its own end-of-list code uses as well, so the
+; HUD is found among the first sprites and the list is never walked.
 hud:
         lea     SPRITES.w,a0
         suba.l  a2,a2
         suba.l  a3,a3
-        moveq   #0,d0                   ; current sprite index
-        moveq   #0,d2                   ; sprites seen
-.walk:  move.w  d0,d1
+        move.w  SPR_COUNT.w,d2
+        beq.s   .show
+        cmpi.w  #MAX_SPRITES,d2
+        bhi.s   .show                   ; not a sprite list we know: no HUD
+        move.w  d2,d1
         lsl.w   #3,d1
-        lea     0(a0,d1.w),a4
-        cmpi.w  #HUD_SCAN,d2            ; HUD blocks are among the first sprites
-        bcc.s   .next
-        cmpi.b  #HUD_SIZE,2(a4)         ; 4 x 3 cells
-        bne.s   .next
-        move.w  4(a4),d1
+        lea     -8(a0,d1.w),a4          ; last sprite
+        moveq   #0,d0                   ; sprite index
+.scan:  cmp.w   d2,d0
+        bcc.s   .show
+        cmpi.w  #HUD_SCAN,d0            ; HUD blocks are among the first sprites
+        bcc.s   .show
+        move.w  d0,d1
+        lsl.w   #3,d1
+        lea     0(a0,d1.w),a1
+        addq.w  #1,d0
+        cmpi.b  #HUD_SIZE,2(a1)         ; 4 x 3 cells
+        bne.s   .scan
+        move.w  4(a1),d1
         andi.w  #$07FF,d1
         cmpi.w  #HUD_P1,d1
         bne.s   .not1
-        movea.l a4,a2
+        movea.l a1,a2
 .not1:  cmpi.w  #HUD_P2,d1
-        bne.s   .next
-        movea.l a4,a3
-.next:  addq.w  #1,d2
-        moveq   #0,d1
-        move.b  3(a4),d1
-        andi.b  #$7F,d1
-        beq.s   .last
-        cmpi.w  #MAX_SPRITES,d2
-        bcc.s   .done
-        move.w  d1,d0
-        bra.s   .walk
-.last:  move.l  a2,d1
-        beq.s   .p2
+        bne.s   .scan
+        movea.l a1,a3
+        bra.s   .scan
+.show:  move.l  a2,d1
+        beq.s   .hide1
         move.w  #HUD_P1,d1
-        bsr.s   loaded
-        beq.s   .p2
+        jsr     loaded
+        beq.s   .hide1
         moveq   #0,d3
         move.b  KILLS.w,d3
+        cmp.b   SHOWN.w,d3              ; digit tiles already hold this number?
+        beq.s   .same1
+        move.b  d3,SHOWN.w
         moveq   #0,d1                   ; tiles 0 and 1
         jsr     tiles
-        movea.l a2,a1
+.same1: movea.l a2,a1
         moveq   #0,d1
         bsr.s   sprite
+        bra.s   .p2
+.hide1: move.b  #-1,SHOWN.w             ; upload again when the HUD is back
 .p2:    move.l  a3,d1
-        beq.s   .done
+        beq.s   .hide2
         move.w  #HUD_P2,d1
-        bsr.s   loaded
-        beq.s   .done
+        jsr     loaded
+        beq.s   .hide2
         moveq   #0,d3
         move.b  KILLS+1.w,d3
+        cmp.b   SHOWN+1.w,d3
+        beq.s   .same2
+        move.b  d3,SHOWN+1.w
         moveq   #2,d1                   ; tiles 2 and 3
         jsr     tiles
-        movea.l a3,a1
+.same2: movea.l a3,a1
         moveq   #2,d1
-        bsr.s   sprite
-.done:  rts
+        bra.s   sprite
+.hide2: move.b  #-1,SHOWN+1.w
+        rts
 
 ; append a 2x1 sprite right of the HUD block at a1, tiles d1 and d1+1;
-; a4 = last sprite so far, d2 = its index + 1; both move on to the new sprite
+; a4 = last sprite so far, d2 = its index + 1; both move on to the new sprite.
+; Rewriting the same slots every frame is harmless when the game has not
+; rebuilt its list in between: the old last sprite then links to them again.
 sprite:
         cmpi.w  #MAX_SPRITES,d2
         bcc.s   .done
@@ -213,27 +228,6 @@ sprite:
         move.w  d3,6(a4)
         addq.w  #1,d2
 .done:  rts
-
-; is the art of the HUD whose third block starts at tile d1 in VRAM? ne: yes.
-; A spell clears the HUD tiles, and the game reloads them a few frames after
-; the HUD sprites are back; until then the counter would float on its own.
-; Each block (third, second, first: 16 tiles apart) begins with a border row.
-loaded:
-        moveq   #2,d3
-.block: moveq   #0,d0
-        move.w  d1,d0
-        lsl.l   #7,d0                   ; VDP read command for tile d1:
-        lsr.w   #2,d0                   ; 32 bytes a tile, then as in `tiles`
-        swap    d0                      ; with CD0 = 0
-        move.l  d0,VDP_CTRL
-        tst.w   VDP_DATA
-        beq.s   .no
-        subi.w  #$10,d1
-        dbra    d3,.block
-        moveq   #1,d0
-        rts
-.no:    moveq   #0,d0
-        rts
 
         section tiles
 
@@ -275,4 +269,25 @@ glyph:
         add.w   d3,d3
         move.w  0(a5,d3.w),VDP_DATA
         dbra    d1,.row
+        rts
+
+; is the art of the HUD whose third block starts at tile d1 in VRAM? ne: yes.
+; A spell clears the HUD tiles, and the game reloads them a few frames after
+; the HUD sprites are back; until then the counter would float on its own.
+; Each block (third, second, first: 16 tiles apart) begins with a border row.
+loaded:
+        moveq   #2,d3
+.block: moveq   #0,d0
+        move.w  d1,d0
+        lsl.l   #7,d0                   ; VDP read command for tile d1:
+        lsr.w   #2,d0                   ; 32 bytes a tile, then as in `tiles`
+        swap    d0                      ; with CD0 = 0
+        move.l  d0,VDP_CTRL
+        tst.w   VDP_DATA
+        beq.s   .no
+        subi.w  #$10,d1
+        dbra    d3,.block
+        moveq   #1,d0
+        rts
+.no:    moveq   #0,d0
         rts
