@@ -157,6 +157,13 @@ docs/             README (оглавление) · build · text_format · nemes
 
 Ход работы — в [milestones](https://github.com/eugenez36/golden-axe3-game-rus/milestones).
 
+## Как играть
+
+Наложите `build/ga3.ips` на свой дамп или запустите `build/ga3.bin` в любом
+эмуляторе Mega Drive. В Genesis Plus GX (RetroArch) опция *System Overclock*
+150–200% сокращает паузы при загрузке магии, а *Remove Per-Line Sprite Limit*
+убирает мерцание спрайтов; замеры — в [docs/emulator.md](docs/emulator.md#lag-and-overclock).
+
 ## Документы
 
 [INSTALL.md](INSTALL.md) · [STYLE.md](STYLE.md) · [CONTRIBUTING.md](CONTRIBUTING.md) ·

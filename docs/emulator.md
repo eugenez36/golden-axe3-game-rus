@@ -62,6 +62,36 @@ Buttons: `up down left right a b c x y z start mode`, joined with `+`.
 with `include`. `emu/explore/` keeps the one-off runs that produced the
 findings, documented in its README.
 
+## Lag and overclock
+
+`ga3 lag SCENE [--overclock PCT ...] [-v]` runs a scene with a breakpoint on the
+game's frame-wait routine (`frame_wait` in `rom_map.yml`, `00F006`) and counts
+the frames the main loop missed. `headless_gpgx --overclock PCT` runs the 68000
+at PCT percent of its clock (100..400), the same as Genesis Plus GX's *System
+Overclock* core option; at 100 every cycle count is exact, and the regression
+screenshots are byte-identical to a build without the option.
+
+`emu/scenes/stage1_fight.txt` (stage 1 combat, magic four times):
+
+| 68000 clock | frames lost | longest pauses |
+|---|---|---|
+| 100% | 233 of 3438 (6.8%) | 74, 49, 48, 35 |
+| 150% | 149 of 3439 (4.3%) | 48, 32, 30, 23 |
+| 200% | 112 of 3439 (3.3%) | 37, 24, 23, 18 |
+
+Ordinary fighting runs one loop per frame. The losses are pauses while
+graphics are decompressed: magic (`NemDec` at `0122FC` unpacks the spell's
+tiles, about 9 frames for one cast) and scene changes. They shrink with the
+clock, so they are CPU work, not deliberate waits; the place to speed them up
+in the ROM itself is the Nemesis decoder.
+
+### For players
+
+In RetroArch with the Genesis Plus GX core: *System Overclock* 150% or 200%
+shortens those pauses; *Remove Per-Line Sprite Limit* removes sprite flicker in
+crowded scenes. Both are emulator options, the ROM is unchanged, and both can
+cause glitches in other games; on real hardware they do not exist.
+
 ## Three Genesis Plus GX pitfalls
 
 They cost half of the debugging time, so they are written down:
