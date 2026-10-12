@@ -33,12 +33,18 @@ Pitfalls:
   swapped, so correct words read as «следуЮщий» in the text files.
   `test_letter_case_matches_glyph_height` now checks every letter's case
   against its drawing. `0x71` is «й» (the «и» glyph plus a breve).
-- `0x4F` Ъ, `0x51` Ё, `0x2A` `(`, `0x2B` `)` and `0x40` Latin `V` (for the
-  version in the main menu) were drawn by this project. The original
-  translation did not have them. Lower-case `v` encodes to the same byte.
-  Because `0x40` is now printable, a few runs of binary data inside the text
-  segments read as slightly longer "strings" on a fresh `ga3 extract`; the
-  committed text files keep the old records, which are equally valid.
+- `0x4F` Ъ, `0x51` Ё, `0x3C` ё, `0x2A` `(`, `0x2B` `)` and `0x40` Latin `V`
+  (for the version in the main menu) were drawn by this project. The original
+  translation did not have them. Lower-case `v` encodes to the same byte as
+  `V`. The text uses «ё» wherever it belongs (`docs/ru/proofreading.md`).
+  Because `0x3C` and `0x40` are now printable, a few runs of binary data
+  inside the text segments read as slightly longer "strings" on a fresh
+  `ga3 extract`; the committed text files keep the old records, which are
+  equally valid.
+- Tables that mix control bytes and text, such as the options screen layout
+  (`01512C`: column, row, text, `FF` per label), are kept as one record with
+  the control bytes written as `{XX}`, so a label can grow at a neighbour's
+  expense without moving anything else.
 
 ## Strings files (`assets/text/*.txt`)
 
