@@ -1,5 +1,5 @@
 # hp_table: 4 x u8, ROM 00E492-00E496
-# start and maximum HP of the four playable characters; slot->character order still to be proven
+# maximum HP by max-HP level (object +0x144, 0..3): the same for every hero, who all start at level 0 (51); see docs/heroes.md
 # evidence: watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0
 format: u8
 values:
