@@ -24,7 +24,8 @@ def test_parse_log_counts_lost_frames():
 
 
 def test_parse_log_without_lag_or_calls():
-    assert lag.parse_log(_log(range(100, 160))).summary().endswith("0 of 60 lost (0.0%); gaps: none")
+    clean = lag.parse_log(_log(range(100, 160)))
+    assert clean.summary().endswith("0 of 60 lost (0.0%); gaps: none")
     empty = lag.parse_log([])
     assert empty.frames == 0 and empty.summary() == "the frame-wait routine never ran"
 
