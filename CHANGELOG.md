@@ -17,6 +17,11 @@ hash recorded in `roms.sha1`.
   **spare lives** (2; at the start and after a continue) and **credits**
   (continues, 4). `ga3 balance set lives 5`, `ga3 balance show`; the table is
   in `docs/rom_map.md`.
+- **Hero stats on the character select:** the hero under each player's cursor
+  shows name, magic, health, hit / super, tempo and walking speed, each with a
+  bar, over the title (full width alone, a half panel each with two players,
+  none on the duel select). Numbers checked against the ROM's tables; data in
+  `assets/data/hero_panel.yml`, patch `hero_panel`.
 - **The build is 2 MiB:** `rom.build_size` in `rom_map.yml` expands the image
   (the base dump stays 1 MiB and is still checked against its SHA-1);
   `100000–1FFFFF` is free space for new code and data. The IPS writer emits

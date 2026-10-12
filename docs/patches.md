@@ -5,11 +5,12 @@ Three kinds of change go beyond text, font and tables. All of them are
 space, and they change a few bytes of the game's code elsewhere, each checked
 against what the base ROM holds there before anything is written.
 
-| Patch          | What it does                                                             | Kind                                           |
-|----------------|--------------------------------------------------------------------------|------------------------------------------------|
-| `menu_version` | `V X.YY.ZZZ` at the bottom right of the main menu                        | routine in `ga3.patches`                       |
-| `menu_items`   | main-menu items 8 characters wide (`1 ИГРОК / 2 ИГРОКА / ДУЭЛЬ / ОПЦИИ`) | routine in `ga3.patches`                       |
-| `kill_counter` | enemies killed by each player, next to their HUD                         | assembled from `assets/patches/kill_counter.s` |
+| Patch          | What it does                                                             | Kind                                                                          |
+|----------------|--------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| `menu_version` | `V X.YY.ZZZ` at the bottom right of the main menu                        | routine in `ga3.patches`                                                      |
+| `menu_items`   | main-menu items 8 characters wide (`1 ИГРОК / 2 ИГРОКА / ДУЭЛЬ / ОПЦИИ`) | routine in `ga3.patches`                                                      |
+| `kill_counter` | enemies killed by each player, next to their HUD                         | assembled from `assets/patches/kill_counter.s`                                |
+| `hero_panel`   | the hero stats panel on the character select                             | assembled from `assets/patches/hero_panel.s`, data from `data/hero_panel.yml` |
 
 After a build the pipeline checks that no later segment overwrote a patch's
 slot or edits (a text record covering code did exactly that once).
@@ -120,3 +121,37 @@ In a duel against the computer and against player 2 both HUDs are drawn and
 no counter is (`emu/scenes/duel_hud.txt`); switching the mode to a duel and
 back in a running 1-player game hides the counter and brings it back with the
 right digits, because hiding also clears the record of the digits shown.
+
+## Hero stats panel (`hero_panel`)
+
+On the character select the hero under each player's cursor gets a panel over
+the title: name, magic, then health, hit / super, tempo and walking speed, each
+with a bar (variant B of the mock-ups). One full-width panel (40 × 8 cells) in a
+one-player game, a half panel (20 × 9) per player in a two-player game, none on
+the duel select (`MODE` ≥ 2).
+
+**Hook.** The select screen's cursor routine (`0161F0–0162A6`) runs once a frame
+for each player's cursor block (`FFF300`, `FFF380`) and stores the cursor at
+`016278`; the patch replaces that `move.w d0,$14(a0)` and the `mulu.w #6,d0`
+after it, does both, and returns to `016280`.
+
+**Drawing.** `src/ga3/hero_panel.py` renders every panel at build time from the
+font art and `data/hero_panel.yml` into palette 0's colours (white 6 on blue 12,
+the dialogue font's own; yellow 13 and black 9 for the bars), cuts it into
+8 × 8 tiles (68, de-duplicated) and tilemaps per hero. The patch copies the tiles
+to VRAM `3C40` (118 free tiles on this screen, never written from boot to the
+end of the select) and writes the hero's tilemap into plane A (`C000`) over the
+title. It draws only when the hero changed, the tiles are not in VRAM (the first
+word of tile 0) or plane A no longer holds the panel's corner, so the panel
+comes back when the game redraws the screen; interrupts are off while it talks
+to the VDP. `SHOWN` (`FFC3E8`, one byte a player) is in the RAM range the game
+never writes.
+
+**Numbers.** From `docs/heroes.md`: `tests/test_hero_panel.py` checks hp, hit,
+super and speed against the attack table, the walk table and the HP table of
+the ROM; tempo (seconds between combo hits) is a measurement. Edit the names,
+labels or values in `data/hero_panel.yml` and rebuild.
+
+**Checked.** `emu/scenes/hero_select_stats.txt`: the four heroes alone, two
+pairs with two players, the duel without a panel; the stage that follows starts
+clean; `ga3 lag` on `stage1_fight` unchanged (233 of 3438).
