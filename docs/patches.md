@@ -68,15 +68,20 @@ none was seen doing that on the 13 stages. The counters live in Work RAM the
 game never writes after boot (watched over the stages); choosing a game mode in
 the main menu (`014FF6`) clears them, so they carry over from stage to stage.
 
-**Display.** Before the game waits for VBlank (`00F006`) the patch walks the
-sprite list (`FFE5CA`, DMA'd to the SAT every frame), finds the third HUD block
-of each player present (tiles `33E` / `36A`, 4 x 3 cells), uploads two digit
-tiles per player to VRAM `D700` and appends a 2 x 1 sprite just right of the
-magic boxes. The digits are the dialogue font's own glyphs, packed to 1 bit a
-pixel at build time, drawn in palette 0's white on blue like a dialogue box.
-`D700-DFFF` (the unused window table) is written by nobody once a stage has
-started on any of the 13 stages; the title and menus use it, which is why the
-tiles are uploaded every frame the HUD is on screen and never elsewhere.
+**Display.** Before the game waits for VBlank (`00F006`) the patch looks for
+the third HUD block of each player present (tiles `33E` / `36A`, 4 x 3 cells)
+among the first 8 sprites of the sprite list (`FFE5CA`, DMA'd to the SAT every
+frame) and appends a 2 x 1 sprite just right of the magic boxes. The list is
+never walked: the game adds sprites in order (sprite n links to n+1) and keeps
+their number in `FFEE70`, which its own end-of-list code (`000044`) uses too.
+The two digit tiles per player go to VRAM `D700` only when the number differs
+from the one they hold (`FFC3E2` / `FFC3E3`, set to `FF` whenever the HUD is
+not shown, so they are uploaded again when it comes back). The digits are the
+dialogue font's own glyphs, packed to 1 bit a pixel at build time, drawn in
+palette 0's white on blue like a dialogue box. `D700-DFFF` (the unused window
+table) is written by nobody once a stage has started on any of the 13 stages;
+the title and menus use it, which is why the tiles are uploaded again whenever
+the HUD reappears.
 
 A counter is drawn only once its HUD's art is in VRAM: the patch reads back the
 first word of each of the player's three HUD blocks (every block starts with a
@@ -88,6 +93,11 @@ the digits showed alone next to an empty HUD for those frames.
 **Checked.** `emu/scenes/kill_counter.txt` (hits), magic kills, a 2-player game
 (each player's kills go to their counter), all 13 stages through the level
 select (`A A A A START C C C C C C` on the character select), the reset, and
-`ga3 lag`: one frame more in 2944 (a magic load pause of 48 frames became 49).
+`ga3 lag` on `emu/scenes/stage1_fight.txt`: 233 of 3438 frames lost, the same
+as without the patch. A busy 2-player fight on stage 6A, replayed from one
+savestate with the same input, loses 64 frames in 1239 against 47 without it.
+(The first version walked the whole list and redrew the digits every frame:
+297 there, a visible slowdown.) After bot play on all 13 stages with two
+players the digit tiles in VRAM match both counters, also for 10 and 99.
 The HUD art check was verified on VRAM dumped every frame across a spell and a
 stage start of a 2-player game: the digits never show without the HUD art.
