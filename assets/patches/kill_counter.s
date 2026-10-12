@@ -9,11 +9,12 @@
 ; Counting: the three places that take hit points from an object jump here.
 ; Each subtracts as before and marks the enemy with the player who hit it;
 ; when the enemy dies (HP to zero, or freed alive because it fell off the
-; stage), the marked player's counter goes up (to 99).
-; Display: every frame, just before the game waits for VBlank, the sprite list
-; is walked; for each player whose HUD is on screen (its sprites and its art in
-; VRAM) two digit tiles go to free VRAM and one 2x1 sprite is appended right of
-; the HUD.
+; stage), the marked player's counter goes up (to 999).
+; Display: every frame, just before the game waits for VBlank, the HUD is
+; looked for among the first sprites; for each player whose HUD is on screen
+; (its sprites and its art in VRAM) one 3x1 sprite is appended right of the
+; HUD, and its three digit tiles go to free VRAM when the number changes.
+; Nothing is shown in a duel.
 ; Reset: choosing a game mode in the main menu clears both counters.
 
 ; ---------------------------------------------------------------- counting
@@ -96,18 +97,19 @@ mark:
         move.b  #2,LAST_HIT(a0)
 .done:  rts
 
-; enemy a0 is dead: count it for the player in its mark (to 99), clear the mark
+; enemy a0 is dead: count it for the player in its mark (to KILLS_MAX), clear
+; the mark; the counters are words, player 1 then player 2
 kill:
         move.l  a2,-(sp)
         lea     KILLS.w,a2
         cmpi.b  #1,LAST_HIT(a0)
         beq.s   .count
-        addq.w  #1,a2
+        addq.w  #2,a2
         cmpi.b  #2,LAST_HIT(a0)
         bne.s   .done
-.count: cmpi.b  #99,(a2)
+.count: cmpi.w  #KILLS_MAX,(a2)
         bcc.s   .done
-        addq.b  #1,(a2)
+        addq.w  #1,(a2)
 .done:  clr.b   LAST_HIT(a0)
         movea.l (sp)+,a2
         rts
@@ -117,7 +119,7 @@ kill:
 ; replaces `move.w MODE_SRC.w,MODE.w` when a game mode is chosen; the caller then rts
 new_game:
         move.w  MODE_SRC.w,MODE.w
-        clr.w   KILLS.w
+        clr.l   KILLS.w                 ; both counters
         rts
 
 ; ---------------------------------------------------------------- display
@@ -177,37 +179,35 @@ hud:
         move.w  #HUD_P1,d1
         jsr     loaded
         beq.s   .hide1
-        moveq   #0,d3
-        move.b  KILLS.w,d3
-        cmp.b   SHOWN.w,d3              ; digit tiles already hold this number?
+        move.w  KILLS.w,d3
+        cmp.w   SHOWN.w,d3              ; digit tiles already hold this number?
         beq.s   .same1
-        move.b  d3,SHOWN.w
-        moveq   #0,d1                   ; tiles 0 and 1
+        move.w  d3,SHOWN.w
+        moveq   #0,d1                   ; tiles 0-2
         jsr     tiles
 .same1: movea.l a2,a1
         moveq   #0,d1
         bsr.s   sprite
         bra.s   .p2
-.hide1: move.b  #-1,SHOWN.w             ; upload again when the HUD is back
+.hide1: move.w  #-1,SHOWN.w             ; upload again when the HUD is back
 .p2:    move.l  a3,d1
         beq.s   .hide2
         move.w  #HUD_P2,d1
         jsr     loaded
         beq.s   .hide2
-        moveq   #0,d3
-        move.b  KILLS+1.w,d3
-        cmp.b   SHOWN+1.w,d3
+        move.w  KILLS+2.w,d3
+        cmp.w   SHOWN+2.w,d3
         beq.s   .same2
-        move.b  d3,SHOWN+1.w
-        moveq   #2,d1                   ; tiles 2 and 3
+        move.w  d3,SHOWN+2.w
+        moveq   #3,d1                   ; tiles 3-5
         jsr     tiles
 .same2: movea.l a3,a1
-        moveq   #2,d1
+        moveq   #3,d1
         bra.s   sprite
-.hide2: move.b  #-1,SHOWN+1.w
+.hide2: move.w  #-1,SHOWN+2.w
         rts
 
-; append a 2x1 sprite right of the HUD block at a1, tiles d1 and d1+1;
+; append a 3x1 sprite right of the HUD block at a1, tiles d1 to d1+2;
 ; a4 = last sprite so far, d2 = its index + 1; both move on to the new sprite.
 ; Rewriting the same slots every frame is harmless when the game has not
 ; rebuilt its list in between: the old last sprite then links to them again.
@@ -233,7 +233,8 @@ sprite:
 
         section tiles
 
-; upload two digit tiles for the number d3 (0..99) at tile slot d1
+; upload three digit tiles for the number d3 (0..999) at tile slot d1,
+; right-aligned: no leading zeros (`  7`, ` 42`, `999`)
 tiles:
         lsl.w   #5,d1                   ; 32 bytes a tile
         addi.w  #DIGITS_VRAM,d1
@@ -246,11 +247,22 @@ tiles:
         move.l  d0,VDP_CTRL
         moveq   #0,d0
         move.w  d3,d0
-        divu.w  #10,d0                  ; quotient: tens, remainder: ones
+        divu.w  #100,d0                 ; d0: rest (high word), hundreds (low)
         move.w  d0,d1
+        bne.s   .hund
+        moveq   #BLANK_GLYPH,d1
+.hund:  bsr.s   glyph                   ; glyph keeps d0
+        move.l  d0,d1
+        clr.w   d1
+        swap    d1
+        divu.w  #10,d1                  ; d1: ones (high word), tens (low)
+        tst.w   d0
+        bne.s   .tens                   ; with hundreds, tens always show
+        tst.w   d1
         bne.s   .tens
-        moveq   #BLANK_GLYPH,d1         ; no leading zero
-.tens:  bsr.s   glyph
+        move.w  #BLANK_GLYPH,d1         ; keeps the ones in the high word
+.tens:  move.l  d1,d0
+        bsr.s   glyph
         swap    d0
         move.w  d0,d1
 ; one tile for glyph d1 (0-9 or BLANK_GLYPH): 8 rows of 1bpp art, 2 words a row
