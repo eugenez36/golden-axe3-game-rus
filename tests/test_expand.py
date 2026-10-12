@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 import yaml
 
-from ga3 import rom_map
 from ga3 import pipeline as pl
+from ga3 import rom_map
 from ga3.rom import apply_ips, make_ips
 
 from .conftest import SYNTH_SIZE
