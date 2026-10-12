@@ -142,7 +142,7 @@ segments:
       strings: [[0x015318, 6], [0x01531E, 6], [0x0153AA, 6], [0x0153B0, 6], [0x0153B6, 6],
                 [0x015C48, 14], [0x016BC8, 5], [0x016BCD, 4]],
       strings_path: text/code_main_d.txt,
-      evidence: "disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels)" }
+      evidence: "disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels); the second label (016BCD) heads a rank, not a stage: 016C20 draws the big glyph 80 + 2*v for v = FFF180 / FFF181 (set at 016EB8 and 0167EC), and poking v = 0..7 on the map screen shows AAA, AA, A, B, C, D, E, F" }
   - { name: text_stages,   start: 0x016C00, end: 0x016E00, type: text,   path: text/stages.txt, min_len: 4,
       prose: [[0x016CD8, 0x016DC8]],
       note: "stage name list: 12 names, 20 characters each, centred with spaces",
