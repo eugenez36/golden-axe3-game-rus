@@ -155,6 +155,7 @@ without `0x`. Set `GA3_DEBUG=1` to see a traceback instead of `error: …`.
 | `disasm ADDR [-n N] [--back N] [--file IMG]` | an m68000 listing window (`[disasm]` extra) |
 | `ramsearch corr\|value\|decreasing …` | find variables in Work RAM dumps (see docs/emulator.md) |
 | `emu SCRIPT [-- extra headless args]` | run a scene against `build/ga3.bin` |
+| `lag SCENE [--overclock PCT ...] [-v]` | frames the main loop missed while the scene runs, optionally at several 68000 clocks (`docs/emulator.md`) |
 
 `--file IMG` on the inspection commands reads any file (a `.4bpp`, a dump)
 without a project; `--palette REF` is `NAME[/INDEX]` from `assets/palettes/`

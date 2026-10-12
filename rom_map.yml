@@ -65,7 +65,9 @@ segments:
       note: "start and maximum HP of the four playable characters; slot->character order still to be proven",
       evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0" }
   - { name: code_main_a,   start: 0x00E496, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
-      note: "includes the healing cap at 00E49C and HP pair update at 010544" }
+      frame_wait: 0x00F006,
+      note: "includes the healing cap at 00E49C and HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag)",
+      evidence: "frame_wait: disasm 00F006 bclr #0,$c70a / btst #0,$c70a / beq; the VBlank handler 0108F4 sets that bit (010906, 01096E); one call per frame in play (emu/scenes/stage1_fight.txt)" }
   - { name: menu_version,  start: 0x0116B6, size: 0x40,    type: patch,  fill: 0xFF,
       routine: menu_version, hook: 0x014F86, hook_bytes: "72 00 60 00 00 86", return_to: 0x015010,
       vram_end: 0xCD4C, attr: 0xE000,
