@@ -9,6 +9,11 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+## [0.37.500] — 2026-10-13
+
+The 2 MiB build, hero stats on the character select, the third difficulty
+«ЖЕСТЬ)» and the options item БАНКИ МАГИИ; the main menu shows `V 0.37.500`.
+
 ### Added
 
 - **Gameplay constants:** numbers inside the code (instruction operands) are
@@ -125,7 +130,8 @@ toolkit and documentation work behind them. First release numbered
   screenshots, dumps, watchpoints.
 - CI, pre-commit hooks, bilingual README, contribution and style guides.
 
-[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.400...HEAD
+[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.500...HEAD
+[0.37.500]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.400...v0.37.500
 [0.37.400]: https://github.com/eugenez36/golden-axe3-game-rus/compare/1e4ccb1...v0.37.400
 [0.3.6]: https://github.com/eugenez36/golden-axe3-game-rus/commit/1e4ccb1
 [0.3.5]: https://github.com/eugenez36/golden-axe3-game-rus/commit/aa2624b
