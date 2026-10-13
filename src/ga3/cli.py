@@ -329,7 +329,7 @@ def _text_units(proj: pipeline.Project) -> list[tuple]:
 
     ``text`` segments may restrict real prose with ``prose: [[start, end], ...]``
     (the rest of a scanned region is data that happens to be printable); strings
-    embedded in code, and those a patch relocates, are prose throughout.
+    embedded in code, and those a patch relocates or carries, are prose throughout.
     """
     units = []
     for seg in proj.map.segments:
@@ -341,6 +341,10 @@ def _text_units(proj: pipeline.Project) -> list[tuple]:
             seg.type == "patch" and seg.get("strings_path") is not None
         ):
             units.append((seg, proj.paths.asset(seg.get("strings_path")), None))
+        elif seg.type == "patch" and seg.get("patch_def") is not None:
+            spec = seg.get("patch_def").get("strings")
+            if spec and spec["section"] == seg.get("section"):
+                units.append((seg, proj.paths.asset(spec["path"]), None))
     return units
 
 
