@@ -4,8 +4,6 @@
 # {XX} is a byte with no glyph in the font (or one that does not round-trip).
 # In-game strings are separated by 0xFF; here each string is one record.
 
-015318:6 | ОБЫЧНО
-01531E:6 | ТРУДНО
 0153AA:6 | МАГИЯ 
 0153B0:6 | АТАКА 
 0153B6:6 | ПРЫЖОК

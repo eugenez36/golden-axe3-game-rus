@@ -116,6 +116,51 @@ patches:                         # assembled patches: source in assets/patches/,
     panel: { section: panel, art: gfx/font/font.txt, data: data/hero_panel.yml, vram: 0x3C40, max_tiles: 118 }
     evidence: "cursor routine 0161F0-0162A6 runs once a frame for each player's block (a0 = F300 / F380) and writes the cursor at 016278 (watch FFF314/FFF394 while moving both cursors); the select screen's VDP registers: plane A C000, plane B E000, SAT B800, window off, 64x32 planes; the title is plane A rows 3-5 (palette 3), the lava plane B (palette 2); palette 0 holds white 6, blue C, yellow D, black 9 and is the same for every cursor position; VRAM 3C40-4AFF (118 tiles) is zero and never written from boot to the end of the select screen, one and two players (vwatch); SHOWN FFC3E8-9 is in the FFC000-FFC765 range the game never writes after boot"
 
+  difficulty:
+    source: patches/difficulty.s
+    symbols:
+      DIFF: 0xC726                 # options: difficulty (0 normal, 1 hard, 2 the new one; kept over a soft reset)
+      HARD: 2
+      NAME_WIDTH: 6                # characters of each name in the options menu
+      MENU_CELL: 0xC430            # plane cell of the difficulty value on the options screen
+      TO_VDP: 0x01202E             # d0 (cell) -> VDP write command
+      DEMO: 0xC718                 # bit 0: the attract-mode demo is playing
+      GATE_BACK: 0x00C1C8          # spawn walker: the beq after `btst #0,DEMO.w`
+      SPAWN_D1: 0xC412             # the spawning entry's second long, low word
+      SPAWN_BACK: 0x00C204         # spawn of a plain entry, after the six bytes the hook replaced
+      SPAWN_ONE: 0x00C0FE          # spawn one entry d0/d1 (placement in d0's top 12 bits)
+      ENEMY_SLOT: 0x00BD60         # find a free enemy slot: Z set and a1 when found
+      ALLOC_BACK: 0x00C1FE         # plain entry: a slot was found
+      SPAWNER: 0xDC68              # the spawner's state block (a6 of the routines above)
+      FRAME_GO: 0x00BDC6           # spawner frame routine: run the current state
+      FRAME_SKIP: 0x00BE1A         # spawner frame routine: rts (spawner held)
+      ENEMIES: 0xCA64              # first enemy object
+      ENEMY_SLOTS: 4
+      OBJ_SIZE: 0x160
+      WAVE_BACK: 0x00C674          # "wave cleared" check, after its lea/moveq
+      EMPTY_BACK: 0x00C656         # "no enemy left" check, after its lea/moveq
+      STATE: 0xDC44                # game state block cleared by 00E552
+      STATE_WORDS: 0x9CE
+      CLEAR_BACK: 0x00E55A         # the clearing loop
+      Q_COUNT: 0xBF00              # copies waiting (byte); FFBCC0-FFBFFF: never written after boot
+      Q_HEAD: 0xBF01               # oldest copy's index (byte)
+      COPYING: 0xBF02              # 1 while a copy is being spawned (byte)
+      Q_DATA: 0xBF08               # Q_LEN entries of 8 bytes, a ring
+      Q_LEN: 16
+    hooks:
+      menu:
+        - [0x0152E4, "D3 38 C7 26 02 38", menu]        # add.b d1,$c726.w; andi.b #1,$c726.w (first word)
+      spawn:
+        - [0x00C1BE, "1C 38 C7 26 08 38", gate]        # move.b $c726.w,d6; btst #0,$c718.w (first word)
+        - [0x00C1F6, "4E BA FB 68 67 02", alloc]       # jsr $bd60(pc); beq.b $c1fe
+        - [0x00C1FE, "32 38 C4 12 E2 49", spawned]     # move.w $c412.w,d1; lsr.w #1,d1
+        - [0x00BDBA, "4D F8 DC 68 08 2E", frame]       # lea $dc68.w,a6; btst #1,2(a6) (first word)
+        - [0x00C66E, "43 F8 CA 64 7E 03", wave_clear]  # lea $ca64.w,a1; moveq #3,d7
+        - [0x00C650, "43 F8 CA 64 7E 03", no_enemy]    # lea $ca64.w,a1; moveq #3,d7
+        - [0x00E552, "41 F8 DC 44 30 3C", reset]       # lea $dc44.w,a0; move.w #$9cd,d0 (first word)
+    strings: { section: names, path: text/difficulty.txt, label: NAMES }
+    evidence: "difficulty $C726: options left/right 0152AE -> table 0152D8 item 0 -> 0152E4 add.b d1/andi.b #1 (emulator: 2 wraps to 0, FF to 1), drawn by 0152EE (lea $15318 + 6, cell C430 via 01202E, 6 x $E000+c); bsr from 0152C8 and 015110 (screen entry, d1 = 0); kept over a soft reset (0002CC/0002E8); the only gameplay reader is 00C1BE in the spawn walker: entry level = bits 31..30 of d1, skipped above $C726 (0 when $C718 bit 0, the demo; +1 when $C408 = 3, both player objects present: 007100); poking $C726 = 2 spawns level-2 entries. Spawning: 00C0FE (placement in d0 bits 31..20: 1 cam+150, 2 cam-10, 3 cam+X, 0 absolute), plain entries (d1 bits 5..0 = 0) get a slot from 00BD60 at 00C1F6 (none: rts, the entry is dropped; state 0D at 00BFE6 retries while bit 4 of 2(a6) stays clear) and are written at 00C1FE-00C226 (X = d3 high word); commands through 00C244; spawner frame routine 00BDA4 (skipped while $DC4A, magic) with a6 = $DC68; wave cleared 00C66E, all enemy slots empty 00C650; 00E552 clears $DC44-$F0E0 at every stage start (watch FFDC68). Ordinary types: handler 007954 via 007618; bosses 32/2E/1E. Queue RAM FFBCC0-FFBFFF: zero in WRAM dumps every 200 bot iterations over all 13 stages, watch: written only by 0FFA7C/0002DA at power-on; FFC480-FFC5FF is the Nemesis table (0FFC64/0123F8, every decompression), FFC600-FFC701 the stack (SSP FFC702). Bot runs: every ordinary enemy of stage 1 spawned exactly twice (41 pairs), boss 32 once; level select on 13 stages: the new value finished every stage the same bot finished on hard; demo spawns identical to the unpatched build"
+
 constants:                       # numbers inside code (instruction operands), edited by name; see ga3.constants
   path: data/gameplay.yml
   values:
@@ -183,10 +228,10 @@ segments:
       note: "menu and options strings embedded in menu data; options screen layout at 01512C: column, row, text, FF",
       evidence: "prose: disasm 014EC4 lea $14eda(pc) + moveq #$11 (title line, 18); options table 01512C-01516B seen on the options screen (emu/scenes/menu_options.txt); the old menu items 014F8C-014FA8 and 015088 are no longer read (menu_items)" }
   - { name: code_main_d,   start: 0x0151A0, end: 0x016C00, type: code,   path: code/code_main_d.m68k,
-      strings: [[0x015318, 6], [0x01531E, 6], [0x0153AA, 6], [0x0153B0, 6], [0x0153B6, 6],
+      strings: [[0x0153AA, 6], [0x0153B0, 6], [0x0153B6, 6],
                 [0x015C48, 14], [0x016BC8, 5], [0x016BCD, 4]],
       strings_path: text/code_main_d.txt,
-      evidence: "disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels); the second label (016BCD) heads a rank, not a stage: 016C20 draws the big glyph 80 + 2*v for v = FFF180 / FFF181 (set at 016EB8 and 0167EC), and poking v = 0..7 on the map screen shows AAA, AA, A, B, C, D, E, F" }
+      evidence: "disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty: no longer read, patch difficulty draws text/difficulty.txt); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels); the second label (016BCD) heads a rank, not a stage: 016C20 draws the big glyph 80 + 2*v for v = FFF180 / FFF181 (set at 016EB8 and 0167EC), and poking v = 0..7 on the map screen shows AAA, AA, A, B, C, D, E, F" }
   - { name: text_stages,   start: 0x016C00, end: 0x016E00, type: text,   path: text/stages.txt, min_len: 4,
       prose: [[0x016CD8, 0x016DC8]],
       note: "stage name list: 12 names, 20 characters each, centred with spaces",
@@ -257,5 +302,14 @@ segments:
   - { name: hero_panel,    start: 0x100000, size: 0x2000, type: patch, fill: 0xFF,
       patch: hero_panel, section: panel,
       note: "hero stats panel on the character select: cursor hook, tiles and tilemaps (data/hero_panel.yml)" }
-  - { name: free_102000,   start: 0x102000, end: 0x200000, type: free,   fill: 0xFF,
+  - { name: difficulty_names, start: 0x102000, size: 0x20, type: patch, fill: 0xFF,
+      patch: difficulty, section: names,
+      note: "difficulty names on the options screen, 3 x 6 characters (text/difficulty.txt)" }
+  - { name: difficulty_menu, start: 0x102020, size: 0x60, type: patch, fill: 0xFF,
+      patch: difficulty, section: menu,
+      note: "difficulty: the options menu item with a third value (assets/patches/difficulty.s)" }
+  - { name: difficulty_spawn, start: 0x102080, size: 0x200, type: patch, fill: 0xFF,
+      patch: difficulty, section: spawn,
+      note: "difficulty: the hard enemy level and the queue of ordinary enemies spawned twice" }
+  - { name: free_102280,   start: 0x102280, end: 0x200000, type: free,   fill: 0xFF,
       note: "the rest of the 1 MiB added by rom.build_size" }
