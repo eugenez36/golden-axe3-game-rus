@@ -12,6 +12,7 @@ against what the base ROM holds there before anything is written.
 | `kill_counter` | enemies killed by each player, next to their HUD                             | assembled from `assets/patches/kill_counter.s`                                |
 | `hero_panel`   | the hero stats panel on the character select                                 | assembled from `assets/patches/hero_panel.s`, data from `data/hero_panel.yml` |
 | `difficulty`   | a third difficulty, «ЖЕСТЬ)»: the hard enemy set, every ordinary enemy twice | assembled from `assets/patches/difficulty.s`, names in `text/difficulty.txt`  |
+| `options`      | new options items, first БАНКИ МАГИИ: the starting magic potions, 0–6        | assembled from `assets/patches/options.s`, labels in `text/options.txt`       |
 
 After a build the pipeline checks that no later segment overwrote a patch's
 slot or edits (a text record covering code did exactly that once).
@@ -214,3 +215,41 @@ on ТРУДНО. The demo spawns the same enemies at the same frames as without 
 patch. ОБЫЧНО and ТРУДНО spawn the same enemies as before. Lag on stage 1: 2.5 %
 of frames lost on ЖЕСТЬ) against 1.0 % on ТРУДНО (more often four enemies at
 once).
+
+## Options: БАНКИ МАГИИ (`options`)
+
+The options screen gets a sixth item, **БАНКИ МАГИИ**: the magic potions a
+player gets when they have none, 0–6 (left / right, around both ways). It sits
+at МЕНЮ's old row (`16`); МЕНЮ moves to row `19` (its row byte in
+`text/menu.txt`). More items can follow the same way: a label in
+`text/options.txt`, a row in the cursor's table, an index in `item`.
+
+**What the game does.** The options screen (`0150A8`) draws its labels from
+the table at `01512C`, each value through its item routine with `d1` = 0, then
+the cursor (`01525A`: `$F160` 0..4, rows `08 0B 10 13 16` from `0152A8`, column
+7 cleared with `01207C`). Left / right (`0152AE`) go through a jump table
+(`0152D8`, item 4 = `rts`); a button on item 4 leaves (`01543C`). The potions
+come from `00E476`: when a player's count (`+0x140`) is 0 it writes the
+constant `potions` (`move.b #N,$140(a0)` at `00E47C`) — at the start, after a
+death and after a continue.
+
+**Hooks.** `0150FE` (screen entry): the label and the value. `01525A`: the
+cursor over six rows (the column cleared down to row `19`). `0152C8`: item 4
+is the new one, item 5 (МЕНЮ) does nothing, items 0–3 go through the game's
+table. `01543C`: МЕНЮ is item 5. `00E476`: the count the setting gives instead
+of the constant; in the attract demo it stays 1, the base game's count, which
+the demo's recorded input expects.
+
+**The value** lives in `$FFC729`: the game keeps the long at `$C726` over a soft
+reset (`0002CC` / `0002E8`; `C726` difficulty, `C727` buttons, `C728` used in
+play) and clears it at power-on, and nothing else writes `C729` (watched from
+boot through the options, stage 1, deaths and game over). It holds the count
+minus the default, so power-on gives the default, and the default is still the
+constant `potions` (`ga3 balance set potions N`), read at run time from the
+operand of the bypassed instruction (`00E47F`). The default is now 0.
+
+**Checked.** `emu/scenes/options_potions.txt`: the six items, the value around
+both ways, the cursor around past МЕНЮ, C on МЕНЮ back to the main menu, stage 1
+with six potions (three full jars). Set to 3, a player emptied to 0 gets 3
+again after a death. Work RAM over the first 6000 frames from power-on (title,
+attract demo) is the same as without the patch, byte for byte, but for `C729`.

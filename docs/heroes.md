@@ -214,12 +214,12 @@ costs are bytes; the team sum is an 8-bit add (potions `FF` + `01` wraps).
 
 ## Potions
 
-| Parameter                                  | Where                                                                       | Value | Valid                                                                                                                |
-|--------------------------------------------|-----------------------------------------------------------------------------|-------|----------------------------------------------------------------------------------------------------------------------|
-| Potions                                    | object `+0x140` (byte)                                                      | —     | 0–6 shown by the HUD; 7–9 work in play but the HUD draws garbage (its tile table `0x0518EC` is indexed by count × 2) |
-| At the start, after a death and a continue | `00E476` sets 1 when the count is 0; gameplay constant `potions` (`00E47C`) | 1     | 0–6 (`max: 6`); any other count is kept through a death                                                              |
-| Cap on pick-up                             | `000A16`: `cmpi.b #6,$140(a1)`                                              | 6     | the HUD limit above                                                                                                  |
-| Pick-up                                    | `0009D6`, item kind (`+0x14` of the item) 0                                 | +1    | —                                                                                                                    |
+| Parameter                                  | Where                                                                                                                                   | Value            | Valid                                                                                                                |
+|--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|------------------|----------------------------------------------------------------------------------------------------------------------|
+| Potions                                    | object `+0x140` (byte)                                                                                                                  | —                | 0–6 shown by the HUD; 7–9 work in play but the HUD draws garbage (its tile table `0x0518EC` is indexed by count × 2) |
+| At the start, after a death and a continue | `00E476` sets 1 when the count is 0; patch `options` gives OPTIONS → БАНКИ МАГИИ instead, its default the constant `potions` (`00E47C`) | 0 (base game: 1) | 0–6 (`max: 6`); any other count is kept through a death                                                              |
+| Cap on pick-up                             | `000A16`: `cmpi.b #6,$140(a1)`                                                                                                          | 6                | the HUD limit above                                                                                                  |
+| Pick-up                                    | `0009D6`, item kind (`+0x14` of the item) 0                                                                                             | +1               | —                                                                                                                    |
 
 ## Health
 

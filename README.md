@@ -52,7 +52,8 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
   them; the build refuses a font that would not fit its 840-byte slot.
 - **Gameplay by name.** `ga3 balance set-hp 60 60 60 60` edits the HP table,
   `ga3 balance set lives 5` / `set credits 9` / `set potions 3` the spare
-  lives, continues and starting magic potions
+  lives, continues and the default of the starting magic potions (OPTIONS →
+  БАНКИ МАГИИ)
   (numbers inside the code, each instruction checked against the base ROM);
   the addresses are the map's business.
 - **New code in 68000 assembly.** Patches live in `assets/patches/*.s`, are
