@@ -22,6 +22,11 @@ hash recorded in `roms.sha1`.
   bar, over the title (full width alone, a half panel each with two players,
   none on the duel select). Numbers checked against the ROM's tables; data in
   `assets/data/hero_panel.yml`, patch `hero_panel`.
+- **Difficulty «ЖЕСТЬ)»:** a third value of OPTIONS → СЛОЖНОСТЬ. The enemies
+  of ТРУДНО, and every ordinary enemy comes twice (never a boss): the copy
+  enters where the original did as soon as one of the four enemy slots is
+  free, and the next wave waits for it. Names in `text/difficulty.txt`, patch
+  `difficulty`. An assembled patch can carry a strings file (`strings:`).
 - **Gameplay constant `potions`:** the magic potions a player gets when they
   have none — at the start, after a death and after a continue (1). `ga3
   balance set potions 6`; capped at 6, what the HUD can draw. Constants take a
