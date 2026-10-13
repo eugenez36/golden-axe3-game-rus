@@ -4,7 +4,7 @@ Everything here was found experimentally: a watchpoint on the player's HP in
 Work RAM, then the disassembler at the address that writes it::
 
     00E482  moveq   #$0, d0
-    00E484  move.b  $144(a0), d0        ; character index
+    00E484  move.b  $144(a0), d0        ; max-HP level 0..3
     00E488  move.b  $e492(pc, d0.w), d0 ; pick from the HP table
     00E48C  move.b  d0, $142(a0)        ; store current HP
     00E490  rts
@@ -17,7 +17,9 @@ module only edits that file.
 Work RAM addresses (68000 view), for emulator work only:
   FFC8E6  player 1 current HP (r = 1.0 correlation with the HUD bar length)
   FFC8E7  paired HP byte (updated by code at 0x010544)
-Actor structure: +0x142 current HP, +0x144 character index (0..3).
+Actor structure: +0x142 current HP, +0x144 max-HP level (0..3, raised by
+items; every hero starts at 0, so the table is per level, not per hero --
+see docs/heroes.md).
 
 The HUD bar draws one pixel per HP and is about 54 px wide; the limit lives
 in ``rom_map.yml`` as the segment's ``max_hud`` attribute.

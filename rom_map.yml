@@ -126,8 +126,8 @@ segments:
   - { name: code_boot,     start: 0x000284, end: 0x00E492, type: code,   path: code/code_boot.m68k }
   - { name: hp_table,      start: 0x00E492, end: 0x00E496, type: table,  path: data/hp_table.yml,
       format: u8, fields: [slot_0, slot_1, slot_2, slot_3], max_hud: 0x36,
-      note: "start and maximum HP of the four playable characters; slot->character order still to be proven",
-      evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0" }
+      note: "maximum HP by max-HP level (object +0x144, 0..3): the same for every hero, who all start at level 0 (51); see docs/heroes.md",
+      evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0 with d0 = +0x144; +0x144 is raised by an item of kind >= 3 up to 3 (0009FA) and set to 3 in a duel (00DB42); all four heroes start with +0x144 = 0 and HP 51 (RAM dumps after picking each); the HUD bar holds 51 + 8 x level (010514)" }
   - { name: code_main_a,   start: 0x00E496, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
       frame_wait: 0x00F006,
       note: "includes the healing cap at 00E49C and HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag)",
