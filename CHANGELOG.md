@@ -29,20 +29,24 @@ hash recorded in `roms.sha1`.
   `difficulty`. An assembled patch can carry a strings file (`strings:`).
 - **OPTIONS → БАНКИ МАГИИ:** the magic potions a player gets when they have
   none (start, death, continue), 0–6, kept over a soft reset like the
-  difficulty. МЕНЮ moves down a row step. The constant `potions` is now the
+  difficulty. МЕНЮ moves three rows down. The constant `potions` is now the
   item's default, and the default is 0 (the base game gives 1; the attract
   demo still does). Label in `text/options.txt`, patch `options`.
 - **Gameplay constant `potions`:** the magic potions a player gets when they
-  have none — at the start, after a death and after a continue (1). `ga3
-  balance set potions 6`; capped at 6, what the HUD can draw. Constants take a
+  have none — at the start, after a death and after a continue; since БАНКИ
+  МАГИИ, the item's default (0; the base game gives 1). `ga3 balance set
+  potions 6`; capped at 6, what the HUD can draw. Constants take a
   hard `max` in `rom_map.yml`, refused by `balance set` and by the build;
   `balance show` prints it.
+- **Docs: `docs/heroes.md`**, every parameter of the four heroes: attacks,
+  speeds, magic, health, potions, lives.
 - **Font: `/`** in the blank slot `3E`, for hit / super on the character
   select («6/18»). The font block is 837 of its 840 bytes; `7B` and `7F` stay
   free.
 - **The build is 2 MiB:** `rom.build_size` in `rom_map.yml` expands the image
   (the base dump stays 1 MiB and is still checked against its SHA-1);
-  `100000–1FFFFF` is free space for new code and data. The IPS writer emits
+  `100000–1FFFFF` is free space for new code and data (the patches since start
+  at `100000`; `102400–1FFFFF` is still free). The IPS writer emits
   RLE records, so the expansion adds about 140 bytes to the patch.
 
 ### Fixed

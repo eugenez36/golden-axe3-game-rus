@@ -129,4 +129,5 @@ half-built at that point. To see what was on screen, dump `satvram`
    during play, and `00E48C` once at start — the one that reads the table.
 5. `ga3 disasm E482 -n 12` shows `move.b $e492(pc,d0.w),d0` — the table.
 
-Lives, magic and timers have not been found yet; the method is the same.
+Lives (`+0x13C`, `FFC8E0`) and magic potions (`+0x140`, `FFC8E4`) were found the
+same way (`constants:` in `rom_map.yml`); timers have not been found yet.

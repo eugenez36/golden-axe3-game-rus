@@ -72,8 +72,12 @@ toolchain reproduces the committed build byte for byte.
 
 ## Optional
 
-- `pre-commit install` — ruff, YAML checks, large-file and ROM guards on every commit.
-- `ga3 extract --png` — decoded previews of the Nemesis blocks in `build/preview/`.
+- `pre-commit install` — ruff, whitespace and end-of-file fixers, YAML/TOML checks,
+  Markdown table alignment, large-file and ROM guards on every commit;
+  `pre-commit run --all-files` before a push (CI runs the same hooks).
+- `ga3 extract --only nem_013E76 --png` — decoded previews of all Nemesis blocks in
+  `build/preview/` (a bare `ga3 extract` rewrites `assets/` from the base ROM and
+  drops the committed edits).
 - `make asm` — regenerate the Capstone listings in `assets/code/asm/`.
 
 ## Troubleshooting

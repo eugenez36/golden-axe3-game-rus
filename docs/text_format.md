@@ -34,8 +34,9 @@ Pitfalls:
   swapped, so correct words read as «следуЮщий» in the text files.
   `test_letter_case_matches_glyph_height` now checks every letter's case
   against its drawing. `0x71` is «й» (the «и» glyph plus a breve).
-- `0x4F` Ъ, `0x51` Ё, `0x3C` ё, `0x2A` `(`, `0x2B` `)` and `0x40` Latin `V`
-  (for the version in the main menu) were drawn by this project. The original
+- `0x4F` Ъ, `0x51` Ё, `0x3C` ё, `0x2A` `(`, `0x2B` `)`, `0x40` Latin `V`
+  (for the version in the main menu) and `0x3E` `/` (hit / super on the
+  character select) were drawn by this project. The original
   translation did not have them. Lower-case `v` encodes to the same byte as
   `V`. The text uses «ё» wherever it belongs (`docs/ru/proofreading.md`).
   Because `0x3C` and `0x40` are now printable, a few runs of binary data
@@ -50,7 +51,7 @@ Pitfalls:
 ## Strings files (`assets/text/*.txt`)
 
 One file per `text` segment of `rom_map.yml`, plus one per code segment that
-carries strings (`strings:` in the map):
+carries strings (`strings:` in the map) and one per patch that writes strings:
 
 | Segment                    | File              | Contents                                        |
 |----------------------------|-------------------|-------------------------------------------------|
@@ -133,4 +134,5 @@ Not possible in place. Of the 914 free bytes in three holes (`0116B6`,
 verified.
 Relocating a string means finding and rewriting its pointer; no pointer table
 has been mapped yet. Room for relocated text exists: the build is expanded to
-2 MiB (`rom.build_size`), `100000–1FFFFF` is free.
+2 MiB (`rom.build_size`); the new patches start at `100000`, and
+`102400–1FFFFF` is free.

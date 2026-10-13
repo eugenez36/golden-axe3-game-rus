@@ -36,7 +36,7 @@ What differs between the heroes, and what does not:
 | Jab reach                                         | 64 px       | 76 px       | 70 px      | 68 px       |
 
 The same for all four: HP 51 at the start (75 at the top level), magic
-damage 6 / 16 / 32 (56 for the team spell), potions 1…6, defence, recovery,
+damage 6 / 16 / 32 (56 for the team spell), potions 0…6 at the start (OPTIONS → БАНКИ МАГИИ, default 0; base game 1), up to 6 by pick-ups, defence, recovery,
 2 spare lives.
 
 The player objects are `FFC7A4` (player 1) and `FFC904` (player 2), `0x160`
@@ -214,12 +214,12 @@ costs are bytes; the team sum is an 8-bit add (potions `FF` + `01` wraps).
 
 ## Potions
 
-| Parameter                                  | Where                                                                                                                                   | Value            | Valid                                                                                                                |
-|--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|------------------|----------------------------------------------------------------------------------------------------------------------|
-| Potions                                    | object `+0x140` (byte)                                                                                                                  | —                | 0–6 shown by the HUD; 7–9 work in play but the HUD draws garbage (its tile table `0x0518EC` is indexed by count × 2) |
-| At the start, after a death and a continue | `00E476` sets 1 when the count is 0; patch `options` gives OPTIONS → БАНКИ МАГИИ instead, its default the constant `potions` (`00E47C`) | 0 (base game: 1) | 0–6 (`max: 6`); any other count is kept through a death                                                              |
-| Cap on pick-up                             | `000A16`: `cmpi.b #6,$140(a1)`                                                                                                          | 6                | the HUD limit above                                                                                                  |
-| Pick-up                                    | `0009D6`, item kind (`+0x14` of the item) 0                                                                                             | +1               | —                                                                                                                    |
+| Parameter                                  | Where                                                                                                                                   | Value                             | Valid                                                                                                                |
+|--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| Potions                                    | object `+0x140` (byte)                                                                                                                  | —                                 | 0–6 shown by the HUD; 7–9 work in play but the HUD draws garbage (its tile table `0x0518EC` is indexed by count × 2) |
+| At the start, after a death and a continue | `00E476` sets 1 when the count is 0; patch `options` gives OPTIONS → БАНКИ МАГИИ instead, its default the constant `potions` (`00E47C`) | 0 (base game and attract demo: 1) | 0–6 (`max: 6`); any other count is kept through a death                                                              |
+| Cap on pick-up                             | `000A16`: `cmpi.b #6,$140(a1)`                                                                                                          | 6                                 | the HUD limit above                                                                                                  |
+| Pick-up                                    | `0009D6`, item kind (`+0x14` of the item) 0                                                                                             | +1                                | —                                                                                                                    |
 
 ## Health
 

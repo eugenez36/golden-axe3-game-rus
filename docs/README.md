@@ -7,7 +7,7 @@
 | [font.md](font.md)                       | you draw or change a glyph                                                                                                     |
 | [nemesis.md](nemesis.md)                 | you touch compressed graphics or the codec; the 14-block table and how the packer matches SEGA's                               |
 | [emulator.md](emulator.md)               | you write a scene or hunt for an address with watchpoints                                                                      |
-| [patches.md](patches.md)                 | you change the game's code: patch slots, hooks, the 68000 assembler, the kill counter                                          |
+| [patches.md](patches.md)                 | you change the game's code: patch slots, hooks, the 68000 assembler, the kill counter, the hero panel, «ЖЕСТЬ)», БАНКИ МАГИИ   |
 | [heroes.md](heroes.md)                   | you want any hero parameter: speeds, every move's power and timing, magic, health, where each lives and what values it takes   |
 | [rom_map.md](rom_map.md)                 | you need the full segment table (generated from `rom_map.yml`, do not edit)                                                    |
 | [evidence/](evidence/README.md)          | you want to see the logs and screenshots behind a map entry                                                                    |
