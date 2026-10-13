@@ -133,6 +133,13 @@ constants:                       # numbers inside code (instruction operands), e
         - [0x0003B6, "11 FC 00 04 C7 7C", 3]   # move.b #4,$c77c.w
       note: "continues per game («КРЕДИТЫ 4» on the continue screen)"
       evidence: "watch FFC77C from boot: written once by 0003B6 (move.b #4,$c77c.w) when a game starts; 00E6CE subq.b #1,$c77c.w on each continue (with 00E6E8 restoring the lives); the continue screen shows «КРЕДИТЫ 4»; 00E624 / 00E68E test it for zero"
+    potions:
+      format: u8
+      sites:
+        - [0x00E47C, "11 7C 00 01 01 40", 3]   # move.b #1,$140(a0), after tst.b $140(a0); bne
+      max: 6
+      note: "magic potions a player gets when they have none: at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars"
+      evidence: "watch FFC8E4 (P1 object +0x140) from boot: cleared with the object (00E532, 00E55A), then 00E47C writes 1 when the game starts (with 00E420 setting the lives), at each death (with 00697A) and at a continue (with 00E6CE / 00E6E8) when the count is 0; with potions poked to 4 or 5 the same deaths and continue write nothing and the HUD keeps them; other writers: 000A20 (addq.b #1 on a pick-up, only below 6: cmpi.b #6 at 000A1A), 00F65A-00F67C (paying for a spell, docs/heroes.md), 00FCCC/00FCD4, 0004F6/000506 (a pad cheat on player 2); built with 6, the HUD shows three full jars at the start and A casts the level-2 spell, spending all six; poked to 9, the HUD draws garbage tiles (its tile table 0x0518EC is indexed by count x 2), hence max 6"
 
 segments:
   - { name: vectors,       start: 0x000000, end: 0x000100, type: header, path: header/vectors.yml,
