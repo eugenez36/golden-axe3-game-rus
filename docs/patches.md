@@ -138,7 +138,7 @@ after it, does both, and returns to `016280`.
 **Drawing.** `src/ga3/hero_panel.py` renders every panel at build time from the
 font art and `data/hero_panel.yml` into palette 0's colours (white 6 on blue 12,
 the dialogue font's own; yellow 13 and black 9 for the bars), cuts it into
-8 × 8 tiles (68, de-duplicated) and tilemaps per hero. The patch copies the tiles
+8 × 8 tiles (64, de-duplicated) and tilemaps per hero. The patch copies the tiles
 to VRAM `3C40` (118 free tiles on this screen, never written from boot to the
 end of the select) and writes the hero's tilemap into plane A (`C000`) over the
 title. It draws only when the hero changed, the tiles are not in VRAM (the first

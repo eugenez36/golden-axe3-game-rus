@@ -37,10 +37,10 @@ not fit) → `ga3 assets refresh` (updates the committed `font.nem`) →
 
 ## Slots
 
-| State                | Blank slots                                                                              |
-|----------------------|------------------------------------------------------------------------------------------|
-| original translation | `2A 2B 3C 3E 40 4F 51 7B 7F` (nine)                                                      |
-| this project         | `3E 7B 7F` (three) — `2A` `(`, `2B` `)`, `4F` Ъ, `51` Ё, `3C` ё, `40` Latin V were drawn |
+| State                | Blank slots                                                                                   |
+|----------------------|-----------------------------------------------------------------------------------------------|
+| original translation | `2A 2B 3C 3E 40 4F 51 7B 7F` (nine)                                                           |
+| this project         | `7B 7F` (two) — `2A` `(`, `2B` `)`, `4F` Ъ, `51` Ё, `3C` ё, `40` Latin V, `3E` `/` were drawn |
 
 Six slots (`23`, `5B`–`5F`) are drawn — box rules, a bar, wedges — but have no
 character; `font.txt` marks them `not in table`, and they are not counted as free.
@@ -57,6 +57,8 @@ after `ga3 verify --update` in the same commit.
 - V: seen in-game in the main menu version line, `emu/scenes/menu.txt`.
 - ё: seen in-game in the opening dialogue («Вперёд», `emu/scenes/dialogue_pages.txt`)
   and in message 1 («всё ещё»). With it the block is 834 of 840 bytes.
+- `/`: seen in-game on the character select, between hit and super («6/18»,
+  `emu/scenes/hero_select_stats.txt`). With it the block is 837 of 840 bytes.
 - Ъ: drawn and in the table, but no text uses it. Its only use, «я разЪярЁн»
   in message 1, broke the sentence; the line was restored to the translators'
   «я разберусь» (see [ru/proofreading.md](ru/proofreading.md)).

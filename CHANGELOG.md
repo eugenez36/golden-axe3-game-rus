@@ -22,6 +22,9 @@ hash recorded in `roms.sha1`.
   bar, over the title (full width alone, a half panel each with two players,
   none on the duel select). Numbers checked against the ROM's tables; data in
   `assets/data/hero_panel.yml`, patch `hero_panel`.
+- **Font: `/`** in the blank slot `3E`, for hit / super on the character
+  select («6/18»). The font block is 837 of its 840 bytes; `7B` and `7F` stay
+  free.
 - **The build is 2 MiB:** `rom.build_size` in `rom_map.yml` expands the image
   (the base dump stays 1 MiB and is still checked against its SHA-1);
   `100000–1FFFFF` is free space for new code and data. The IPS writer emits
