@@ -68,7 +68,8 @@ def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
     assert masked[0] == masked[1]
     for seg in project.map.by_type("patch"):
         if seg.get("patch_def") is not None:
-            body, todo, _labels = assembled(seg, project.paths)
+            # the panel's tiles come from the font art, which here is the extracted one
+            body, todo, _labels = assembled(seg, scratch.paths)
             assert bytes(built.data[seg.start : seg.start + len(body)]) == body
         else:
             todo = edits(seg)
@@ -123,8 +124,8 @@ def test_pristine_free_font_slots(project, baserom):
     #  because the menu swaps the background index -- both are in the table)
     blank = [0x20 + i for i in range(96) if font.is_blank(raw, i) and 0x20 + i not in (0x20, 0x25)]
     assert blank == [0x2A, 0x2B, 0x3C, 0x3E, 0x40, 0x4F, 0x51, 0x7B, 0x7F]
-    # ... six of which this project has since assigned (Ё Ъ ё, the parentheses and V)
-    assert font.free_slots(raw) == [0x3E, 0x7B, 0x7F]
+    # ... seven of which this project has since assigned (Ё Ъ ё, the parentheses, V and /)
+    assert font.free_slots(raw) == [0x7B, 0x7F]
 
 
 def test_loading_a_wrong_rom_is_refused(project, tmp_path):

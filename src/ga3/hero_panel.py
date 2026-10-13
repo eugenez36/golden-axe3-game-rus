@@ -92,7 +92,7 @@ class _Canvas:
 def _stats(hero: dict, labels: dict, bars: dict) -> list[tuple[str, float, str]]:
     return [
         (labels["hp"], hero["hp"] / bars["hp"], str(hero["hp"])),
-        (labels["hit"], hero["super"] / bars["super"], f"{hero['hit']}-{hero['super']}"),
+        (labels["hit"], hero["super"] / bars["super"], f"{hero['hit']}/{hero['super']}"),
         (labels["tempo"], bars["tempo"] / hero["tempo"], f"{hero['tempo']:.2f}"),
         (labels["speed"], hero["speed"] / bars["speed"], str(hero["speed"])),
     ]
