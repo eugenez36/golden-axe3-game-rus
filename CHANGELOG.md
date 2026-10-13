@@ -27,6 +27,11 @@ hash recorded in `roms.sha1`.
   enters where the original did as soon as one of the four enemy slots is
   free, and the next wave waits for it. Names in `text/difficulty.txt`, patch
   `difficulty`. An assembled patch can carry a strings file (`strings:`).
+- **OPTIONS → БАНКИ МАГИИ:** the magic potions a player gets when they have
+  none (start, death, continue), 0–6, kept over a soft reset like the
+  difficulty. МЕНЮ moves down a row step. The constant `potions` is now the
+  item's default, and the default is 0 (the base game gives 1; the attract
+  demo still does). Label in `text/options.txt`, patch `options`.
 - **Gameplay constant `potions`:** the magic potions a player gets when they
   have none — at the start, after a death and after a continue (1). `ga3
   balance set potions 6`; capped at 6, what the HUD can draw. Constants take a

@@ -59,6 +59,7 @@ carries strings (`strings:` in the map):
 | `code_main_b`              | `code_main_b.txt` | `1Р` `2Р` `КОМ`, `ПАУЗА`                        |
 | `code_main_d`              | `code_main_d.txt` | button roles, `ИГРОК 2: СТАРТ`, score labels    |
 | `difficulty_names` (patch) | `difficulty.txt`  | difficulty names, 3 × 6 characters              |
+| `options_labels` (patch)   | `options.txt`     | labels of the new options items, 11 characters  |
 | `text_stages`              | `stages.txt`      | stage names, 12 × 20 characters, centred        |
 | `code_main_e`              | `code_main_e.txt` | `МАРШРУТ`, `ТЫ ПОГИБ`                           |
 | `text_ending`              | `ending.txt`      | ending screens                                  |
