@@ -1,9 +1,12 @@
 # Stage 1 combat for lag measurements (ga3 lag): fight both ways with the
 # HP topped up every round, and cast magic on rounds 10, 20, 30, 40.
+# Player 1 starts with one potion, as in the base game: OPTIONS -> БАНКИ МАГИИ
+# defaults to 0 since 0.37.500, which would leave the spells out of the measure.
 include _to_dialogue.inc
 press start 6
 wait 60
 poke8 FFC8E6 33
+poke8 FFC8E4 01
 press left 3
 press c 5
 press c 5

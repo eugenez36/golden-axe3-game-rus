@@ -171,7 +171,8 @@ still `unknown`; `ga3 map` prints the exact figure and the ranges.
 - [x] **v0.30 — Headless emulator** · scenes, screenshots, dumps, watchpoints, `dma_hook`
 - [x] **v0.35 — Reproducible build** · `rom_map.yml`, `assets/`, `build/`, `roms.sha1`, tests, CI
 - [x] **v0.37.400 — Text and kill counter** · proofread text, kill counter up to 999, bug hunt ([CHANGELOG](CHANGELOG.md))
-- [ ] **v0.40 — Gameplay tables** · lives, credits and starting magic potions done (`ga3 balance`), hero stats on the select screen, difficulty «ЖЕСТЬ)»; timers next (method ready in `ga3 ramsearch`)
+- [x] **v0.37.500 — Hero stats, ЖЕСТЬ) and БАНКИ МАГИИ** · hero panel on the select screen, third difficulty, starting magic potions in OPTIONS, 2 MiB build ([CHANGELOG](CHANGELOG.md))
+- [ ] **v0.40 — Gameplay tables** · timers, the extra life, hero parameters by name (method ready in `ga3 ramsearch`); lives, credits and potions done in 0.37.500
 - [ ] **v0.50 — Palettes and tilemaps in ROM** · turn the grey tile sheets into real colours
 - [ ] **v1.00 — Release IPS** · verified patch with RU + EN docs
 
