@@ -40,7 +40,7 @@ will be sent back — it catches packer bugs no eye can.
 git checkout -b quest/short-name          # features
 git checkout -b glitch/short-name         # bug fixes
 # edit assets/… or src/ga3/…
-make && ga3 verify --update && make test && make lint
+make && ga3 verify --update && make test && make lint && pre-commit run --all-files
 ga3 emu emu/scenes/menu_verify.txt        # or the scene that shows your change
 ```
 
@@ -101,7 +101,7 @@ PR, меняющий кодек, таблицу символов или шриф
 git checkout -b quest/short-name          # новые возможности
 git checkout -b glitch/short-name         # исправления
 # правки в assets/… или src/ga3/…
-make && ga3 verify --update && make test && make lint
+make && ga3 verify --update && make test && make lint && pre-commit run --all-files
 ga3 emu emu/scenes/menu_verify.txt        # или сцена, показывающая вашу правку
 ```
 

@@ -42,6 +42,9 @@ output row is the accumulator XORed with the previous row.
 | `nem_0295EE` | 208   | no  | 2330       | —   | 2264      |
 | **total**    |       |     | **14045**  |     | **13780** |
 
+The `Ours` column packs the original art; the font with this project's glyphs
+packs to 837 of its 840 bytes (`ga3 font info`).
+
 "Exact size" is what `ga3 nemesis size` reports: the bytes the decoder actually
 consumes. (The earlier reader-position estimate was one byte short on 12
 blocks; the journal has since been recalculated with `ga3 nemesis size`.) "Pad" is the base ROM's zero

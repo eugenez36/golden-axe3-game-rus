@@ -13,6 +13,7 @@ addresses. A pull request that hard-codes `0x01D85E` in Python will be sent back
 | Human-editable representation of ROM data           | yes                   | `assets/` (text, YAML, text art, indexed PNG, `.pal`, `.tbl`)                 |
 | Compressed blocks that must round-trip byte-exactly | yes                   | `assets/gfx/nemesis/*.nem`                                                    |
 | Small verbatim regions with no better form yet      | yes                   | `assets/sound/pcm/*.pcm`                                                      |
+| 68000 sources of new code                           | yes                   | `assets/patches/*.s`                                                          |
 | Verbatim copies of code and unidentified ranges     | **no**                | `assets/code/*.m68k`, `assets/raw/*.raw` (extracted for browsing, gitignored) |
 | Generated listings and tables                       | yes, marked generated | `assets/code/asm/*.s`, `assets/text/encoding.tbl`, `docs/rom_map.md`          |
 | Anything derived from the build                     | **no**                | `build/`                                                                      |
@@ -26,7 +27,7 @@ being committed.
 
 `.nem` Nemesis block · `.4bpp` raw tiles · `.pcm` samples · `.m68k` code bytes ·
 `.raw` unidentified bytes · `.pal` palette text · `.tbl` Thingy table · `.s`
-listing · `.inc` emulator script fragment. `.bin` is reserved for ROM images and
+Capstone listing (`assets/code/asm/`) or patch source (`assets/patches/`) · `.inc` emulator script fragment. `.bin` is reserved for ROM images and
 is ignored everywhere.
 
 ## Names
