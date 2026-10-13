@@ -2,8 +2,8 @@
 # Where each one sits is in rom_map.yml (constants:); `ga3 balance` edits this file.
 # lives (u8, at 00E420, 00E6E8): spare lives of each player (object +0x13C), shown as one digit next to the portrait
 # credits (u8, at 0003B6): continues per game («КРЕДИТЫ 4» on the continue screen)
-# potions (u8, at 00E47C): magic potions a player gets when they have none: at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars
+# potions (u8, at 00E47C): default of OPTIONS -> БАНКИ МАГИИ (patch options, which bypasses this instruction and reads its operand): magic potions a player gets when they have none, at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars
 values:
   lives: 2
   credits: 4
-  potions: 1
+  potions: 0

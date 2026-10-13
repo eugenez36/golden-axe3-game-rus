@@ -160,6 +160,40 @@ patches:                         # assembled patches: source in assets/patches/,
         - [0x00E552, "41 F8 DC 44 30 3C", reset]       # lea $dc44.w,a0; move.w #$9cd,d0 (first word)
     strings: { section: names, path: text/difficulty.txt, label: NAMES }
     evidence: "difficulty $C726: options left/right 0152AE -> table 0152D8 item 0 -> 0152E4 add.b d1/andi.b #1 (emulator: 2 wraps to 0, FF to 1), drawn by 0152EE (lea $15318 + 6, cell C430 via 01202E, 6 x $E000+c); bsr from 0152C8 and 015110 (screen entry, d1 = 0); kept over a soft reset (0002CC/0002E8); the only gameplay reader is 00C1BE in the spawn walker: entry level = bits 31..30 of d1, skipped above $C726 (0 when $C718 bit 0, the demo; +1 when $C408 = 3, both player objects present: 007100); poking $C726 = 2 spawns level-2 entries. Spawning: 00C0FE (placement in d0 bits 31..20: 1 cam+150, 2 cam-10, 3 cam+X, 0 absolute), plain entries (d1 bits 5..0 = 0) get a slot from 00BD60 at 00C1F6 (none: rts, the entry is dropped; state 0D at 00BFE6 retries while bit 4 of 2(a6) stays clear) and are written at 00C1FE-00C226 (X = d3 high word); commands through 00C244; spawner frame routine 00BDA4 (skipped while $DC4A, magic) with a6 = $DC68; wave cleared 00C66E, all enemy slots empty 00C650; 00E552 clears $DC44-$F0E0 at every stage start (watch FFDC68). Ordinary types: handler 007954 via 007618; bosses 32/2E/1E. Queue RAM FFBCC0-FFBFFF: zero in WRAM dumps every 200 bot iterations over all 13 stages, watch: written only by 0FFA7C/0002DA at power-on; FFC480-FFC5FF is the Nemesis table (0FFC64/0123F8, every decompression), FFC600-FFC701 the stack (SSP FFC702). Bot runs: every ordinary enemy of stage 1 spawned exactly twice (41 pairs), boss 32 once; level select on 13 stages: the new value finished every stage the same bot finished on hard; demo spawns identical to the unpatched build"
+  options:
+    source: patches/options.s
+    symbols:
+      CURSOR: 0xF160               # options cursor: 0..4 in the game, ITEMS-1 with this patch (word)
+      ITEMS: 6                     # СЛОЖНОСТЬ, КНОПКИ, МУЗ., ЗВУК, БАНКИ МАГИИ, МЕНЮ
+      POT_ITEM: 4
+      MENU_ITEM: 5
+      ROWS: 18                     # cursor column cleared from row 8 to row 0x19 (the game: 15, to 0x16)
+      CURSOR_CLEAR: 0x440E0003     # VDP write command of plane cell C40E (row 8, column 7)
+      CURSOR_CELL: 0xC00E          # plane cell of the cursor at row 0, column 7
+      FILL: 0x01207C               # fill d2+1 rows of d1+1 cells from command d0 with d4
+      TO_VDP: 0x01202E             # d0 (cell) -> VDP write command
+      LABEL_WIDTH: 11              # characters of each new label (text/options.txt)
+      POT_LABEL: 0xCB10            # plane cell of the label: row 0x16, column 8 (МЕНЮ's place before)
+      POT_CELL: 0xCB30             # plane cell of the value: row 0x16, column 0x18 (under МУЗ./ЗВУК values)
+      POT: 0xC729                  # count minus the default, 0..6 (byte; kept over a soft reset, 0 at power-on)
+      POT_MAX: 6                   # what the HUD can draw (constants.potions max)
+      DEFAULT: 0x00E47F            # operand of `move.b #N,$140(a0)`: the constant `potions`
+      DEMO: 0xC718                 # bit 0: the attract-mode demo is playing
+      DEMO_POTIONS: 1              # the base game's count, which the demo's recorded input expects
+      ENTRY_BACK: 0x015106         # options screen entry, after `clr.w $f160.w`
+      ITEM_BACK: 0x0152CE          # left/right: the lea of the items' jump table
+      MENU_EXIT: 0x01518E          # leave the options screen
+      LEAVE_BACK: 0x015446         # button pressed, not on МЕНЮ: МУЗ./ЗВУК play their sound
+      REFILL_BACK: 0x00E482        # potions routine, after the move it no longer runs
+    hooks:
+      menu:
+        - [0x0150FE, "52 78 F1 02 42 78", draw]      # addq.w #1,$f102.w; clr.w $f160.w (first word)
+        - [0x01525A, "D3 78 F1 60 6A 06", cursor]    # add.w d1,$f160.w; bpl.b $15266
+        - [0x0152C8, "30 38 F1 60 D0 40", item]      # move.w $f160.w,d0; add.w d0,d0
+        - [0x01543C, "0C 78 00 04 F1 60", leave]     # cmpi.w #4,$f160.w
+        - [0x00E476, "4A 28 01 40 66 06", refill]    # tst.b $140(a0); bne.b $e482
+    strings: { section: labels, path: text/options.txt, label: LABELS }
+    evidence: "options screen 0150A8-015128: labels drawn from the table 01512C (column, row, text, FF; moveq #8 = 9 labels), then 015110-015128 draw each value (d1 = 0) and the cursor (bra 01525A); cursor $F160 0..4 at 01525A-0152A6 (wraps at 015260/015266, column 7 cleared by 01207C with d0 = 440E0003, d2 = 0E, rows from the table 0152A8: 08 0B 10 13 16, tile A010); left/right 0152AE -> 0152C8 jump table 0152D8 (items 0-3, item 4 = rts at 0152E2); a button 01542C: cursor 4 leaves through 01518E, 2 / 3 play the music / sound; values drawn at C430 (difficulty), C830 / C9B0 (МУЗ. / ЗВУК: E030 + digit); other readers of $F160 belong to other screens (main menu 01377E, map 0170A0). Potions: 00E476 is the routine of constants.potions (callers 003EBA, 006984, 00E426, 00E6BE). POT $C729: of the long 0002CC / 0002E8 keeps over a soft reset ($C726 difficulty, $C727 buttons, $C728 used by the game), no instruction names $C729, watch FFC729 from boot through the options screen, stage 1, deaths and game over: written only by 0FFA7C, 0002DA (power-on clears) and 0002E8 (the soft-reset restore)"
 
 constants:                       # numbers inside code (instruction operands), edited by name; see ga3.constants
   path: data/gameplay.yml
@@ -183,7 +217,7 @@ constants:                       # numbers inside code (instruction operands), e
       sites:
         - [0x00E47C, "11 7C 00 01 01 40", 3]   # move.b #1,$140(a0), after tst.b $140(a0); bne
       max: 6
-      note: "magic potions a player gets when they have none: at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars"
+      note: "default of OPTIONS -> БАНКИ МАГИИ (patch options, which bypasses this instruction and reads its operand): magic potions a player gets when they have none, at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars"
       evidence: "watch FFC8E4 (P1 object +0x140) from boot: cleared with the object (00E532, 00E55A), then 00E47C writes 1 when the game starts (with 00E420 setting the lives), at each death (with 00697A) and at a continue (with 00E6CE / 00E6E8) when the count is 0; with potions poked to 4 or 5 the same deaths and continue write nothing and the HUD keeps them; other writers: 000A20 (addq.b #1 on a pick-up, only below 6: cmpi.b #6 at 000A1A), 00F65A-00F67C (paying for a spell, docs/heroes.md), 00FCCC/00FCD4, 0004F6/000506 (a pad cheat on player 2); built with 6, the HUD shows three full jars at the start and A casts the level-2 spell, spending all six; poked to 9, the HUD draws garbage tiles (its tile table 0x0518EC is indexed by count x 2), hence max 6"
 
 segments:
@@ -311,5 +345,11 @@ segments:
   - { name: difficulty_spawn, start: 0x102080, size: 0x200, type: patch, fill: 0xFF,
       patch: difficulty, section: spawn,
       note: "difficulty: the hard enemy level and the queue of ordinary enemies spawned twice" }
-  - { name: free_102280,   start: 0x102280, end: 0x200000, type: free,   fill: 0xFF,
+  - { name: options_labels, start: 0x102280, size: 0x10, type: patch, fill: 0xFF,
+      patch: options, section: labels,
+      note: "labels of the options items this patch adds, 11 characters each (text/options.txt)" }
+  - { name: options_menu,  start: 0x102290, size: 0x170, type: patch, fill: 0xFF,
+      patch: options, section: menu,
+      note: "options: the item БАНКИ МАГИИ (starting magic potions) and the six-item cursor (assets/patches/options.s)" }
+  - { name: free_102400,   start: 0x102400, end: 0x200000, type: free,   fill: 0xFF,
       note: "the rest of the 1 MiB added by rom.build_size" }

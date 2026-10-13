@@ -8,4 +8,5 @@
 
 # options screen layout 01512C-01516B: column, row, text, FF per label; 00 ends the table.
 # Labels lost their trailing spaces to make room for «МУЗ.» and «ЗВУК» (was «МУЗ», «СЕ»).
-01512C:64 | {10}{04} ОПЦИИ{FF}{08}{08}СЛОЖНОСТЬ{FF}{08}{0B}КНОПКИ{FF}{18}{0B}А{FF}{18}{0C}В{FF}{18}{0D}С{FF}{08}{10}МУЗ.{FF}{08}{13}ЗВУК{FF}{08}{16}МЕНЮ{FF}{00}
+# МЕНЮ is on row 19 (was 16): row 16 is БАНКИ МАГИИ (patch options, text/options.txt).
+01512C:64 | {10}{04} ОПЦИИ{FF}{08}{08}СЛОЖНОСТЬ{FF}{08}{0B}КНОПКИ{FF}{18}{0B}А{FF}{18}{0C}В{FF}{18}{0D}С{FF}{08}{10}МУЗ.{FF}{08}{13}ЗВУК{FF}{08}{19}МЕНЮ{FF}{00}
