@@ -1,0 +1,41 @@
+# Hero stats panel on the character select (patch hero_panel).
+# One player: the full-width panel for each of the four heroes (cursor 1, 2,
+# 3, 0: Kain, Sarah, Proud, Chronos). Two players: a half panel each, both
+# cursors moved (Kain/Sarah, then Proud/Chronos: a cursor skips the hero the
+# other player holds). Duel: no panel, the title stays.
+include _boot.inc
+press start 10
+wait 150
+screenshot build/shots/hero_select_1p_kain.png 2
+press right 6
+wait 20
+screenshot build/shots/hero_select_1p_sarah.png 2
+press right 6
+wait 20
+screenshot build/shots/hero_select_1p_proud.png 2
+press right 6
+wait 20
+screenshot build/shots/hero_select_1p_chronos.png 2
+press right 6
+wait 20
+dump vram build/dumps/hero_select_1p_vram.bin
+reset
+include _boot.inc
+press down 6
+wait 20
+press start 10
+wait 150
+screenshot build/shots/hero_select_2p_kain_sarah.png 2
+press right 6
+pad2 right 6
+wait 20
+screenshot build/shots/hero_select_2p_proud_chronos.png 2
+dump vram build/dumps/hero_select_2p_vram.bin
+reset
+include _boot.inc
+press down 6
+press down 6
+wait 20
+press start 10
+wait 167
+screenshot build/shots/hero_select_duel.png 2

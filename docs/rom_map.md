@@ -9,14 +9,14 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 
 | Type | Bytes | Share |
 |---|---|---|
-| free | 1048580 | 50.0% |
+| free | 1040388 | 49.6% |
 | unknown | 533485 | 25.4% |
 | tiles4bpp | 360448 | 17.2% |
 | code | 111060 | 5.3% |
 | pcm | 14880 | 0.7% |
 | nemesis | 14050 | 0.7% |
 | text | 13217 | 0.6% |
-| patch | 910 | 0.0% |
+| patch | 9102 | 0.4% |
 | header | 512 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
@@ -73,7 +73,8 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `0FB500–0FC000` | unknown | unk_0FB500 |  |  |
 | `0FC000–0FFA20` | pcm | pcm | `sound/pcm/samples.pcm` | PCM sample data; sample table and rate unknown |
 | `0FFA20–100000` | code | entry_stub | `code/entry_stub.m68k` | the translators' relocated entry point; *evidence: reset vector at 0x4 = 000FFA20* |
-| `100000–200000` | free | free_100000 |  | filled with 0xFF; 1 MiB added by rom.build_size: not part of the base ROM; the header's ROM end and checksum follow the new size |
+| `100000–102000` | patch | hero_panel |  | filled with 0xFF; hero stats panel on the character select: cursor hook, tiles and tilemaps (data/hero_panel.yml) |
+| `102000–200000` | free | free_102000 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
 
 ## Constants (instruction operands, values in `assets/data/gameplay.yml`)
 

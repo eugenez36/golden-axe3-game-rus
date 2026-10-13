@@ -1,0 +1,14 @@
+# Hero stats panel on the character select (patch hero_panel, src/ga3/hero_panel.py).
+# Heroes in select-cursor order (FFF315: 0 Chronos, 1 Kain, 2 Sarah, 3 Proud).
+# Values from docs/heroes.md: hp = HP at the start; hit / super = power of the
+# first combo hit / of the close finisher with Fwd (damage is half); tempo =
+# seconds between combo hits (smaller is faster); speed = walking, px per second.
+# tests/test_hero_panel.py checks hp, hit, super and speed against the ROM tables.
+heroes:
+  - {name: Хронос Лайт, magic: ГРОЗА, hp: 51, hit: 4, super: 12, tempo: 0.32, speed: 120}
+  - {name: Каин Грайндер, magic: ВОДА, hp: 51, hit: 6, super: 18, tempo: 0.38, speed: 94}
+  - {name: Сара Барн, magic: ОГОНЬ, hp: 51, hit: 5, super: 15, tempo: 0.25, speed: 105}
+  - {name: Прауд Крэггер, magic: ЗЕМЛЯ, hp: 51, hit: 8, super: 24, tempo: 0.50, speed: 83}
+labels: {magic: "МАГИЯ: ", hp: ЗДОРОВЬЕ, hit: УДАР, tempo: ТЕМП, speed: СКОРОСТЬ}
+# a full bar: HP at the top max-HP level, the strongest super, the fastest tempo, the fastest walk
+bars: {hp: 75, super: 24, tempo: 0.25, speed: 120}
