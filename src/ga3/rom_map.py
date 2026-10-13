@@ -79,6 +79,11 @@ class Constant:
     def get(self, key: str, default: Any = None) -> Any:
         return self.attrs.get(key, default)
 
+    @property
+    def limit(self) -> int:
+        """The largest value allowed: ``max`` when given, else what the format holds."""
+        return self.attrs.get("max", (1 << (8 * self.width)) - 1)
+
 
 @dataclass
 class RomMap:
@@ -199,7 +204,8 @@ def _parse_constants(block: Any, size: int) -> tuple[str | None, dict[str, Const
     under ``values`` every constant has ``format`` (u8 | u16), ``sites`` --
     ``[address, "base-ROM bytes of the instruction", operand offset]`` for each
     instruction that carries it -- and, like a segment, ``evidence`` (required),
-    ``note`` and ``max_hud``.
+    ``note`` and ``max_hud`` (a warning above it). ``max`` is a hard limit: a
+    larger value is refused by ``ga3 balance set`` and by the build.
     """
     if not block:
         return None, {}
@@ -237,6 +243,12 @@ def _parse_constants(block: Any, size: int) -> tuple[str | None, dict[str, Const
                 raise RomMapError(f"{where}.sites[{i}]: 0x{at:06X} is past rom.size")
             sites.append(Site(at, expect, offset))
         attrs = {k: v for k, v in d.items() if k not in ("format", "sites")}
+        if "max" in attrs:
+            top = (1 << (8 * CONSTANT_WIDTH[fmt])) - 1
+            if not isinstance(attrs["max"], int) or isinstance(attrs["max"], bool):
+                raise RomMapError(f"{where}: max must be an integer")
+            if not 0 <= attrs["max"] <= top:
+                raise RomMapError(f"{where}: max must be within 0..{top} ({fmt})")
         out[name] = Constant(name, fmt, sites, attrs)
     return block["path"], out
 

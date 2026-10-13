@@ -63,6 +63,8 @@ def test_parse_reads_sites_and_rejects_bad_definitions():
         ({"format": "u16", "sites": [[0x10, "00 01", 1]], "evidence": "e"}, "runs past"),
         ({"sites": [[0xFF, "00 01", 0]], "evidence": "e"}, "past rom.size"),
         ({"sites": [], "evidence": "e"}, "sites:"),
+        ({"sites": [site], "max": 256, "evidence": "e"}, "max must be within"),
+        ({"sites": [site], "max": "6", "evidence": "e"}, "max must be an integer"),
     ]
     for d, msg in bad:
         with pytest.raises(rom_map.RomMapError, match=msg):
@@ -99,7 +101,7 @@ def test_drifted_map_and_bad_values_fail_cleanly(synth_constants):
     pl.extract_all(s.project, s.rom, log=lambda *_: None)
     gp = s.root / "assets" / "data" / "gameplay.yml"
     gp.write_text("values:\n  lives: 256\n", encoding="utf-8")
-    with pytest.raises(pl.PipelineError, match="not a u8"):
+    with pytest.raises(pl.PipelineError, match=r"outside 0\.\.255 \(u8\)"):
         pl.build(s.project, s.rom, log=lambda *_: None)
     gp.write_text("values: {}\n", encoding="utf-8")
     with pytest.raises(pl.PipelineError, match="no value for 'lives'"):
@@ -109,6 +111,22 @@ def test_drifted_map_and_bad_values_fail_cleanly(synth_constants):
     gp.write_text("values:\n  lives: 5\n", encoding="utf-8")
     assert any("0x000204 holds 04 05 06" in p for p in pl.check_map(s.project, s.rom))
     with pytest.raises(pl.PipelineError, match="expected 04 99 06"):
+        pl.build(s.project, s.rom, log=lambda *_: None)
+
+
+def test_max_is_a_hard_limit(synth_constants):
+    """``max`` refuses a value the game cannot handle; ``max_hud`` only warns."""
+    s = synth_constants
+    v = {"format": "u8", "sites": SITES, "max": 6, "evidence": "synthetic"}
+    _with_constants(s, {"lives": v})
+    assert s.project.map.constants["lives"].limit == 6
+    pl.extract_all(s.project, s.rom, log=lambda *_: None)
+    gp = s.root / "assets" / "data" / "gameplay.yml"
+    assert balance.set_constant(s.project.map, gp, "lives", 6) == (5, [])
+    with pytest.raises(ValueError, match=r"outside 0\.\.6"):
+        balance.set_constant(s.project.map, gp, "lives", 7)
+    gp.write_text("values:\n  lives: 7\n", encoding="utf-8")  # edited by hand
+    with pytest.raises(pl.PipelineError, match=r"outside 0\.\.6"):
         pl.build(s.project, s.rom, log=lambda *_: None)
 
 

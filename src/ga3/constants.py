@@ -95,9 +95,8 @@ def build(rom: Rom, rm: RomMap, paths: Paths) -> list[str]:
         if c.name not in values:
             raise BuildError(f"constants: {path.name} has no value for {c.name!r}")
         value = values[c.name]
-        limit = (1 << (8 * c.width)) - 1
-        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= limit:
-            raise BuildError(f"constants.{c.name}: {value!r} is not a {c.format} (0..{limit})")
+        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= c.limit:
+            raise BuildError(f"constants.{c.name}: {value!r} is outside 0..{c.limit} ({c.format})")
         for s in c.sites:
             found = bytes(rom.data[s.at : s.at + len(s.expect)])
             if found != s.expect:

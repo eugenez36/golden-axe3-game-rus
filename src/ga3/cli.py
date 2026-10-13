@@ -494,7 +494,8 @@ def cmd_balance(args) -> int:
             print(f"Constants ({proj.map.constants_path}):")
             for c in proj.map.constants.values():
                 where = ", ".join(f"{s.at:06X}" for s in c.sites)
-                print(f"  {c.name:10s} {current.get(c.name, '?'):>3} ({c.format} at {where})")
+                most = f", max {c.limit}" if "max" in c.attrs else ""
+                print(f"  {c.name:10s} {current.get(c.name, '?'):>3} ({c.format} at {where}{most})")
         return 0
     if args.balcmd == "set":
         if cpath is None:
