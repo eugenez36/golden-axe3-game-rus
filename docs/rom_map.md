@@ -9,14 +9,14 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 
 | Type | Bytes | Share |
 |---|---|---|
-| free | 1040388 | 49.6% |
+| free | 1039748 | 49.6% |
 | unknown | 533485 | 25.4% |
 | tiles4bpp | 360448 | 17.2% |
 | code | 111060 | 5.3% |
 | pcm | 14880 | 0.7% |
 | nemesis | 14050 | 0.7% |
 | text | 13217 | 0.6% |
-| patch | 9102 | 0.4% |
+| patch | 9742 | 0.5% |
 | header | 512 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
@@ -38,7 +38,7 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `013E76–014013` | nemesis | nem_013E76 | `gfx/nemesis/nem_013E76.nem` | 50 tiles |
 | `014013–014E00` | code | code_main_c | `code/code_main_c.m68k` |  |
 | `014E00–0151A0` | text | text_menu | `text/menu.txt` | menu and options strings embedded in menu data; options screen layout at 01512C: column, row, text, FF; *evidence: prose: disasm 014EC4 lea $14eda(pc) + moveq #$11 (title line, 18); options table 01512C-01516B seen on the options screen (emu/scenes/menu_options.txt); the old menu items 014F8C-014FA8 and 015088 are no longer read (menu_items)* |
-| `0151A0–016C00` | code | code_main_d | `code/code_main_d.m68k` | *evidence: disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels); the second label (016BCD) heads a rank, not a stage: 016C20 draws the big glyph 80 + 2\*v for v = FFF180 / FFF181 (set at 016EB8 and 0167EC), and poking v = 0..7 on the map screen shows AAA, AA, A, B, C, D, E, F* |
+| `0151A0–016C00` | code | code_main_d | `code/code_main_d.m68k` | *evidence: disasm 0152EE lea $15318(pc), +6 per entry, moveq #5 (difficulty: no longer read, patch difficulty draws text/difficulty.txt); 015376 lea $153aa(pc),a1, moveq #5 (button roles); 015C2A lea $15c48(pc), moveq #$d (blinking press-start); 016B9E lea $16bc8(pc), moveq #4 then #3 (score labels); the second label (016BCD) heads a rank, not a stage: 016C20 draws the big glyph 80 + 2\*v for v = FFF180 / FFF181 (set at 016EB8 and 0167EC), and poking v = 0..7 on the map screen shows AAA, AA, A, B, C, D, E, F* |
 | `016C00–016E00` | text | text_stages | `text/stages.txt` | stage name list: 12 names, 20 characters each, centred with spaces; *evidence: disasm 016C7C lea $16cd8(pc) + mulu #$14; 017176 + mulu #$14, moveq #$13* |
 | `016E00–0179F2` | code | code_main_e | `code/code_main_e.m68k` | 0179E4 move.l #$179F2 loads the ending text block; *evidence: strings: disasm 016FB4 lea $1704c(pc) + moveq #9 (map title); 0170BA lea $170f2(pc) + moveq #$c (death message)* |
 | `0179F2–017AF3` | text | text_ending | `text/ending.txt` | ending screens: indent byte, text, FE between the two lines of a screen, FF ends a screen; 15-space slot at 017AE3; *evidence: disasm 0179E4; journal §Куда вписать титр переводчика* |
@@ -74,7 +74,10 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `0FC000–0FFA20` | pcm | pcm | `sound/pcm/samples.pcm` | PCM sample data; sample table and rate unknown |
 | `0FFA20–100000` | code | entry_stub | `code/entry_stub.m68k` | the translators' relocated entry point; *evidence: reset vector at 0x4 = 000FFA20* |
 | `100000–102000` | patch | hero_panel |  | filled with 0xFF; hero stats panel on the character select: cursor hook, tiles and tilemaps (data/hero_panel.yml) |
-| `102000–200000` | free | free_102000 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
+| `102000–102020` | patch | difficulty_names |  | filled with 0xFF; difficulty names on the options screen, 3 x 6 characters (text/difficulty.txt) |
+| `102020–102080` | patch | difficulty_menu |  | filled with 0xFF; difficulty: the options menu item with a third value (assets/patches/difficulty.s) |
+| `102080–102280` | patch | difficulty_spawn |  | filled with 0xFF; difficulty: the hard enemy level and the queue of ordinary enemies spawned twice |
+| `102280–200000` | free | free_102280 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
 
 ## Constants (instruction operands, values in `assets/data/gameplay.yml`)
 

@@ -1,0 +1,64 @@
+# Difficulty «ЖЕСТЬ)» (patch difficulty): OPTIONS -> СЛОЖНОСТЬ goes ОБЫЧНО ->
+# ТРУДНО -> ЖЕСТЬ) -> ОБЫЧНО to the right and back to the left; then, on
+# ЖЕСТЬ), back in the main menu (cursor on 1 ИГРОК), stage 1 starts and every
+# enemy of its first wave comes twice: the copy where the original came in,
+# once an enemy slot is free. The last shot has all four enemy slots busy and
+# copies waiting (FFBF00 = 2 in the dump; player 1 kept at full HP).
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+screenshot build/shots/difficulty_0_normal.png 2
+press right 6
+wait 20
+screenshot build/shots/difficulty_1_hard.png 2
+press right 6
+wait 20
+screenshot build/shots/difficulty_2_hardest.png 2
+press right 6
+wait 20
+screenshot build/shots/difficulty_3_wrap.png 2
+press left 6
+wait 20
+screenshot build/shots/difficulty_4_left_wrap.png 2
+press start 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 700
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+screenshot build/shots/difficulty_stage1.png 2
+dump wram build/dumps/difficulty_stage1_wram.bin

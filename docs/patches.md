@@ -5,12 +5,13 @@ Three kinds of change go beyond text, font and tables. All of them are
 space, and they change a few bytes of the game's code elsewhere, each checked
 against what the base ROM holds there before anything is written.
 
-| Patch          | What it does                                                             | Kind                                                                          |
-|----------------|--------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| `menu_version` | `V X.YY.ZZZ` at the bottom right of the main menu                        | routine in `ga3.patches`                                                      |
-| `menu_items`   | main-menu items 8 characters wide (`1 ИГРОК / 2 ИГРОКА / ДУЭЛЬ / ОПЦИИ`) | routine in `ga3.patches`                                                      |
-| `kill_counter` | enemies killed by each player, next to their HUD                         | assembled from `assets/patches/kill_counter.s`                                |
-| `hero_panel`   | the hero stats panel on the character select                             | assembled from `assets/patches/hero_panel.s`, data from `data/hero_panel.yml` |
+| Patch          | What it does                                                                 | Kind                                                                          |
+|----------------|------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| `menu_version` | `V X.YY.ZZZ` at the bottom right of the main menu                            | routine in `ga3.patches`                                                      |
+| `menu_items`   | main-menu items 8 characters wide (`1 ИГРОК / 2 ИГРОКА / ДУЭЛЬ / ОПЦИИ`)     | routine in `ga3.patches`                                                      |
+| `kill_counter` | enemies killed by each player, next to their HUD                             | assembled from `assets/patches/kill_counter.s`                                |
+| `hero_panel`   | the hero stats panel on the character select                                 | assembled from `assets/patches/hero_panel.s`, data from `data/hero_panel.yml` |
+| `difficulty`   | a third difficulty, «ЖЕСТЬ)»: the hard enemy set, every ordinary enemy twice | assembled from `assets/patches/difficulty.s`, names in `text/difficulty.txt`  |
 
 After a build the pipeline checks that no later segment overwrote a patch's
 slot or edits (a text record covering code did exactly that once).
@@ -35,6 +36,10 @@ segments:
 
 Each `section NAME` of the source is placed at the start of the segment with
 that `section:`; a hook replaces the six bytes it names with `jmp label.l`.
+`strings: { section, path, label }` puts the records of a strings file (the
+usual `OFFSET:LENGTH | text`, offsets inside that section's slot, in order from
+its start) at `label`, each padded with spaces to its length; `ga3 text
+verify/lint/preview` check the file like any other.
 The source holds no address of its own. `ga3.m68k` assembles it: a two-pass
 assembler for the instructions and addressing modes these patches use, Motorola
 syntax, local `.labels`, `dc.b`/`dc.w`/`even`/`section`. Every supported form
@@ -155,3 +160,57 @@ labels or values in `data/hero_panel.yml` and rebuild.
 **Checked.** `emu/scenes/hero_select_stats.txt`: the four heroes alone, two
 pairs with two players, the duel without a panel; the stage that follows starts
 clean; `ga3 lag` on `stage1_fight` unchanged (233 of 3438).
+
+## Difficulty «ЖЕСТЬ)» (`difficulty`)
+
+OPTIONS → СЛОЖНОСТЬ has three values: ОБЫЧНО, ТРУДНО and **ЖЕСТЬ)**: the
+enemies of ТРУДНО, and every ordinary enemy comes twice. The screen still holds
+at most four enemies (four enemy slots, each with its own VRAM area), so the
+fights get longer, not more crowded.
+
+**What the game does.** The difficulty is the byte `$FFC726` (0 normal, 1 hard;
+kept over a soft reset at `0002CC`). Its only reader in play is the spawn walker
+(`00C1BE`): an entry of the stage's spawn data has a level (bits 31..30 of its
+second long), and it is skipped when that level is above the difficulty (plus
+one while both player objects exist, `$C408` = 3; 0 in the attract demo,
+`$C718` bit 0). So ТРУДНО is ОБЫЧНО plus the level-1 entries, nothing else.
+
+**Menu** (`0152E4`, reached by `bsr` with `d1` = −1, 0, +1): the value now wraps
+over 0..2 both ways and its name, six characters, comes from
+`text/difficulty.txt` (the old strings at `015318` are no longer read).
+
+**Level** (`00C1BE`): the difficulty counts as at most 1, so ЖЕСТЬ) spawns
+exactly the entries of ТРУДНО.
+
+**Twice.** At ЖЕСТЬ) (not in the demo), once a plain entry of an ordinary type
+(`10 12 14 16 18 1A 1C 2C 34 36 38`, handler `007954`) got an enemy slot
+(`00C1FE`), the entry goes into a queue once more, with the X the game just
+gave it as its absolute position, so the copy comes in where the original did
+(a spot the stage's own data chose; the opposite edge put copies into walls).
+Bosses (`32`, `2E`, `1E`), riders (commands 07/08) and command entries are
+never doubled; an enemy a command handler spawned is copied as a plain enemy.
+Every frame (`00BDBA`, the spawner's frame routine, not run while magic plays)
+the oldest queued entry goes through the game's own spawn routine (`00C0FE`) as
+soon as an enemy slot is free. The game drops an entry that finds no free slot
+(`00C1F6`); at ЖЕСТЬ) an ordinary one is queued instead, with its copy, so the
+copies never cost an original. A queued entry is not tested for its level again
+(it passed when it came up; the two-player bonus may have changed since).
+While entries wait, the wave is not cleared (`00C66E`) and the stage end does
+not see an empty screen (`00C650`): the next wave and the scroll wait for them.
+The routine that clears the game state at a stage start (`00E552`) empties the
+queue.
+
+The queue (16 entries of 8 bytes, a ring) lives at `FFBF00`: `FFBCC0–FFBFFF` is
+written only by the RAM clear at power-on (watched over all 13 stages). Two
+places that looked free were not: `FFC480–FFC5FF` is the Nemesis decoder's
+table, rebuilt at every decompression, and `FFC600–FFC700` is the stack.
+
+**Checked.** `emu/scenes/difficulty.txt`: the menu both ways and stage 1 with
+four enemies on screen and copies waiting. With a bot (player kept alive) on
+stage 1, every ordinary enemy came exactly twice (41 pairs, the boss once); on
+the 13 stages through the level select, ЖЕСТЬ) finished every stage the same
+bot finished on ТРУДНО, and the stages it did not finish stopped the same way
+on ТРУДНО. The demo spawns the same enemies at the same frames as without the
+patch. ОБЫЧНО and ТРУДНО spawn the same enemies as before. Lag on stage 1: 2.5 %
+of frames lost on ЖЕСТЬ) against 1.0 % on ТРУДНО (more often four enemies at
+once).

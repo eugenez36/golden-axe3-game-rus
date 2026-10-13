@@ -1,0 +1,9 @@
+# difficulty: the names of the options menu's difficulty values
+# Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
+# Exactly 6 characters each (shorter is padded with spaces); patch difficulty
+# in rom_map.yml, slot difficulty_names. ЖЕСТЬ) is the hard enemy set with
+# every ordinary enemy spawned twice.
+
+102000:6 | ОБЫЧНО
+102006:6 | ТРУДНО
+10200C:6 | ЖЕСТЬ)

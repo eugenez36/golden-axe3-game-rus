@@ -21,6 +21,10 @@ Assembled patches (``patch: NAME`` + ``section: SECTION``, defined under the
 top-level ``patches:`` key) are written in ``assets/patches/*.s`` and built by
 ``ga3.m68k``: every section lands at the start of its segment, and the hooks
 listed for a section become ``jmp label.l`` over the six bytes they name.
+``strings: {section, path, label}`` puts the records of a strings file
+(``OFFSET:LENGTH | text``, the usual format) at ``label`` in their own section:
+the offsets are the records' addresses in that section's slot, in order from
+its start, each padded with spaces to its length.
 
 ``fill`` is the free-space byte the unused tail of the slot keeps. Every edit
 is checked against the image before anything is written, so a map that drifted
@@ -222,6 +226,33 @@ def _glyph_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
     return "\n".join(src) + "\n", {"BLANK_GLYPH": spec["chars"].index(" ")}
 
 
+def _string_tables(seg: Segment, paths: Paths) -> str:
+    """The records of the patch's strings file as ``dc.b`` lines in their own section."""
+    spec = seg.get("patch_def").get("strings")
+    if not spec:
+        return ""
+    path = paths.asset(spec["path"])
+    try:
+        rows = text.parse_strings_file(str(path))
+    except (OSError, ValueError) as exc:
+        raise BuildError(f"{seg}: strings: {exc}") from None
+    at = seg.get("sections")[spec["section"]]
+    src = [f"        section {spec['section']}", f"{spec['label']}:"]
+    for off, ln, txt in rows:
+        if off != at:
+            raise BuildError(f"{seg}: {path.name}: record {off:06X} should start at {at:06X}")
+        try:
+            enc = table.encode(txt)
+        except ValueError as exc:
+            raise BuildError(f"{seg}: {path.name}: {off:06X}: {exc}") from None
+        if len(enc) > ln:
+            raise BuildError(f"{seg}: {path.name}: {off:06X}: {txt!r} is longer than {ln}")
+        enc += table.encode(" ") * (ln - len(enc))
+        src.append(f"        dc.b    {', '.join(f'${b:02X}' for b in enc)}")
+        at += ln
+    return "\n".join(src) + "\n"
+
+
 def _vdp(addr: int, write: bool) -> int:
     """VDP control longword for a VRAM access at ``addr`` (CD0 = 1 for a write)."""
     return (0x4000 if write else 0) << 16 | (addr & 0x3FFF) << 16 | addr >> 14
@@ -278,7 +309,7 @@ def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, 
         raise BuildError(f"{seg}: missing patch source {source}")
     extra, derived = _glyph_tables(seg, paths)
     panel_src, panel_syms = _panel_tables(seg, paths)
-    extra += panel_src
+    extra += panel_src + _string_tables(seg, paths)
     symbols = {**(pdef.get("symbols") or {}), **derived, **panel_syms}
     try:
         out, labels = m68k.assemble_sections(
@@ -335,6 +366,8 @@ class PatchHandler(Handler):
                 found.append(paths.asset(pdef["glyphs"]["art"]))
             if pdef.get("panel"):
                 found += [paths.asset(pdef["panel"]["art"]), paths.asset(pdef["panel"]["data"])]
+            if pdef.get("strings"):
+                found.append(paths.asset(pdef["strings"]["path"]))
             return found
         if seg.get("strings_path") is None:
             return []  # generated from code; nothing under assets/
