@@ -22,6 +22,11 @@ hash recorded in `roms.sha1`.
   bar, over the title (full width alone, a half panel each with two players,
   none on the duel select). Numbers checked against the ROM's tables; data in
   `assets/data/hero_panel.yml`, patch `hero_panel`.
+- **Gameplay constant `potions`:** the magic potions a player gets when they
+  have none — at the start, after a death and after a continue (1). `ga3
+  balance set potions 6`; capped at 6, what the HUD can draw. Constants take a
+  hard `max` in `rom_map.yml`, refused by `balance set` and by the build;
+  `balance show` prints it.
 - **Font: `/`** in the blank slot `3E`, for hit / super on the character
   select («6/18»). The font block is 837 of its 840 bytes; `7B` and `7F` stay
   free.
