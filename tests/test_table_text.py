@@ -34,6 +34,12 @@ def test_case_fallback():
     assert table.encode("й") == table.encode("Й") == b"\x71"
 
 
+def test_slash_has_its_own_glyph():
+    # drawn by this project into the blank slot 0x3E (hit/super on the hero select)
+    assert table.encode("6/18") == b"\x36\x3e\x31\x38"
+    assert table.decode(b"\x3e") == "/"
+
+
 def test_tbl_format_has_every_byte():
     tbl = table.format_tbl()
     for b in table.BYTE_TO_CHAR:

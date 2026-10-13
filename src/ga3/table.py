@@ -60,6 +60,7 @@ BYTE_TO_CHAR: dict[int, str] = {
     0x60: "'",
     # capitals
     0x3C: "ё",  # added by this project
+    0x3E: "/",  # added by this project (hit/super on the hero select)
     0x40: "V",  # Latin, for the menu version; added by this project
     0x41: "А", 0x42: "В", 0x43: "С", 0x44: "И", 0x45: "У", 0x46: "Ф",
     0x47: "П", 0x48: "Р", 0x49: "Ш", 0x4A: "Х", 0x4B: "Л", 0x4C: "Д",
