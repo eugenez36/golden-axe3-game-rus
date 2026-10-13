@@ -50,13 +50,18 @@ def test_extract_then_build_is_byte_identical(project, baserom, tmp_path):
     built = pl.build(scratch, baserom, out=tmp_path / "out.bin", log=lambda *_: None)
     generated = _generated_ranges(project)
     assert generated, "rom_map.yml declares no patch; drop this masking"
-    masked = [bytearray(baserom.data), bytearray(built.data)]
+    size = len(baserom.data)
+    expansion = bytes(built.data[size:])
+    assert len(built.data) == project.map.image_size
+    assert expansion == b"\xff" * (project.map.image_size - size)  # rom.build_size: free space
+    masked = [bytearray(baserom.data), bytearray(built.data[:size])]
     for start, end in generated:
         for image in masked:
             image[start:end] = bytes(end - start)
-    # the header checksum follows the patched bytes; everything else must match
+    # the header checksum and ROM end follow the image; everything else must match
     for image in masked:
         image[0x18E:0x190] = b"\0\0"
+        image[0x1A4:0x1A8] = b"\0\0\0\0"
     assert masked[0] == masked[1]
     for seg in project.map.by_type("patch"):
         if seg.get("patch_def") is not None:

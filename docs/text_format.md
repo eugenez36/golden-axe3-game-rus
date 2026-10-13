@@ -130,4 +130,5 @@ Not possible in place. Of the 914 free bytes in three holes (`0116B6`,
 [patches.md](patches.md)). A probable 170-byte filler at `01B6D6` is not yet
 verified.
 Relocating a string means finding and rewriting its pointer; no pointer table
-has been mapped yet. `Rom.expand()` to 2 MiB exists for when that day comes.
+has been mapped yet. Room for relocated text exists: the build is expanded to
+2 MiB (`rom.build_size`), `100000–1FFFFF` is free.

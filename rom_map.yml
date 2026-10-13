@@ -39,7 +39,8 @@
 rom:
   title: "Golden Axe 3 (RUS) — NEWGAME 2003"
   serial: "GM 00004093-00"
-  size: 0x100000
+  size: 0x100000                 # the base ROM (the dump `map --check` compares)
+  build_size: 0x200000           # the build is expanded to 2 MiB; 100000-1FFFFF is new free space
   sha1: e9538c0542b4a05050f5b68d279cddb06559ae20
   md5: eae35fbc0f915048cead589db377407f
   header_checksum: 0x9BB5
@@ -229,3 +230,5 @@ segments:
       note: "PCM sample data; sample table and rate unknown" }
   - { name: entry_stub,    start: 0x0FFA20, end: 0x100000, type: code,   path: code/entry_stub.m68k,
       note: "the translators' relocated entry point", evidence: "reset vector at 0x4 = 000FFA20" }
+  - { name: free_100000,   start: 0x100000, end: 0x200000, type: free,   fill: 0xFF,
+      note: "1 MiB added by rom.build_size: not part of the base ROM; the header's ROM end and checksum follow the new size" }

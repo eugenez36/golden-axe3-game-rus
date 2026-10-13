@@ -175,13 +175,16 @@ def diff_report(a: bytes, b: bytes, limit: int = 24) -> str:
 
 IPS_EOF_OFFSET = 0x454F46  # the bytes "EOF" read as a 24-bit record offset
 IPS_MAX_RECORD = 0xFFFF
+IPS_RLE_MIN = 16  # an RLE record is 8 bytes; a plain one is 5 + the bytes
 
 
 def make_ips(orig: bytes, patched: bytes) -> bytes:
     """Build an IPS patch. 24-bit offsets: images up to 16 MiB.
 
     A shrunken image is expressed with the common truncation extension (the
-    new length after ``EOF``), which ``apply_ips`` honours.
+    new length after ``EOF``), which ``apply_ips`` honours. Runs of at least
+    ``IPS_RLE_MIN`` equal bytes (the free space of an expanded image) become RLE
+    records, so a 2 MiB expansion costs bytes, not a megabyte.
     """
     if max(len(orig), len(patched)) > 0xFFFFFF:
         raise ValueError("IPS cannot address images larger than 16 MiB")
@@ -189,18 +192,48 @@ def make_ips(orig: bytes, patched: bytes) -> bytes:
     for off, _old, new in diff(orig, patched, max_gap=5):
         if not new:  # the removed tail is covered by the truncation trailer
             continue
-        pos, end = off, off + len(new)
-        while pos < end:
-            if pos == IPS_EOF_OFFSET:
-                # A record starting here would read as the end marker. Start it one
-                # byte earlier instead and re-send a byte that is already correct.
-                pos -= 1
-            n = min(IPS_MAX_RECORD, end - pos)
-            out += pos.to_bytes(3, "big") + n.to_bytes(2, "big") + patched[pos : pos + n]
-            pos += n
+        out += _ips_records(patched, off, off + len(new))
     out += b"EOF"
     if len(patched) < len(orig):
         out += len(patched).to_bytes(3, "big")
+    return bytes(out)
+
+
+def _run_length(data: bytes, pos: int, end: int) -> int:
+    """How many bytes from ``pos`` (before ``end``) equal ``data[pos]``."""
+    value, n = data[pos], 1
+    while pos + n < end and data[pos + n] == value and n < IPS_MAX_RECORD:
+        n += 1
+    return n
+
+
+def _ips_records(patched: bytes, pos: int, end: int) -> bytes:
+    """IPS records for ``patched[pos:end]``: RLE for long runs, plain records otherwise."""
+    out = bytearray()
+    plain = pos  # start of the pending plain stretch
+    while pos < end:
+        run = _run_length(patched, pos, end)
+        if run >= IPS_RLE_MIN and pos != IPS_EOF_OFFSET:
+            out += _ips_plain(patched, plain, pos)
+            out += pos.to_bytes(3, "big") + b"\x00\x00" + run.to_bytes(2, "big")
+            out += patched[pos : pos + 1]
+            pos = plain = pos + run
+        else:
+            pos += run
+    out += _ips_plain(patched, plain, end)
+    return bytes(out)
+
+
+def _ips_plain(patched: bytes, pos: int, end: int) -> bytes:
+    out = bytearray()
+    while pos < end:
+        if pos == IPS_EOF_OFFSET:
+            # A record starting here would read as the end marker. Start it one
+            # byte earlier instead and re-send a byte that is already correct.
+            pos -= 1
+        n = min(IPS_MAX_RECORD, end - pos)
+        out += pos.to_bytes(3, "big") + n.to_bytes(2, "big") + patched[pos : pos + n]
+        pos += n
     return bytes(out)
 
 

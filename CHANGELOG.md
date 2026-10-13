@@ -17,6 +17,10 @@ hash recorded in `roms.sha1`.
   **spare lives** (2; at the start and after a continue) and **credits**
   (continues, 4). `ga3 balance set lives 5`, `ga3 balance show`; the table is
   in `docs/rom_map.md`.
+- **The build is 2 MiB:** `rom.build_size` in `rom_map.yml` expands the image
+  (the base dump stays 1 MiB and is still checked against its SHA-1);
+  `100000–1FFFFF` is free space for new code and data. The IPS writer emits
+  RLE records, so the expansion adds about 140 bytes to the patch.
 
 ### Fixed
 

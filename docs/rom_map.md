@@ -2,24 +2,24 @@
 
 Generated from `rom_map.yml` by `ga3 assets refresh`. Do not edit by hand.
 
-Image: **Golden Axe 3 (RUS) — NEWGAME 2003**, 1048576 bytes, sha1 `e9538c0542b4a05050f5b68d279cddb06559ae20`,
-header checksum `9BB5`, entry point `0FFA20`.
+Base image: **Golden Axe 3 (RUS) — NEWGAME 2003**, 1048576 bytes, sha1 `e9538c0542b4a05050f5b68d279cddb06559ae20`,
+header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 bytes (2 MiB).
 
 ## Coverage
 
 | Type | Bytes | Share |
 |---|---|---|
-| unknown | 533485 | 50.9% |
-| tiles4bpp | 360448 | 34.4% |
-| code | 111060 | 10.6% |
-| pcm | 14880 | 1.4% |
-| nemesis | 14050 | 1.3% |
-| text | 13217 | 1.3% |
-| patch | 910 | 0.1% |
+| free | 1048580 | 50.0% |
+| unknown | 533485 | 25.4% |
+| tiles4bpp | 360448 | 17.2% |
+| code | 111060 | 5.3% |
+| pcm | 14880 | 0.7% |
+| nemesis | 14050 | 0.7% |
+| text | 13217 | 0.6% |
+| patch | 910 | 0.0% |
 | header | 512 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
-| free | 4 | 0.0% |
 
 ## Segments
 
@@ -73,6 +73,7 @@ header checksum `9BB5`, entry point `0FFA20`.
 | `0FB500–0FC000` | unknown | unk_0FB500 |  |  |
 | `0FC000–0FFA20` | pcm | pcm | `sound/pcm/samples.pcm` | PCM sample data; sample table and rate unknown |
 | `0FFA20–100000` | code | entry_stub | `code/entry_stub.m68k` | the translators' relocated entry point; *evidence: reset vector at 0x4 = 000FFA20* |
+| `100000–200000` | free | free_100000 |  | filled with 0xFF; 1 MiB added by rom.build_size: not part of the base ROM; the header's ROM end and checksum follow the new size |
 
 ## Constants (instruction operands, values in `assets/data/gameplay.yml`)
 

@@ -8,7 +8,8 @@ from .conftest import ROOT
 
 def test_real_map_loads_and_covers_the_image():
     rm = rom_map.load(ROOT / "rom_map.yml")
-    assert sum(rm.coverage().values()) == rm.size == 0x100000
+    assert rm.size == 0x100000  # the base ROM
+    assert sum(rm.coverage().values()) == rm.image_size == 0x200000  # the 2 MiB build
     names = {s.name for s in rm.segments}
     for expected in ("vectors", "header", "hp_table", "font", "text_dialogue", "art_main", "pcm"):
         assert expected in names

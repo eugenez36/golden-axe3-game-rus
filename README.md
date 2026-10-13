@@ -150,9 +150,12 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `0E9B00–0EC300`                  | dialogue, credits, ending text                                                                                                                                                                |
 | `0FC000–0FFA20`                  | PCM samples                                                                                                                                                                                   |
 | `0FFA20–100000`                  | the relocated entry stub                                                                                                                                                                      |
+| `100000–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
 
-Free space: **28 bytes** left of the 914 in three verified holes; the patches
-(menu version, menu items, kill counter) hold the rest. About half of the image is
+Free space: **1 MiB** at `100000–1FFFFF` — the build is expanded to 2 MiB
+(`rom.build_size` in `rom_map.yml`; the base dump stays 1 MiB) — plus 28 bytes
+left of the 914 in the original image's three verified holes, which the patches
+(menu version, menu items, kill counter) fill. About half of the base image is
 still `unknown`; `ga3 map` prints the exact figure and the ranges.
 
 ## Roadmap
