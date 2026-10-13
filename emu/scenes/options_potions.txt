@@ -1,0 +1,46 @@
+# Options item БАНКИ МАГИИ (patch options): six items, the new one at row 16
+# and МЕНЮ at row 19. From the default 0: right twice (2), left three times
+# (around to 6); the cursor goes down past МЕНЮ to СЛОЖНОСТЬ and up back to
+# МЕНЮ, where C leaves to the main menu. Stage 1 then starts with six potions:
+# three full jars, FFC8E4 (player 1 object +0x140) = 6 in the dump.
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+screenshot build/shots/options_0_entry.png 2
+press down 6
+press down 6
+press down 6
+press down 6
+wait 20
+screenshot build/shots/options_1_potions.png 2
+press right 6
+press right 6
+wait 20
+screenshot build/shots/options_2_two.png 2
+press left 6
+press left 6
+press left 6
+wait 20
+screenshot build/shots/options_3_six.png 2
+press down 6
+wait 20
+screenshot build/shots/options_4_menu.png 2
+press down 6
+wait 20
+screenshot build/shots/options_5_wrap.png 2
+press up 6
+press c 10
+wait 90
+screenshot build/shots/options_6_left.png 2
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 700
+screenshot build/shots/options_7_stage1.png 2
+dump wram build/dumps/options_stage1_wram.bin
