@@ -18,8 +18,9 @@ against what the base ROM holds there before anything is written.
 Slots (all carved out of verified free space): `menu_version` `0116B6` (0x40),
 `menu_items` `0116F6` (0x20), `kill_counter` `011716–0117FF`, `05AEAA` (0x124)
 and `05B30A` (0x120), `hero_panel` `100000` (0x2000), `difficulty` `102000`
-(0x20 names, 0x60 menu, 0x200 spawn), `options` `102280` (0x10 labels, 0x170
-menu); `102400–1FFFFF` is free.
+(0x20 names, 0x60 menu, 0x200 spawn; 0x60 drop at `102700`), `options`
+`102280` (0x10 labels, 0x170 menu); `102400–1026FF` and `102760–1FFFFF` are
+free.
 
 After a build the pipeline checks that no later segment overwrote a patch's
 slot or edits (a text record covering code did exactly that once).
@@ -210,6 +211,23 @@ While entries wait, the wave is not cleared (`00C66E`) and the stage end does
 not see an empty screen (`00C650`): the next wave and the scroll wait for them.
 The routine that clears the game state at a stage start (`00E552`) empties the
 queue.
+
+**Potions** (section `drop`, `102700`). A gnome (a thief; the bot met them on
+stage 1 and after its cart, where several run through the grass) carries items:
+its count `+0x43` is set when it appears (`009BB0`, from `$EF3E` / `$EF3F`) and
+its kind `+0x42` (0 potions, 1 and 2 meat). Each player's hit that finds it
+carrying drops one (`0098A0–0098C0`): a free item slot (`00BCCA`: `FFD584`, 8 of
+`0xB4`), one item moved from `+0x43` to `+0x44`, an object of type `4C` with its
+frame `+0x14` set to the kind, spawned where the gnome is (`006DEE`, `d5` = the
+new `+0x44` to the item's `+0x8F`, which picks one of nine flights at `0EFAD8`).
+The pick-up (`0009E2`) reads the frame: 0 adds a potion (`000A16`, at most 6).
+At ЖЕСТЬ) (`0098B8`) a potion comes with a second one from no stash, on the
+neighbouring flight (1 and 0, 2 and 3 …, 8 and 7) so the two fly apart: the same
+hits give twice the potions. Meat stays single; when all eight item slots are
+taken the second potion is skipped. Checked with the bot of the copies (stage 1
+and the grass after its cart): four hits on gnomes put two potion objects each
+in the item slots instead of one, and they flew apart
+(`emu/scenes/difficulty_potions.txt`).
 
 The queue (16 entries of 8 bytes, a ring) lives at `FFBF00`: `FFBCC0–FFBFFF` is
 written only by the RAM clear at power-on (watched over all 13 stages). Two

@@ -9,6 +9,12 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+### Added
+
+- **ЖЕСТЬ), twice the potions:** a gnome hit by a player drops two potions
+  instead of one (meat stays single), so the potions keep up with the doubled
+  enemies. New patch section `drop` at `102700`, hook at `0098B8`.
+
 ## [0.37.500] — 2026-10-13
 
 The 2 MiB build, hero stats on the character select, the third difficulty

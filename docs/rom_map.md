@@ -9,14 +9,14 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 
 | Type | Bytes | Share |
 |---|---|---|
-| free | 1039364 | 49.6% |
+| free | 1039268 | 49.6% |
 | unknown | 533485 | 25.4% |
 | tiles4bpp | 360448 | 17.2% |
 | code | 111060 | 5.3% |
 | pcm | 14880 | 0.7% |
 | nemesis | 14050 | 0.7% |
 | text | 13217 | 0.6% |
-| patch | 10126 | 0.5% |
+| patch | 10222 | 0.5% |
 | header | 512 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
@@ -79,7 +79,9 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `102080–102280` | patch | difficulty_spawn |  | filled with 0xFF; difficulty: the hard enemy level and the queue of ordinary enemies spawned twice |
 | `102280–102290` | patch | options_labels |  | filled with 0xFF; labels of the options items this patch adds, 11 characters each (text/options.txt) |
 | `102290–102400` | patch | options_menu |  | filled with 0xFF; options: the item БАНКИ МАГИИ (starting magic potions) and the six-item cursor (assets/patches/options.s) |
-| `102400–200000` | free | free_102400 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
+| `102400–102700` | free | free_102400 |  | filled with 0xFF; free, between the patches added in the 1 MiB of rom.build_size |
+| `102700–102760` | patch | difficulty_drop |  | filled with 0xFF; difficulty: a second potion from a gnome's hit at the hardest level |
+| `102760–200000` | free | free_102760 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
 
 ## Constants (instruction operands, values in `assets/data/gameplay.yml`)
 

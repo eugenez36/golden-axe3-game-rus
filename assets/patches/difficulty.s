@@ -228,3 +228,37 @@ reset:
 ORDINARY_TYPES:
         dc.b    $10, $12, $14, $16, $18, $1A, $1C, $2C, $34, $36, $38, 0
         even
+
+        section drop
+
+; ---------------------------------------------------------------- potions
+
+; replaces `moveq #ITEM,d4` and the first four bytes of
+; `move.b KIND(a0),FRAME(a1)` where a gnome (thief) hit by a player drops one
+; of the items it carries (a0 the gnome, a1 a free item slot, d5 the drop's
+; number, which picks its flight); the game then spawns the item. At HARD a
+; potion comes with a second one from no stash, flying the other way, so a
+; gnome gives twice the potions for the same hits (meat stays single)
+drop:
+        moveq   #ITEM,d4
+        move.b  KIND(a0),FRAME(a1)
+        cmpi.b  #HARD,DIFF.w
+        bne.s   .one
+        tst.b   KIND(a0)                ; 0: potions
+        bne.s   .one
+        btst    #0,DEMO.w
+        bne.s   .one
+        jsr     SPAWN_ITEM              ; the first one; keeps a0, d4, d5
+        jsr     ITEM_SLOT               ; Z set: a1 is a free item slot
+        bne.s   .done
+        clr.b   FRAME(a1)               ; a potion
+        btst    #0,d5                   ; the neighbouring flight: 1-0, 2-3 ...
+        beq.s   .even
+        subq.b  #1,d5
+        bra.s   .one
+.even:  addq.b  #1,d5
+        cmpi.b  #LAST_FLIGHT,d5
+        bls.s   .one
+        moveq   #LAST_FLIGHT-1,d5
+.one:   jmp     SPAWN_ITEM
+.done:  rts

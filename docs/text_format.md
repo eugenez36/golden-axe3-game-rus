@@ -135,4 +135,4 @@ verified.
 Relocating a string means finding and rewriting its pointer; no pointer table
 has been mapped yet. Room for relocated text exists: the build is expanded to
 2 MiB (`rom.build_size`); the new patches start at `100000`, and
-`102400–1FFFFF` is free.
+`102400–1026FF` and `102760–1FFFFF` are free.
