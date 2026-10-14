@@ -119,6 +119,7 @@ committed.
 | difficulty «ЖЕСТЬ)» (#31)     | `58dd06a9…`; patch `difficulty` at `102000–10227F`, hooks at `0152E4`, `00C1BE`, `00C1F6`, `00C1FE`, `00BDBA`, `00C66E`, `00C650`, `00E552`       |
 | БАНКИ МАГИИ (#32)             | `40e686ff…`; patch `options` at `102280–1023FF`, hooks at `0150FE`, `01525A`, `0152C8`, `01543C`, `00E476`; `potions` 0; МЕНЮ's row in `menu.txt` |
 | release 0.37.500              | `5d8d9737…`; against `main`, only the menu version line changes                                                                                   |
+| ЖЕСТЬ) copies at the edge     | `bcbccb7a…`; patch `difficulty` section `place` at `102400–1026FF`, `spawn` changed; no new hook                                                  |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the

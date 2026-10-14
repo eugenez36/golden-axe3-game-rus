@@ -18,8 +18,8 @@ against what the base ROM holds there before anything is written.
 Slots (all carved out of verified free space): `menu_version` `0116B6` (0x40),
 `menu_items` `0116F6` (0x20), `kill_counter` `011716–0117FF`, `05AEAA` (0x124)
 and `05B30A` (0x120), `hero_panel` `100000` (0x2000), `difficulty` `102000`
-(0x20 names, 0x60 menu, 0x200 spawn), `options` `102280` (0x10 labels, 0x170
-menu); `102400–1FFFFF` is free.
+(0x20 names, 0x60 menu, 0x200 spawn; 0x300 place at `102400`), `options`
+`102280` (0x10 labels, 0x170 menu); `102700–1FFFFF` is free.
 
 After a build the pipeline checks that no later segment overwrote a patch's
 slot or edits (a text record covering code did exactly that once).
@@ -196,13 +196,12 @@ exactly the entries of ТРУДНО.
 **Twice.** At ЖЕСТЬ) (not in the demo), once a plain entry of an ordinary type
 (`10 12 14 16 18 1A 1C 2C 34 36 38`, handler `007954`) got an enemy slot
 (`00C1FE`), the entry goes into a queue once more, with the X the game just
-gave it as its absolute position, so the copy comes in where the original did
-(a spot the stage's own data chose; the opposite edge put copies into walls).
-Bosses (`32`, `2E`, `1E`), riders (commands 07/08) and command entries are
-never doubled; an enemy a command handler spawned is copied as a plain enemy.
-Every frame (`00BDBA`, the spawner's frame routine, not run while magic plays)
-the oldest queued entry goes through the game's own spawn routine (`00C0FE`) as
-soon as an enemy slot is free. The game drops an entry that finds no free slot
+gave it. Bosses (`32`, `2E`, `1E`), riders (commands 07/08) and command entries
+are never doubled; an enemy a command handler spawned is copied as a plain
+enemy. Every frame (`00BDBA`, the spawner's frame routine, not run while magic
+plays) the oldest queued entry goes through the game's own spawn routine
+(`00C0FE`) as soon as an enemy slot is free and the previous copy came in at
+least `GAP_FRAMES` (40) frames ago: one at a time. The game drops an entry that finds no free slot
 (`00C1F6`); at ЖЕСТЬ) an ordinary one is queued instead, with its copy, so the
 copies never cost an original. A queued entry is not tested for its level again
 (it passed when it came up; the two-player bonus may have changed since).
@@ -211,10 +210,34 @@ not see an empty screen (`00C650`): the next wave and the scroll wait for them.
 The routine that clears the game state at a stage start (`00E552`) empties the
 queue.
 
+**Where a copy comes in** (section `place`, `102400`). A copy comes in later
+than its original, often much later, so the original's spot is no good: the
+camera has moved on and the spot is behind it, or the original was placed by a
+command handler (dropping in from a ledge, from the back of the stage) and the
+copy, given only the entry, started inside the floor at depth 0 and fell
+through it. So the copy comes in like the game's own edge entries, just past an
+edge of the screen (camera + `150` or camera − `10`, the edge nearer to where
+the original came in first), on ground at the player's level, and walks in.
+The ground comes from the stage's collision boxes, the table the physics step
+reads at `002CAC` (`TERRAIN` `02DE5A`: stage `$C778` → part `$C77A` → 64-pixel
+column → a list of offsets to boxes of seven words: X, depth and height as
+centre and half size, then a type; `002E8E` lands an object on a box only when
+it entered the box by no more than one frame's fall, which is why a spawn
+inside a box falls through it). At the player's depth (or else the entry's) a
+spot is taken when the highest plain box top under it is at most `UP` (120)
+above and `DOWN` (16) below the ground under the player (`+0x74`, written by
+`002EEE`), with no box over that ground within `BODY` (64) and no special box
+(type ≠ 0) at all; the copy starts two pixels above that ground. Each edge tries
+a few X around the edge (`RIGHT_X`, `LEFT_X`: a seam between two boxes or a pit
+right at the edge is common), then the other edge. A copy that finds no spot
+waits; after `WAIT_FRAMES` (240) frames without one it is dropped, so a wave
+never waits for it for ever.
+
 The queue (16 entries of 8 bytes, a ring) lives at `FFBF00`: `FFBCC0–FFBFFF` is
 written only by the RAM clear at power-on (watched over all 13 stages). Two
 places that looked free were not: `FFC480–FFC5FF` is the Nemesis decoder's
 table, rebuilt at every decompression, and `FFC600–FFC700` is the stack.
+`GAP` and `WAIT` are the bytes `FFBF03` and `FFBF04`.
 
 **Checked.** `emu/scenes/difficulty.txt`: the menu both ways and stage 1 with
 four enemies on screen and copies waiting. With a bot (player kept alive) on
@@ -222,7 +245,19 @@ stage 1, every ordinary enemy came exactly twice (41 pairs, the boss once); on
 the 13 stages through the level select, ЖЕСТЬ) finished every stage the same
 bot finished on ТРУДНО, and the stages it did not finish stopped the same way
 on ТРУДНО. The demo spawns the same enemies at the same frames as without the
-patch. ОБЫЧНО and ТРУДНО spawn the same enemies as before. Lag on stage 1: 2.5 %
+patch. ОБЫЧНО and ТРУДНО spawn the same enemies as before.
+`emu/scenes/difficulty_copies.txt`: stage 8, a skeleton's copy walking in from
+the right edge on the floor. Where the copies come in, checked with the same
+bot over the 13 stages (450 rounds each, Work RAM dumped twice a round): copies
+that fell more than 40 below the floor they started on, or stayed alive more
+than 40 pixels off screen for eight dumps, went from 97 of 510 to 25 of 433
+(the rest are steps down to the player's level and enemies the camera left
+behind); no copy waited with every enemy slot empty. With the old placement
+the bot was stuck on stage 8: two skeleton copies stood inside the floor
+(height 825, the floor 953) with HP left, out of reach, and the wave never
+ended; now it finishes the stage. Every other stage got as far as before
+(stage 7 needs the player at the exit's depth, which the bot reaches only by
+chance). Lag on stage 1: 2.5 %
 of frames lost on ЖЕСТЬ) against 1.0 % on ТРУДНО (more often four enemies at
 once).
 

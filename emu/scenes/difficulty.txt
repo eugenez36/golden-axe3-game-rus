@@ -1,9 +1,9 @@
 # Difficulty «ЖЕСТЬ)» (patch difficulty): OPTIONS -> СЛОЖНОСТЬ goes ОБЫЧНО ->
 # ТРУДНО -> ЖЕСТЬ) -> ОБЫЧНО to the right and back to the left; then, on
 # ЖЕСТЬ), back in the main menu (cursor on 1 ИГРОК), stage 1 starts and every
-# enemy of its first wave comes twice: the copy where the original came in,
-# once an enemy slot is free. The last shot has all four enemy slots busy and
-# copies waiting (FFBF00 = 2 in the dump; player 1 kept at full HP).
+# enemy of its first wave comes twice: the copy past a screen edge, on the
+# ground, once an enemy slot is free. The last shot has all four enemy
+# slots busy and copies waiting (FFBF00 = 2 in the dump; P1 kept at full HP).
 include _boot.inc
 press down 6
 press down 6
