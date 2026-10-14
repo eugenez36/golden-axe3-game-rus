@@ -101,15 +101,22 @@ their number in `FFEE70`, which its own end-of-list code (`000044`) uses too.
 A duel has no enemies to count, so there the counters are not drawn at all:
 the game mode (`FFF176`) is 2 for a duel against the computer and 3 once
 player 2 joins it, against 0 and 1 for the one- and two-player games.
-The three digit tiles per player (`6B8–6BA` for player 1, `6BB–6BD` for
-player 2, at VRAM `D700`) are uploaded only when the number differs from the
-one they hold (words `FFC3E4` / `FFC3E6`, set to `FFFF` whenever the HUD is
-not shown, so they are uploaded again when it comes back). The digits are the
-dialogue font's own glyphs, packed to 1 bit a pixel at build time, drawn in
-palette 0's white on blue like a dialogue box. `D700-DFFF` (the unused window
-table) is written by nobody once a stage has started on any of the 13 stages;
-the title and menus use it, which is why the tiles are uploaded again whenever
-the HUD reappears.
+The three digit tiles per player (`6F8–6FA` for player 1, `6FB–6FD` for
+player 2, at VRAM `DF00`) are uploaded when the number differs from the one
+they hold (words `FFC3E4` / `FFC3E6`, set to `FFFF` whenever the HUD is not
+shown, so they are uploaded again when it comes back), and every 256 frames
+anyway (`TICK`, byte `FFC3EA`), so that nothing written over them stays for
+long. The digits are the dialogue font's own glyphs, packed to 1 bit a pixel at
+build time, drawn in palette 0's white on blue like a dialogue box.
+`D000–DFFF` is the window table, unused in play (window off), so the game keeps
+sprite art there: objects' animation frames are DMA'd (`010990`) into
+`D700–DEFF` on stages 2 and 3A, among others. The tiles were at `D700` first,
+and there such a frame replaced the digits by pieces of the object's art (and
+the counter's uploads spoiled the object) until the number next changed: the
+"wrong number" and the artifacts. `DF00–DFFF` is written by nobody in play on
+the 13 stages (450 bot rounds each, every VRAM write watched): only by the
+counter and by the clear at `0122D6` between stages, after which the HUD comes
+back and the tiles are uploaded again.
 
 A counter is drawn only once its HUD's art is in VRAM: the patch reads back the
 first word of each of the player's three HUD blocks (every block starts with a
@@ -133,6 +140,9 @@ after live kills; two players show 7 / 105 and 999 / 999). Three digits
 `stage1_fight`, 62 in 1239 on the 6A fight.
 The HUD art check was verified on VRAM dumped every frame across a spell and a
 stage start of a 2-player game: the digits never show without the HUD art.
+The move to `DF00`: on stage 2, where an object's frames are DMA'd to `D700`,
+the counter showed «26» and then, for as long as the number stayed, pieces of
+that object's art; at `DF00` it shows «26» throughout (same bot, same frames).
 In a duel against the computer and against player 2 both HUDs are drawn and
 no counter is (`emu/scenes/duel_hud.txt`); switching the mode to a duel and
 back in a running 1-player game hides the counter and brings it back with the
