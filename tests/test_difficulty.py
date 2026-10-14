@@ -98,15 +98,19 @@ def test_place_section_assembles_without_hooks():
     for name in ("GAP", "WAIT"):  # beside the queue, in RAM the game never writes
         assert 0xBCC0 <= sym[name] < sym["Q_DATA"]
         assert sym[name] not in (sym["Q_COUNT"], sym["Q_HEAD"], sym["COPYING"])
-    start = labels["RIGHT_X"] - segs["place"].start
-    words = [
-        int.from_bytes(body[start + 2 * i : start + 2 * i + 2], "big", signed=True)
-        for i in range(12)
-    ]
     end = sym["END_X"]
-    assert words[5] == words[11] == end and end not in words[:5] + words[6:11]
-    # the first X of each edge is where the game's placements 1 and 2 put an enemy
-    assert words[0] == 0x150 and words[6] == -0x10
+
+    def table(label):
+        at, out = labels[label] - segs["place"].start, []
+        while (v := int.from_bytes(body[at : at + 2], "big", signed=True)) != end:
+            out.append(v)
+            at += 2
+        return out
+
+    right, left = table("RIGHT_X"), table("LEFT_X")
+    # every X is past the screen (0..0x140) or at most 8 pixels inside it
+    assert all(x >= 0x138 for x in right) and all(x <= 8 for x in left)
+    assert right[0] == 0x150 and left[0] == -0x10
 
 
 @pytest.mark.rom
@@ -142,3 +146,24 @@ def test_copies_use_the_games_edges_and_collision_boxes(baserom):
 
     # stage 1 (stage 3, part 0): the player stands at 937 on a box whose top is 936
     assert max(tops(3, 0, 0x365, 295)) == 936
+
+
+@pytest.mark.rom
+def test_terrain_column_tables_start_with_their_size(baserom):
+    # floor bounds the column with the first offset: lists follow the table
+    _proj, segs = _segs()
+    terrain = segs["place"].get("patch_def")["symbols"]["TERRAIN"]
+    rom = bytes(baserom.data)
+
+    def s16(a):
+        return int.from_bytes(rom[a : a + 2], "big", signed=True)
+
+    met = "0/0 1/0 1/1 2/0 3/0 3/1 4/0 5/0 5/1 6/0 6/1 6/2 6/3 6/4 7/0 7/1 7/3 8/0 8/1 9/0 10/0"
+    met += " 11/0 12/0 17/0 18/0"  # stage/part pairs the bot met
+    seen = [tuple(map(int, pair.split("/"))) for pair in met.split()]
+    for stage, part in seen:
+        a = terrain + s16(terrain + 2 * stage)
+        col = a + s16(a + 2 * part)
+        size = s16(col)
+        offs = [s16(col + i) for i in range(0, size, 2)]
+        assert size > 0 and min(offs) == size and all(o % 2 == 0 for o in offs), (stage, part)

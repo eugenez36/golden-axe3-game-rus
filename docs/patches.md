@@ -214,22 +214,26 @@ queue.
 than its original, often much later, so the original's spot is no good: the
 camera has moved on and the spot is behind it, or the original was placed by a
 command handler (dropping in from a ledge, from the back of the stage) and the
-copy, given only the entry, started inside the floor at depth 0 and fell
-through it. So the copy comes in like the game's own edge entries, just past an
-edge of the screen (camera + `150` or camera − `10`, the edge nearer to where
-the original came in first), on ground at the player's level, and walks in.
-The ground comes from the stage's collision boxes, the table the physics step
-reads at `002CAC` (`TERRAIN` `02DE5A`: stage `$C778` → part `$C77A` → 64-pixel
-column → a list of offsets to boxes of seven words: X, depth and height as
-centre and half size, then a type; `002E8E` lands an object on a box only when
-it entered the box by no more than one frame's fall, which is why a spawn
-inside a box falls through it). At the player's depth (or else the entry's) a
-spot is taken when the highest plain box top under it is at most `UP` (120)
-above and `DOWN` (16) below the ground under the player (`+0x74`, written by
-`002EEE`), with no box over that ground within `BODY` (64) and no special box
-(type ≠ 0) at all; the copy starts two pixels above that ground. Each edge tries
-a few X around the edge (`RIGHT_X`, `LEFT_X`: a seam between two boxes or a pit
-right at the edge is common), then the other edge. A copy that finds no spot
+copy, given only the entry, started inside the floor at depth 0 and fell through
+it. So the copy comes in like the game's own edge entries, just past an edge of
+the screen (camera + `150` or camera − `10`, the edge nearer to where the
+original came in first), on ground at the player's level, and walks in. The
+ground comes from the stage's collision boxes, the table the physics step reads
+at `002CAC` (`TERRAIN` `02DE5A`: stage `$C778` → part `$C77A` → 64-pixel column
+→ a list of offsets to boxes of seven words: X, depth and height as centre and
+half size, then a type; `002E8E` lands an object on a box only when it entered
+the box by no more than one frame's fall, which is why a spawn inside a box
+falls through it). The first column's offset is the size of the column table, so
+`floor` reads no column past the end of a stage (stage 10 has 14 columns, X <
+896, with the camera at 736). At the player's depth (or else the entry's) a spot
+is taken when the highest plain box top under it is at most `UP` (120) above and
+`DOWN` (16) below the ground under the player (`+0x74`, written by `002EEE`),
+with no box over that ground within `BODY` (64) and no special box (type ≠ 0) at
+all; the copy starts two pixels above that ground. Each edge tries a few X
+around the edge (`RIGHT_X`, `LEFT_X`, never more than 8 pixels inside the
+screen: a seam between two boxes or a pit right at the edge is common), then the
+other edge; where neither depth fits (an arena walkable at its edges only nearer
+the back), the middle depth of a floor box there. A copy that finds no spot
 waits; after `WAIT_FRAMES` (240) frames without one it is dropped, so a wave
 never waits for it for ever.
 
@@ -247,19 +251,20 @@ bot finished on ТРУДНО, and the stages it did not finish stopped the same 
 on ТРУДНО. The demo spawns the same enemies at the same frames as without the
 patch. ОБЫЧНО and ТРУДНО spawn the same enemies as before.
 `emu/scenes/difficulty_copies.txt`: stage 8, a skeleton's copy walking in from
-the right edge on the floor. Where the copies come in, checked with the same
-bot over the 13 stages (450 rounds each, Work RAM dumped twice a round): copies
-that fell more than 40 below the floor they started on, or stayed alive more
-than 40 pixels off screen for eight dumps, went from 97 of 510 to 25 of 433
-(the rest are steps down to the player's level and enemies the camera left
-behind); no copy waited with every enemy slot empty. With the old placement
-the bot was stuck on stage 8: two skeleton copies stood inside the floor
-(height 825, the floor 953) with HP left, out of reach, and the wave never
-ended; now it finishes the stage. Every other stage got as far as before
+the right edge on the floor. Where the copies come in, checked with the same bot
+over the 13 stages (450 rounds each, Work RAM dumped twice a round): copies that
+fell more than 40 below the floor they started on, or stayed alive more than 40
+pixels off screen for eight dumps, went from 97 of 510 to 21 of 411 (the rest
+are steps down to the player's level and enemies the camera left behind); no
+copy waited with every enemy slot empty, also in two-player games on four stages
+(41–53 copies each, both players walking), and the demo's Work RAM over 9000
+frames is the same as without the patch; `ga3 lag` loses no more frames. With
+the old placement the bot was stuck on stage 8: two skeleton copies stood inside
+the floor (height 825, the floor 953) with HP left, out of reach, and the wave
+never ended; now it finishes the stage. Every other stage got as far as before
 (stage 7 needs the player at the exit's depth, which the bot reaches only by
-chance). Lag on stage 1: 2.5 %
-of frames lost on ЖЕСТЬ) against 1.0 % on ТРУДНО (more often four enemies at
-once).
+chance). Lag on stage 1: 2.5 % of frames lost on ЖЕСТЬ) against 1.0 % on ТРУДНО
+(more often four enemies at once).
 
 ## Options: БАНКИ МАГИИ (`options`)
 

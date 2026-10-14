@@ -323,15 +323,19 @@ try:
         lsr.w   #3,d4
         andi.w  #$01FF,d4               ; the entry's depth
         bsr.s   floor
+        bne.s   .yes
+        bsr.w   depth                   ; else the middle of a floor there
+        beq.s   .next
+        bsr.s   floor
         beq.s   .next
 .yes:   rts
 .no:    moveq   #0,d7
         rts
 
 RIGHT_X:
-        dc.w    $0150, $0168, $0138, $0180, $0120, END_X
+        dc.w    $0150, $0168, $0138, $0180, END_X
 LEFT_X:
-        dc.w    -$0010, -$0028, $0008, -$0040, $0020, END_X
+        dc.w    -$0010, -$0028, $0008, -$0040, END_X
 
 ; ground at X d2, depth d4 in the stage's collision boxes (TERRAIN, the table
 ; the physics step reads at 002CAC: a word list per 64-pixel column, boxes of
@@ -340,18 +344,8 @@ LEFT_X:
 ; (FLOOR of a2) and no more than DOWN below it, with no box over it within BODY
 ; (a wall, a ledge) and no special box at all. Z clear and d3 the ground
 floor:
-        lea     TERRAIN,a5
-        move.w  STAGE.w,d7
-        add.w   d7,d7
-        adda.w  0(a5,d7.w),a5
-        move.w  SUBSTAGE.w,d7
-        add.w   d7,d7
-        adda.w  0(a5,d7.w),a5
-        move.w  d2,d7
-        lsr.w   #6,d7
-        add.w   d7,d7
-        adda.w  0(a5,d7.w),a5
-        movea.l a5,a4                   ; the column's list; offsets from it
+        bsr.w   column
+        beq.s   .no
         movea.w FLOOR(a2),a1
         lea     UP(a1),a1               ; the highest ground taken
         move.w  #$8000,d3               ; no ground yet
@@ -359,7 +353,7 @@ floor:
         move.w  d7,-(sp)                ; bit 15: the column's last box
         andi.w  #$7FFF,d7
         lea     0(a4,d7.w),a3
-        bsr.s   inside
+        bsr.w   inside
         beq.s   .next1
         tst.w   12(a3)
         bne.s   .next1
@@ -379,7 +373,7 @@ floor:
         move.w  d7,-(sp)
         andi.w  #$7FFF,d7
         lea     0(a4,d7.w),a3
-        bsr.s   inside
+        bsr.w   inside
         beq.s   .next2
         tst.w   12(a3)
         bne.s   .wall                   ; a special box: keep away
@@ -395,6 +389,65 @@ floor:
         moveq   #1,d7                   ; Z clear: ground
         rts
 .wall:  addq.l  #2,sp
+.no:    moveq   #0,d7
+        rts
+
+; a5 and a4: the box list of the column of X d2 (offsets from a4); Z set when
+; the stage has no such column (the first column's offset is the table's size)
+column:
+        lea     TERRAIN,a5
+        move.w  STAGE.w,d7
+        add.w   d7,d7
+        adda.w  0(a5,d7.w),a5
+        move.w  SUBSTAGE.w,d7
+        add.w   d7,d7
+        adda.w  0(a5,d7.w),a5
+        move.w  d2,d7
+        lsr.w   #6,d7
+        add.w   d7,d7
+        cmp.w   (a5),d7
+        bcc.s   .no
+        adda.w  0(a5,d7.w),a5
+        movea.l a5,a4
+        moveq   #1,d7                   ; Z clear
+        rts
+.no:    moveq   #0,d7
+        rts
+
+; d4: the middle depth of the first plain box at X d2 whose top is within UP
+; above and DOWN below the player's ground (an arena whose edges are walkable
+; only at other depths than the player's). Z clear when found
+depth:
+        bsr.s   column
+        beq.s   .no
+        movea.w FLOOR(a2),a1
+        lea     UP(a1),a1
+.box:   move.w  (a5)+,d7
+        move.w  d7,-(sp)
+        andi.w  #$7FFF,d7
+        lea     0(a4,d7.w),a3
+        move.w  d2,d7
+        sub.w   (a3),d7
+        bpl.s   .x
+        move.w  (a3),d7
+        sub.w   d2,d7
+.x:     cmp.w   2(a3),d7
+        bcc.s   .next
+        tst.w   12(a3)
+        bne.s   .next
+        move.w  8(a3),d7
+        add.w   10(a3),d7               ; its top
+        cmpa.w  d7,a1
+        blt.s   .next
+        sub.w   FLOOR(a2),d7
+        cmpi.w  #-DOWN,d7
+        blt.s   .next
+        move.w  4(a3),d4
+        addq.l  #2,sp
+        moveq   #1,d7                   ; Z clear
+        rts
+.next:  tst.w   (sp)+
+        bpl.s   .box
 .no:    moveq   #0,d7
         rts
 
