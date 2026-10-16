@@ -156,9 +156,10 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `0FC000–0FFA20`                  | PCM samples                                                                                                                                                                                   |
 | `0FFA20–100000`                  | the relocated entry stub                                                                                                                                                                      |
 | `100000–102700`                  | the hero stats panel, the «ЖЕСТЬ» difficulty and the БАНКИ МАГИИ option (patches `hero_panel`, `difficulty`, `options`)                                                                       |
-| `102700–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
+| `102700–102760`                  | «ЖЕСТЬ»: the second potion from a gnome's hit (patch `difficulty`)                                                                                                                            |
+| `102760–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
 
-Free space: **about 1 MiB** (1 038 592 bytes) at `102700–1FFFFF` — the build is expanded to 2 MiB
+Free space: **about 1 MiB** (1 038 496 bytes) at `102760–1FFFFF` — the build is expanded to 2 MiB
 (`rom.build_size` in `rom_map.yml`; the base dump stays 1 MiB) — plus 28 bytes
 left of the 914 in the original image's three verified holes, which the patches
 (menu version, menu items, kill counter) fill. About half of the base image is

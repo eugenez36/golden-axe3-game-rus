@@ -167,3 +167,33 @@ def test_terrain_column_tables_start_with_their_size(baserom):
         size = s16(col)
         offs = [s16(col + i) for i in range(0, size, 2)]
         assert size > 0 and min(offs) == size and all(o % 2 == 0 for o in offs), (stage, part)
+
+
+def test_drop_section_hooks_the_gnomes_drop():
+    pytest.importorskip("capstone")
+    from ga3.assets.patch_asset import assembled
+
+    proj, segs = _segs()
+    body, todo, labels = assembled(segs["drop"], proj.paths)
+    assert 0 < len(body) <= segs["drop"].size
+    assert [(e.at, e.expect.hex()) for e in todo] == [(0x0098B8, "784c13680042")]
+    assert todo[0].new == b"\x4e\xf9" + labels["drop"].to_bytes(4, "big")
+
+
+@pytest.mark.rom
+def test_gnome_drop_is_where_the_map_says(baserom):
+    _proj, segs = _segs()
+    sym = segs["drop"].get("patch_def")["symbols"]
+    rom = bytes(baserom.data)
+    # the drop: item slot, one item from the stash, type ITEM, frame = KIND, spawn
+    slot = (sym["ITEM_SLOT"] - 0x0098A8).to_bytes(2, "big", signed=True)
+    assert rom[0x0098A6:0x0098AA] == b"\x4e\xba" + slot
+    drop = f"78{sym['ITEM']:02x}1368{sym['KIND']:04x}{sym['FRAME']:04x}"
+    assert rom[0x0098B8:0x0098C0].hex() == drop
+    spawn = (sym["SPAWN_ITEM"] - 0x0098C2).to_bytes(2, "big", signed=True)
+    assert rom[0x0098C0:0x0098C4] == b"\x60\x00" + spawn
+    # the item's +0x8F indexes 8-byte flights from 0EFAD8: 0..LAST_FLIGHT are sane
+    for i in range(sym["LAST_FLIGHT"] + 1):
+        z = int.from_bytes(rom[0x0EFAD8 + 8 * i + 4 : 0x0EFAD8 + 8 * i + 6], "big", signed=True)
+        assert 0x400 <= z <= 0x600  # upward speed
+    assert rom[0x0084BE:0x0084C4].hex() == "49f9000efad8"
