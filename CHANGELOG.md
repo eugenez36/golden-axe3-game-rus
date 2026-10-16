@@ -11,9 +11,27 @@ hash recorded in `roms.sha1`.
 
 ### Added
 
-- **ЖЕСТЬ), twice the potions:** a gnome hit by a player drops two potions
+- **ЖЕСТЬ, twice the potions:** a gnome hit by a player drops two potions
   instead of one (meat stays single), so the potions keep up with the doubled
   enemies. New patch section `drop` at `102700`, hook at `0098B8`.
+
+### Changed
+
+- **Difficulty «ЖЕСТЬ»:** the third value of OPTIONS → СЛОЖНОСТЬ lost its
+  smiley (was «ЖЕСТЬ)»).
+
+### Fixed
+
+- **ЖЕСТЬ, where the copies come in:** a copy of an enemy now comes in one at
+  a time, just past an edge of the screen, on ground at the player's level
+  found in the stage's collision boxes. It used to come in where its original
+  had, often long after: behind the camera, where it could not reach the
+  player on uneven ground, or inside the floor, where it fell through it; on
+  stage 8 such copies stopped the wave. New patch section `place` at `102400`.
+- **Kill counter artifacts:** the digit tiles moved from VRAM `D700` to `DF00`
+  and are uploaded again every 256 frames. The game keeps objects' animation
+  frames at `D700–DEFF` (stage 2, 3A …), which replaced the digits by pieces of
+  a sprite, read as a wrong number, until the count changed.
 
 ## [0.37.500] — 2026-10-13
 
