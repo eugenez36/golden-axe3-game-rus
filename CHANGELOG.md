@@ -22,6 +22,10 @@ hash recorded in `roms.sha1`.
   had, often long after: behind the camera, where it could not reach the
   player on uneven ground, or inside the floor, where it fell through it; on
   stage 8 such copies stopped the wave. New patch section `place` at `102400`.
+- **Kill counter artifacts:** the digit tiles moved from VRAM `D700` to `DF00`
+  and are uploaded again every 256 frames. The game keeps objects' animation
+  frames at `D700–DEFF` (stage 2, 3A …), which replaced the digits by pieces of
+  a sprite, read as a wrong number, until the count changed.
 
 ## [0.37.500] — 2026-10-13
 

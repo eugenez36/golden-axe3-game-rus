@@ -121,6 +121,7 @@ committed.
 | release 0.37.500              | `5d8d9737…`; against `main`, only the menu version line changes                                                                                   |
 | difficulty «ЖЕСТЬ»            | `bcac7c68…`; the smiley at `102011` becomes a space (and the checksum)                                                                            |
 | ЖЕСТЬ copies at the edge      | `bfb7f0db…`; patch `difficulty` section `place` at `102400–1026FF`, `spawn` changed; no new hook                                                  |
+| kill counter tiles at DF00    | `253d1795…`; `kill_counter` hud: digits at VRAM `DF00` (tiles `6F8–6FD`), uploaded again every 256 frames                                         |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the

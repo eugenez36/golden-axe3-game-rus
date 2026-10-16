@@ -255,6 +255,18 @@ def test_kill_counter_assembles_into_its_three_slots():
     assert labels["tiles"] == segs["tiles"].start
 
 
+def test_kill_counter_digits_live_where_no_sprite_art_goes():
+    proj = _real_project()
+    seg = next(s for s in proj.map.by_type("patch") if s.get("patch") == "kill_counter")
+    sym = seg.get("patch_def")["symbols"]
+    first = sym["DIGITS_VRAM"] // 32
+    assert sym["DIGITS_VRAM"] % 32 == 0 and sym["COUNTER_ATTR"] & 0x07FF == first
+    # six tiles in DF00-DFFF: the game DMAs objects' frames into D700-DEFF
+    assert sym["DIGITS_VRAM"] >= 0xDF00 and sym["DIGITS_VRAM"] + 6 * 32 <= 0xE000
+    taken = range(sym["KILLS"], sym["SHOWN"] + 4)  # both counters and both SHOWN words
+    assert 0xC000 <= sym["TICK"] < 0xC766 and sym["TICK"] not in taken
+
+
 def test_kill_counter_glyphs_come_from_the_font_art():
     from ga3 import font as fontlib
     from ga3.assets.patch_asset import _glyph_tables
