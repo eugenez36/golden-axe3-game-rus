@@ -6,4 +6,4 @@ image apart into editable assets (``ga3 extract``), rebuilds it byte-for-byte
 in ``rom_map.yml``; the code here only knows formats, never addresses.
 """
 
-__version__ = "0.37.500"
+__version__ = "0.37.600"

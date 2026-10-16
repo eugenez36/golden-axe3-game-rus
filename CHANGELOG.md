@@ -9,11 +9,19 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+## [0.37.600] — 2026-10-16
+
+Fixes to «ЖЕСТЬ» and the kill counter: copies come in past a screen edge, on
+the ground; a gnome drops two potions; the counter's digits no longer turn into
+pieces of sprites; the main menu shows `V 0.37.600`.
+
 ### Added
 
 - **ЖЕСТЬ, twice the potions:** a gnome hit by a player drops two potions
   instead of one (meat stays single), so the potions keep up with the doubled
   enemies. New patch section `drop` at `102700`, hook at `0098B8`.
+- **Docs tests:** `tests/test_docs.py` checks that the documents keep up with
+  `rom_map.yml`.
 
 ### Changed
 
@@ -154,7 +162,8 @@ toolkit and documentation work behind them. First release numbered
   screenshots, dumps, watchpoints.
 - CI, pre-commit hooks, bilingual README, contribution and style guides.
 
-[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.500...HEAD
+[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.600...HEAD
+[0.37.600]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.500...v0.37.600
 [0.37.500]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.400...v0.37.500
 [0.37.400]: https://github.com/eugenez36/golden-axe3-game-rus/compare/1e4ccb1...v0.37.400
 [0.3.6]: https://github.com/eugenez36/golden-axe3-game-rus/commit/1e4ccb1
