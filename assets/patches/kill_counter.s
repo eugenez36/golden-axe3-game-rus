@@ -151,21 +151,17 @@ hud:
         suba.l  a3,a3
         cmpi.w  #DUEL,MODE.w            ; a duel has no enemies to count:
         bcc.s   .show                   ; no counters (and both caches reset)
-        move.w  SPR_COUNT.w,d2
-        beq.s   .show
-        cmpi.w  #MAX_SPRITES,d2
-        bhi.s   .show                   ; not a sprite list we know: no HUD
-        move.w  d2,d1
-        lsl.w   #3,d1
+        move.w  SPR_COUNT.w,d2          ; (sprite appends nothing past
+        move.w  d2,d1                   ; MAX_SPRITES, and with no sprite
+        lsl.w   #3,d1                   ; there is no HUD to append to)
         lea     -8(a0,d1.w),a4          ; last sprite
         moveq   #0,d0                   ; sprite index
-.scan:  cmp.w   d2,d0
+        lea     -8(a0),a1
+.scan:  addq.w  #8,a1
+        cmp.w   d2,d0
         bcc.s   .show
         cmpi.w  #HUD_SCAN,d0            ; HUD blocks are among the first sprites
         bcc.s   .show
-        move.w  d0,d1
-        lsl.w   #3,d1
-        lea     0(a0,d1.w),a1
         addq.w  #1,d0
         cmpi.b  #HUD_SIZE,2(a1)         ; 4 x 3 cells
         bne.s   .scan
@@ -178,7 +174,10 @@ hud:
         bne.s   .scan
         movea.l a1,a3
         bra.s   .scan
-.show:  move.l  a2,d1
+.show:  subq.b  #1,TICK.w                ; every 256 frames: upload both again,
+        bne.s   .keep                   ; in case something wrote over the tiles
+        move.l  #-1,SHOWN.w
+.keep:  move.l  a2,d1
         beq.s   .hide1
         move.w  #HUD_P1,d1
         jsr     loaded
