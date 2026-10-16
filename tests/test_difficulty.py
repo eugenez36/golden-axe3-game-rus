@@ -1,4 +1,4 @@
-"""The third difficulty «ЖЕСТЬ)» (patch difficulty) and strings carried by a patch."""
+"""The third difficulty «ЖЕСТЬ» (patch difficulty) and strings carried by a patch."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def test_names_are_three_records_of_six_from_the_slot_start():
     rows = text.parse_strings_file(str(NAMES))
     start = segs["names"].start
     assert [(off, ln) for off, ln, _t in rows] == [(start + 6 * i, 6) for i in range(3)]
-    assert [t for _o, _l, t in rows] == ["ОБЫЧНО", "ТРУДНО", "ЖЕСТЬ)"]
+    assert [t for _o, _l, t in rows] == ["ОБЫЧНО", "ТРУДНО", "ЖЕСТЬ"]
 
 
 def test_patch_assembles_names_and_hooks():
@@ -37,7 +37,7 @@ def test_patch_assembles_names_and_hooks():
 
     proj, segs = _segs()
     body, _todo, labels = assembled(segs["names"], proj.paths)
-    assert body == b"".join(table.encode(t) for t in ("ОБЫЧНО", "ТРУДНО", "ЖЕСТЬ)"))
+    assert body == b"".join(table.encode(t.ljust(6)) for t in ("ОБЫЧНО", "ТРУДНО", "ЖЕСТЬ"))
     assert labels["NAMES"] == segs["names"].start
     _body, todo, _labels = assembled(segs["menu"], proj.paths)
     assert [(e.at, e.expect.hex()) for e in todo] == [(0x0152E4, "d338c7260238")]

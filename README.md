@@ -61,7 +61,7 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
   assembled by the built-in `ga3.m68k` (every instruction form checked with
   Capstone) and hook the game only where the base ROM holds the expected
   bytes. They show each player's kills next to their HUD, the hero stats on
-  the character select, a third difficulty «ЖЕСТЬ)» and OPTIONS → БАНКИ МАГИИ
+  the character select, a third difficulty «ЖЕСТЬ» and OPTIONS → БАНКИ МАГИИ
   ([docs/patches.md](docs/patches.md)).
 - **Emulator as a measuring instrument.** Scripted input, screenshots, VDP and
   RAM dumps, watchpoints, breakpoints and a `dma_hook` added to the core so DMA
@@ -155,7 +155,7 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `0E9B00–0EC300`                  | dialogue, credits, ending text                                                                                                                                                                |
 | `0FC000–0FFA20`                  | PCM samples                                                                                                                                                                                   |
 | `0FFA20–100000`                  | the relocated entry stub                                                                                                                                                                      |
-| `100000–102700`                  | the hero stats panel, the «ЖЕСТЬ)» difficulty and the БАНКИ МАГИИ option (patches `hero_panel`, `difficulty`, `options`)                                                                      |
+| `100000–102700`                  | the hero stats panel, the «ЖЕСТЬ» difficulty and the БАНКИ МАГИИ option (patches `hero_panel`, `difficulty`, `options`)                                                                       |
 | `102700–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
 
 Free space: **about 1 MiB** (1 038 592 bytes) at `102700–1FFFFF` — the build is expanded to 2 MiB
@@ -171,7 +171,7 @@ still `unknown`; `ga3 map` prints the exact figure and the ranges.
 - [x] **v0.30 — Headless emulator** · scenes, screenshots, dumps, watchpoints, `dma_hook`
 - [x] **v0.35 — Reproducible build** · `rom_map.yml`, `assets/`, `build/`, `roms.sha1`, tests, CI
 - [x] **v0.37.400 — Text and kill counter** · proofread text, kill counter up to 999, bug hunt ([CHANGELOG](CHANGELOG.md))
-- [ ] **v0.40 — Gameplay tables** · lives, credits and starting magic potions done (`ga3 balance`), hero stats on the select screen, difficulty «ЖЕСТЬ)»; timers next (method ready in `ga3 ramsearch`)
+- [ ] **v0.40 — Gameplay tables** · lives, credits and starting magic potions done (`ga3 balance`), hero stats on the select screen, difficulty «ЖЕСТЬ»; timers next (method ready in `ga3 ramsearch`)
 - [ ] **v0.50 — Palettes and tilemaps in ROM** · turn the grey tile sheets into real colours
 - [ ] **v1.00 — Release IPS** · verified patch with RU + EN docs
 
@@ -186,7 +186,7 @@ removes flicker; numbers in [docs/emulator.md](docs/emulator.md#lag-and-overcloc
 The small blue box right of each HUD counts the enemies that player has killed
 (up to 999); it starts from zero when a game mode is chosen in the main menu
 and is not shown in a duel. On the character select a panel shows the stats
-of the hero under each cursor. OPTIONS adds a third difficulty, «ЖЕСТЬ)» (every
+of the hero under each cursor. OPTIONS adds a third difficulty, «ЖЕСТЬ» (every
 ordinary enemy comes twice), and БАНКИ МАГИИ: the magic potions a player gets
 when they have none, 0–6 (default 0).
 

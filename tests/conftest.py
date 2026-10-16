@@ -14,7 +14,6 @@ Two kinds of test image:
 from __future__ import annotations
 
 import hashlib
-import shutil
 import struct
 from dataclasses import dataclass
 from functools import lru_cache
@@ -216,8 +215,3 @@ def synthetic_extracted(synthetic_project) -> Synth:
     """The synthetic project after ``extract``: every asset file is on disk."""
     pl.extract_all(synthetic_project.project, synthetic_project.rom, log=lambda *_: None)
     return synthetic_project
-
-
-def copy_tree(src: Path, dst: Path) -> Path:
-    shutil.copytree(src, dst)
-    return dst
