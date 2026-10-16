@@ -83,3 +83,87 @@ def test_text_commands_see_the_names():
     units = {seg.name: path for seg, path, _s in _text_units(proj)}
     assert units["difficulty_names"] == NAMES
     assert "difficulty_menu" not in units and "difficulty_spawn" not in units
+
+
+def test_place_section_assembles_without_hooks():
+    pytest.importorskip("capstone")
+    from ga3.assets.patch_asset import assembled
+
+    proj, segs = _segs()
+    body, todo, labels = assembled(segs["place"], proj.paths)
+    assert 0 < len(body) <= segs["place"].size and todo == []
+    _body, _todo, spawn = assembled(segs["spawn"], proj.paths)
+    assert spawn["frame"] < segs["place"].start <= labels["pop"]  # frame reaches pop with jsr
+    sym = segs["place"].get("patch_def")["symbols"]
+    for name in ("GAP", "WAIT"):  # beside the queue, in RAM the game never writes
+        assert 0xBCC0 <= sym[name] < sym["Q_DATA"]
+        assert sym[name] not in (sym["Q_COUNT"], sym["Q_HEAD"], sym["COPYING"])
+    end = sym["END_X"]
+
+    def table(label):
+        at, out = labels[label] - segs["place"].start, []
+        while (v := int.from_bytes(body[at : at + 2], "big", signed=True)) != end:
+            out.append(v)
+            at += 2
+        return out
+
+    right, left = table("RIGHT_X"), table("LEFT_X")
+    # every X is past the screen (0..0x140) or at most 8 pixels inside it
+    assert all(x >= 0x138 for x in right) and all(x <= 8 for x in left)
+    assert right[0] == 0x150 and left[0] == -0x10
+
+
+@pytest.mark.rom
+def test_copies_use_the_games_edges_and_collision_boxes(baserom):
+    _proj, segs = _segs()
+    sym = segs["place"].get("patch_def")["symbols"]
+    rom = bytes(baserom.data)
+    assert rom[0x00C11C:0x00C120].hex() == "06450150"  # placement 1: addi.w #$150,d5
+    assert rom[0x00C12A:0x00C12E].hex() == "04450010"  # placement 2: subi.w #$10,d5
+    lea = 0x002CAC
+    assert rom[lea : lea + 2].hex() == "4bf9"
+    assert int.from_bytes(rom[lea + 2 : lea + 6], "big") == sym["TERRAIN"]
+    assert rom[lea + 6 : lea + 10].hex() == f"3c38{sym['STAGE']:04x}".lower()
+    assert rom[0x002EEE:0x002EF2].hex() == f"3146{sym['FLOOR']:04x}"  # move.w d6,$74(a0)
+
+    def word(a):
+        return int.from_bytes(rom[a : a + 2], "big")
+
+    def tops(stage, part, x, z):
+        a = sym["TERRAIN"]
+        a += word(a + 2 * stage)
+        a += word(a + 2 * part)
+        col = a + word(a + 2 * (x >> 6))
+        found, at = [], col
+        while True:
+            off = word(at)
+            at += 2
+            box = [word(col + (off & 0x7FFF) + 2 * i) for i in range(7)]
+            if abs(x - box[0]) < box[1] and abs(z - box[2]) < box[3] and box[6] == 0:
+                found.append(box[4] + box[5])
+            if off & 0x8000:
+                return found
+
+    # stage 1 (stage 3, part 0): the player stands at 937 on a box whose top is 936
+    assert max(tops(3, 0, 0x365, 295)) == 936
+
+
+@pytest.mark.rom
+def test_terrain_column_tables_start_with_their_size(baserom):
+    # floor bounds the column with the first offset: lists follow the table
+    _proj, segs = _segs()
+    terrain = segs["place"].get("patch_def")["symbols"]["TERRAIN"]
+    rom = bytes(baserom.data)
+
+    def s16(a):
+        return int.from_bytes(rom[a : a + 2], "big", signed=True)
+
+    met = "0/0 1/0 1/1 2/0 3/0 3/1 4/0 5/0 5/1 6/0 6/1 6/2 6/3 6/4 7/0 7/1 7/3 8/0 8/1 9/0 10/0"
+    met += " 11/0 12/0 17/0 18/0"  # stage/part pairs the bot met
+    seen = [tuple(map(int, pair.split("/"))) for pair in met.split()]
+    for stage, part in seen:
+        a = terrain + s16(terrain + 2 * stage)
+        col = a + s16(a + 2 * part)
+        size = s16(col)
+        offs = [s16(col + i) for i in range(0, size, 2)]
+        assert size > 0 and min(offs) == size and all(o % 2 == 0 for o in offs), (stage, part)

@@ -1,0 +1,367 @@
+# Difficulty ЖЕСТЬ (patch difficulty), where the copies come in: stage 8
+# through the level select (FFF18B/FFF18A poked on the hero select, see
+# docs/ru/journal.md); player 1 kept at full HP, enemies set to 1 HP and a
+# spell every third round. Before the fix copies of the skeletons came in
+# where the originals had been placed by the stage, often at depth 0 and
+# below the floor, and fell through it; now each comes in past a screen
+# edge, on the floor (height 953), one at a time. The shot has a skeleton
+# copy walking in from the right edge; the dump has it in an enemy slot.
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+press right 6
+wait 20
+press right 6
+wait 20
+press start 10
+wait 90
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 0C
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 0C
+wait 500
+press start 10
+wait 400
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFC8E4 01
+press a 4
+wait 150
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+poke8 FFC8E6 33
+hold right 15
+screenshot build/shots/difficulty_copies.png 2
+dump wram build/dumps/difficulty_copies_wram.bin

@@ -14,6 +14,15 @@ hash recorded in `roms.sha1`.
 - **Difficulty «ЖЕСТЬ»:** the third value of OPTIONS → СЛОЖНОСТЬ lost its
   smiley (was «ЖЕСТЬ)»).
 
+### Fixed
+
+- **ЖЕСТЬ, where the copies come in:** a copy of an enemy now comes in one at
+  a time, just past an edge of the screen, on ground at the player's level
+  found in the stage's collision boxes. It used to come in where its original
+  had, often long after: behind the camera, where it could not reach the
+  player on uneven ground, or inside the floor, where it fell through it; on
+  stage 8 such copies stopped the wave. New patch section `place` at `102400`.
+
 ## [0.37.500] — 2026-10-13
 
 The 2 MiB build, hero stats on the character select, the third difficulty
