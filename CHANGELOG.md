@@ -9,6 +9,11 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+### Changed
+
+- **Difficulty «ЖЕСТЬ»:** the third value of OPTIONS → СЛОЖНОСТЬ lost its
+  smiley (was «ЖЕСТЬ)»).
+
 ## [0.37.500] — 2026-10-13
 
 The 2 MiB build, hero stats on the character select, the third difficulty

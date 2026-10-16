@@ -1,4 +1,4 @@
-; Difficulty «ЖЕСТЬ)»: the hard enemy set, and every ordinary enemy twice.
+; Difficulty «ЖЕСТЬ»: the hard enemy set, and every ordinary enemy twice.
 ;
 ; Assembled by ga3.m68k when the difficulty patch segments are built. Every
 ; upper-case name is a symbol from rom_map.yml; NAMES (the three menu names,
