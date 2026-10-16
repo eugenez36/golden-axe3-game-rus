@@ -123,6 +123,7 @@ committed.
 | ЖЕСТЬ copies at the edge      | `bfb7f0db…`; patch `difficulty` section `place` at `102400–1026FF`, `spawn` changed; no new hook                                                  |
 | kill counter tiles at DF00    | `253d1795…`; `kill_counter` hud: digits at VRAM `DF00` (tiles `6F8–6FD`), uploaded again every 256 frames                                         |
 | ЖЕСТЬ twice the potions       | `c7528fb0…`; patch `difficulty` section `drop` at `102700–10275F`, hook at `0098B8`                                                               |
+| release 0.37.600              | `440fdd3c…`; against `main`, only the menu version line changes                                                                                   |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the
