@@ -26,6 +26,12 @@ listed for a section become ``jmp label.l`` over the six bytes they name.
 the offsets are the records' addresses in that section's slot, in order from
 its start, each padded with spaces to its length.
 
+``pointers: {section: [[0xADDRESS, 'hex bytes', VALUE], ...]}`` overwrites the
+named bytes (1, 2 or 4 of them) with VALUE, a label, symbol or number with an
+optional ``+n``/``-n``: how a patch points the game's own code at new data
+(the long of a ``lea abs.l``, a ``moveq`` count, a table entry). ``art:``
+builds that data from indexed PNGs (``ga3.screen``), see ``_art_tables``.
+
 ``fill`` is the free-space byte the unused tail of the slot keeps. Every edit
 is checked against the image before anything is written, so a map that drifted
 from the code fails the build instead of corrupting it; after the whole build
@@ -34,12 +40,13 @@ the pipeline checks again that no later segment overwrote a patch.
 
 from __future__ import annotations
 
+import re
 import struct
 from dataclasses import dataclass
 from pathlib import Path
 
+from .. import enigma, m68k, nemesis, patches, screen, table, text
 from .. import font as fontlib
-from .. import m68k, patches, table, text
 from ..rom import Rom
 from ..rom_map import Segment
 from .base import BuildError, Handler, Paths
@@ -301,6 +308,118 @@ def _panel_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
     }  # fmt: skip
 
 
+def _bytes(label: str, data: bytes) -> list[str]:
+    src = ["        even", f"{label}:"]
+    src += [
+        f"        dc.b    {', '.join(f'${b:02X}' for b in data[i : i + 16])}"
+        for i in range(0, len(data), 16)
+    ]
+    return src
+
+
+def _art_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
+    """Tiles, maps and palettes from indexed PNGs (``ga3.screen``), as source text.
+
+    ``art: {section, planes, sprites, palettes, raw}`` under the patch:
+
+    ``planes``: ``{tiles: LABEL, files: [[png, MAP_LABEL], ...], max_tiles: n}``
+        the files' distinct cells, shared, Nemesis-packed at LABEL; each file's
+        map Enigma-packed at its MAP_LABEL. A map word is the tile's index in
+        the block: the game's decoder adds the base attribute and first tile.
+    ``sprites``: ``{tiles: LABEL, file: png, pieces: [[x, y, w, h], ...]}``
+        the cells of each piece, column by column, Nemesis-packed.
+    ``palettes``: ``{label: LABEL, file: png, colours: n}`` n CRAM words.
+    ``raw``: ``{label: LABEL, file: png}`` the cells as plain 4bpp tiles.
+
+    Every tile block also defines LABEL_COUNT (its tiles), every palette
+    LABEL_COLOURS.
+    """
+    spec = seg.get("patch_def").get("art")
+    if not spec:
+        return "", {}
+    loaded: dict[str, screen.Art] = {}
+
+    def art(rel: str) -> screen.Art:
+        if rel not in loaded:
+            try:
+                loaded[rel] = screen.load(paths.asset(rel))
+            except (OSError, ValueError) as exc:
+                raise BuildError(f"{seg}: art: {exc}") from None
+        return loaded[rel]
+
+    src = [f"        section {spec['section']}"]
+    syms: dict[str, int] = {}
+    for item in spec.get("planes", []):
+        tiles, maps = screen.plane([art(f) for f, _label in item["files"]], 0)
+        count = len(tiles) // 32
+        if count > item.get("max_tiles", count):
+            raise BuildError(
+                f"{seg}: art {item['tiles']}: {count} tiles, at most {item['max_tiles']}"
+            )
+        src += _bytes(item["tiles"], nemesis.compress(tiles))
+        syms[f"{item['tiles']}_COUNT"] = count
+        for (_f, label), words in zip(item["files"], maps, strict=True):
+            src += _bytes(label, enigma.compress(words))
+    for item in spec.get("sprites", []):
+        try:
+            tiles = screen.sprite(art(item["file"]), [tuple(p) for p in item["pieces"]])
+        except ValueError as exc:
+            raise BuildError(f"{seg}: art {item['tiles']}: {exc}") from None
+        src += _bytes(item["tiles"], nemesis.compress(tiles))
+        syms[f"{item['tiles']}_COUNT"] = len(tiles) // 32
+    for item in spec.get("palettes", []):
+        try:
+            words = screen.palette_words(art(item["file"]), item["colours"])
+        except ValueError as exc:
+            raise BuildError(f"{seg}: art {item['label']}: {exc}") from None
+        src += ["        even", *_words(item["label"], words)]
+        syms[f"{item['label']}_COLOURS"] = len(words)
+    for item in spec.get("raw", []):
+        img = art(item["file"])
+        tiles = b"".join(img.cell(cx, cy) for cy in range(img.rows) for cx in range(img.cols))
+        src += _bytes(item["label"], tiles)
+        syms[f"{item['label']}_COUNT"] = len(tiles) // 32
+    return "\n".join(src) + "\n", syms
+
+
+def _art_files(pdef: dict) -> list[str]:
+    spec = pdef.get("art") or {}
+    files = [f for item in spec.get("planes", []) for f, _label in item["files"]]
+    files += [item["file"] for key in ("sprites", "palettes", "raw") for item in spec.get(key, [])]
+    return list(dict.fromkeys(files))
+
+
+def _pointers(seg: Segment) -> list[tuple[int, bytes, str]]:
+    """``(address, expected bytes, value expression)`` for this segment's section."""
+    pdef, section = seg.get("patch_def"), seg.get("section")
+    out = []
+    for item in (pdef.get("pointers") or {}).get(section, []):
+        if not (isinstance(item, list) and len(item) == 3 and isinstance(item[0], int)):
+            raise BuildError(f"{seg}: pointer {item!r} must be [0xADDRESS, 'hex bytes', value]")
+        try:
+            expect = bytes.fromhex(item[1])
+        except (TypeError, ValueError):
+            raise BuildError(f"{seg}: pointer bytes {item[1]!r} are not hex") from None
+        if len(expect) not in (1, 2, 4):
+            raise BuildError(f"{seg}: a pointer replaces 1, 2 or 4 bytes, got {len(expect)}")
+        out.append((item[0], expect, str(item[2])))
+    return out
+
+
+def _value(expr: str, names: dict[str, int], where: str) -> int:
+    total = 0
+    for sign, term in re.findall(r"([+-]?)\s*([^+\-\s]+)", expr.replace(" ", "")):
+        if term in names:
+            v = names[term]
+        else:
+            try:
+                v = int(term, 0) if not term.startswith("$") else int(term[1:], 16)
+            except ValueError:
+                raise BuildError(f"{where}: unknown name {term!r} in {expr!r}") from None
+        total += -v if sign == "-" else v
+    return total
+
+
 def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, int]]:
     """Assemble the patch this segment belongs to: its section's bytes, its hooks, the labels."""
     pdef = seg.get("patch_def")
@@ -309,8 +428,9 @@ def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, 
         raise BuildError(f"{seg}: missing patch source {source}")
     extra, derived = _glyph_tables(seg, paths)
     panel_src, panel_syms = _panel_tables(seg, paths)
-    extra += panel_src + _string_tables(seg, paths)
-    symbols = {**(pdef.get("symbols") or {}), **derived, **panel_syms}
+    art_src, art_syms = _art_tables(seg, paths)
+    extra += panel_src + art_src + _string_tables(seg, paths)
+    symbols = {**(pdef.get("symbols") or {}), **derived, **panel_syms, **art_syms}
     try:
         out, labels = m68k.assemble_sections(
             source.read_text(encoding="utf-8") + "\n" + extra, seg.get("sections"), symbols
@@ -322,19 +442,36 @@ def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, 
         if label not in labels:
             raise BuildError(f"{seg}: hook at {at:06X} names unknown label {label!r}")
         todo.append(Edit(at, expect, patches.jmp_abs(labels[label])))
+    names = {**symbols, **labels}
+    for at, expect, expr in _pointers(seg):
+        value = _value(expr, names, f"{seg}: pointer at {at:06X}")
+        if (
+            not 0 <= value < 1 << (8 * len(expect))
+            and not -(1 << (8 * len(expect) - 1)) <= value < 0
+        ):
+            raise BuildError(
+                f"{seg}: pointer at {at:06X}: {expr} = {value:#x} does not fit {len(expect)} bytes"
+            )
+        todo.append(
+            Edit(at, expect, (value & ((1 << (8 * len(expect))) - 1)).to_bytes(len(expect), "big"))
+        )
+    spans = sorted((e.at, e.end) for e in todo)
+    for (a0, a1), (b0, _b1) in zip(spans, spans[1:], strict=False):
+        if b0 < a1:
+            raise BuildError(f"{seg}: edits at {a0:06X} and {b0:06X} overlap")
     return out[seg.get("section")], todo, labels
 
 
 def touched(seg: Segment) -> list[tuple[int, int]]:
     """Every byte range a patch segment writes outside its own slot (no assembly needed)."""
     if seg.get("patch_def") is not None:
-        return [(at, at + len(expect)) for at, expect, _l in _hooks(seg)]
+        return [(at, at + len(expect)) for at, expect, _l in _hooks(seg) + _pointers(seg)]
     return [(e.at, e.end) for e in edits(seg)]
 
 
 def _expected(seg: Segment) -> list[tuple[int, bytes]]:
     if seg.get("patch_def") is not None:
-        return [(at, expect) for at, expect, _l in _hooks(seg)]
+        return [(at, expect) for at, expect, _l in _hooks(seg) + _pointers(seg)]
     return [(e.at, e.expect) for e in edits(seg)]
 
 
@@ -368,6 +505,7 @@ class PatchHandler(Handler):
                 found += [paths.asset(pdef["panel"]["art"]), paths.asset(pdef["panel"]["data"])]
             if pdef.get("strings"):
                 found.append(paths.asset(pdef["strings"]["path"]))
+            found += [paths.asset(f) for f in _art_files(pdef)]
             return found
         if seg.get("strings_path") is None:
             return []  # generated from code; nothing under assets/

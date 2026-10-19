@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/branding/banner.svg" alt="Golden Axe III — ROM hacking toolkit" width="100%">
+<img src="docs/branding/banner.png" alt="Golden Axe III — the title and the main menu of this build, captured in the emulator" width="100%">
 
 **English** · [Русский](README.ru.md)
 
@@ -37,7 +37,7 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
 - **Reproducible build.** `make` rebuilds the image from `assets/`; `make verify`
   checks it against `roms.sha1`. Freshly extracted assets give back the base
   ROM to the byte; the committed ones give the build recorded in `roms.sha1`.
-- **The ROM, taken apart.** Header and vectors as YAML, 224 strings in eleven text
+- **The ROM, taken apart.** Header and vectors as YAML, 226 strings in twelve text
   files, the font as text art, 14 Nemesis blocks, 22 indexed-PNG sheets of tile
   art, the PCM region, the HP table and gameplay constants, the hero panel's
   data, six captured palettes and Capstone listings
@@ -131,10 +131,10 @@ assets/           the ROM taken apart — see STYLE.md for what is committed
   palettes/       *.pal captured from the emulator (no ROM source known yet)
   sound/pcm/      samples.pcm
   data/           hp_table.yml, gameplay.yml (lives, credits, potions), hero_panel.yml
-  patches/        *.s: 68000 sources of the assembled patches (kill_counter, hero_panel, difficulty, options)
+  patches/        *.s: 68000 sources of the assembled patches (kill_counter, hero_panel, difficulty, options, menus)
   code/asm/       Capstone listings (generated)
 build/            everything derived (ignored): ROM, IPS, emulator, shots, dumps, previews
-src/ga3/          the toolkit: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · patches · m68k · constants · hero_panel · balance · disasm · ramsearch · lag · cli
+src/ga3/          the toolkit: rom · nemesis · enigma · table · text · font · tiles · palette · screen · banner_art · rom_map · assets/ · pipeline · patches · m68k · constants · hero_panel · balance · disasm · ramsearch · lag · cli
 tests/            pytest; ROM-free fixtures plus ROM-gated tests
 emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
 docs/             README (index) · build · text_format · nemesis · font · emulator · patches · heroes · rom_map (generated) · evidence/ · images/ · branding/ · ru/journal.md · ru/proofreading.md
@@ -157,9 +157,10 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `0FFA20–100000`                  | the relocated entry stub                                                                                                                                                                      |
 | `100000–102700`                  | the hero stats panel, the «ЖЕСТЬ» difficulty and the БАНКИ МАГИИ option (patches `hero_panel`, `difficulty`, `options`)                                                                       |
 | `102700–102760`                  | «ЖЕСТЬ»: the second potion from a gnome's hit (patch `difficulty`)                                                                                                                            |
-| `102760–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
+| `102760–104920`                  | the menus in the banner's style: code, the bar's text, tiles, maps and palettes (patch `menus`)                                                                                               |
+| `104920–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
 
-Free space: **about 1 MiB** (1 038 496 bytes) at `102760–1FFFFF` — the build is expanded to 2 MiB
+Free space: **about 1 MiB** (1 029 856 bytes) at `104920–1FFFFF` — the build is expanded to 2 MiB
 (`rom.build_size` in `rom_map.yml`; the base dump stays 1 MiB) — plus 28 bytes
 left of the 914 in the original image's three verified holes, which the patches
 (menu version, menu items, kill counter) fill. About half of the base image is

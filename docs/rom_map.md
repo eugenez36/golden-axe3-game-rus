@@ -9,14 +9,14 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 
 | Type | Bytes | Share |
 |---|---|---|
-| free | 1038500 | 49.5% |
+| free | 1029860 | 49.1% |
 | unknown | 533485 | 25.4% |
 | tiles4bpp | 360448 | 17.2% |
 | code | 111060 | 5.3% |
+| patch | 19630 | 0.9% |
 | pcm | 14880 | 0.7% |
 | nemesis | 14050 | 0.7% |
 | text | 13217 | 0.6% |
-| patch | 10990 | 0.5% |
 | header | 512 | 0.0% |
 | data | 6 | 0.0% |
 | table | 4 | 0.0% |
@@ -31,7 +31,7 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `000284–00E492` | code | code_boot | `code/code_boot.m68k` |  |
 | `00E492–00E496` | table | hp_table | `data/hp_table.yml` | format u8; maximum HP by max-HP level (object +0x144, 0..3): the same for every hero, who all start at level 0 (51); see docs/heroes.md; *evidence: watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0 with d0 = +0x144; +0x144 is raised by an item of kind >= 3 up to 3 (0009FA) and set to 3 in a duel (00DB42); all four heroes start with +0x144 = 0 and HP 51 (RAM dumps after picking each); the HUD bar holds 51 + 8 x level (010514)* |
 | `00E496–0116B6` | code | code_main_a | `code/code_main_a.m68k` | includes the healing cap at 00E49C and HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag); *evidence: frame_wait: disasm 00F006 bclr #0,$c70a / btst #0,$c70a / beq; the VBlank handler 0108F4 sets that bit (010906, 01096E); one call per frame in play (emu/scenes/stage1_fight.txt)* |
-| `0116B6–0116F6` | patch | menu_version |  | filled with 0xFF; draws 'V \<package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6; *evidence: disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n\*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)* |
+| `0116B6–0116F6` | patch | menu_version |  | filled with 0xFF; draws 'V \<package version>' right-aligned at plane A row 26, ending at column 24 (the middle of patch menus' bottom bar; column 38 until then); carved out of free_0116B6; *evidence: disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n\*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)* |
 | `0116F6–011716` | patch | menu_items |  | filled with 0xFF; main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6; *evidence: disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings* |
 | `011716–011800` | patch | kill_counter_count |  | filled with 0xFF; kill counter: the damage and object-free hooks and the new-game reset (assets/patches/kill_counter.s) |
 | `011800–013E76` | code | code_main_b | `code/code_main_b.m68k` | NemDec 0122FC, NemDecToRAM 01230E, code table builder 0123B2; ASCII SEGA licence text 0136BA (3x21) and region lock text 013DD0 (6x25), not in the game font, left as code; *evidence: strings: disasm 01373C lea $13752(pc,d1.w) + moveq #2 (1Р/2Р/КОМ, 3 each); 013B5C lea $13b94(pc) + moveq #4 (ПАУЗА); licence 01368E lea $136ba(pc), moveq #2 / #$14; region 013DA2 lea $13dd0(pc), moveq #5 / #$18* |
@@ -81,7 +81,10 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `102290–102400` | patch | options_menu |  | filled with 0xFF; options: the item БАНКИ МАГИИ (starting magic potions) and the six-item cursor (assets/patches/options.s) |
 | `102400–102700` | patch | difficulty_place |  | filled with 0xFF; difficulty: where a queued copy comes in (past a screen edge, on ground at the player's level) |
 | `102700–102760` | patch | difficulty_drop |  | filled with 0xFF; difficulty: a second potion from a gnome's hit at the hardest level |
-| `102760–200000` | free | free_102760 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
+| `102760–102900` | patch | menus_code |  | filled with 0xFF; menus: cloud drift, cursor tile, bottom bar, the III sprite mapping (assets/patches/menus.s) |
+| `102900–102920` | patch | menus_text |  | filled with 0xFF; menus: the bottom bar's fixed text (text/menus.txt) |
+| `102920–104920` | patch | menus_art |  | filled with 0xFF; menus: tiles, maps and palettes from assets/gfx/screens/\*.png (ga3 banner-art) |
+| `104920–200000` | free | free_104920 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
 
 ## Constants (instruction operands, values in `assets/data/gameplay.yml`)
 

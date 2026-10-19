@@ -3,9 +3,10 @@
 A CRAM word is ``----BBB-GGG-RRR-``: three 3-bit components, bits 0, 4, 8 and
 12..15 always zero. Brightness levels follow Genesis Plus GX in "normal" mode.
 
-No palette has been located in this ROM yet: the DMA log shows CRAM is always
-filled from Work RAM (FFE51A / FFF200). The ``.pal`` files under
-``assets/palettes/`` therefore come from emulator CRAM dumps and serve as a
+The DMA log shows CRAM is always filled from Work RAM (FFE51A / FFF200); the
+routine at 01209E copies palettes there from ROM (the title's at 0EB200,
+0EB278, 0EB2A2 -- patch ``menus`` points the game at new ones). The ``.pal``
+files under ``assets/palettes/`` come from emulator CRAM dumps and serve as a
 rendering reference, not as build inputs.
 """
 

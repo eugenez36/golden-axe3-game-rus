@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/branding/banner.svg" alt="Golden Axe III — тулкит для ромхакинга" width="100%">
+<img src="docs/branding/banner.png" alt="Golden Axe III — титул и главное меню этой сборки, снятые в эмуляторе" width="100%">
 
 [English](README.md) · **Русский**
 
@@ -37,7 +37,7 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
 - **Воспроизводимая сборка.** `make` пересобирает образ из `assets/`, `make verify`
   сверяет его с `roms.sha1`. Свежеизвлечённые ресурсы дают эталонный ROM байт
   в байт, закоммиченные — сборку, записанную в `roms.sha1`.
-- **ROM, разобранный до винтика.** Заголовок и векторы в YAML, 224 строки в одиннадцати
+- **ROM, разобранный до винтика.** Заголовок и векторы в YAML, 226 строк в двенадцати
   текстовых файлах, шрифт как текстовый арт, 14 Nemesis-блоков, 22 индексированных
   PNG-листа тайлового арта, область PCM, таблица HP и геймплейные константы,
   данные панели героев, шесть снятых палитр и листинги
@@ -130,10 +130,10 @@ assets/           ROM, разобранный на части — что ком�
   palettes/       *.pal, снятые в эмуляторе (источник в ROM пока не найден)
   sound/pcm/      samples.pcm
   data/           hp_table.yml, gameplay.yml (жизни, кредиты, зелья), hero_panel.yml
-  patches/        *.s: исходники собираемых патчей на 68000 (kill_counter, hero_panel, difficulty, options)
+  patches/        *.s: исходники собираемых патчей на 68000 (kill_counter, hero_panel, difficulty, options, menus)
   code/asm/       листинги Capstone (генерируются)
 build/            всё производное (игнорируется): ROM, IPS, эмулятор, скриншоты, дампы, превью
-src/ga3/          тулкит: rom · nemesis · table · text · font · tiles · palette · rom_map · assets/ · pipeline · patches · m68k · constants · hero_panel · balance · disasm · ramsearch · lag · cli
+src/ga3/          тулкит: rom · nemesis · enigma · table · text · font · tiles · palette · screen · banner_art · rom_map · assets/ · pipeline · patches · m68k · constants · hero_panel · balance · disasm · ramsearch · lag · cli
 tests/            pytest; фикстуры без ROM плюс тесты, требующие ROM
 emu/              gpgx (submodule) · patches/ · headless/ · scenes/ · explore/
 docs/             README (оглавление) · build · text_format · nemesis · font · emulator · patches · heroes · rom_map (генерируется) · evidence/ · images/ · branding/ · ru/journal.md · ru/proofreading.md
@@ -156,9 +156,10 @@ docs/             README (оглавление) · build · text_format · nemes
 | `0FFA20–100000`                  | перенесённый входной стаб                                                                                                                                                |
 | `100000–102700`                  | панель характеристик героев, сложность «ЖЕСТЬ» и пункт БАНКИ МАГИИ (патчи `hero_panel`, `difficulty`, `options`)                                                         |
 | `102700–102760`                  | «ЖЕСТЬ»: второе зелье от удара по гному (патч `difficulty`)                                                                                                              |
-| `102760–200000`                  | свободно: сборка расширена до 2 МБ (`rom.build_size`)                                                                                                                    |
+| `102760–104920`                  | меню в стиле баннера: код, текст нижней полосы, тайлы, карты и палитры (патч `menus`)                                                                                    |
+| `104920–200000`                  | свободно: сборка расширена до 2 МБ (`rom.build_size`)                                                                                                                    |
 
-Свободного места **около 1 МБ** (1 038 496 байт) в `102760–1FFFFF`: сборка расширена до 2 МБ
+Свободного места **около 1 МБ** (1 029 856 байт) в `104920–1FFFFF`: сборка расширена до 2 МБ
 (`rom.build_size` в `rom_map.yml`; эталонный дамп остаётся 1 МБ). В самом
 исходном образе из 914 байт в трёх проверенных дырах осталось 28 — остальное
 заняли патчи (версия в меню, пункты меню, счётчик убитых). Около половины образа

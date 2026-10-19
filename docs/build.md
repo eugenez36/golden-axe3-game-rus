@@ -15,20 +15,20 @@ into files and how to put the files back.
 `ga3 extract` (or `make extract`) reads the base ROM, checks its SHA-1 against
 the map, and writes every segment:
 
-| Type                           | Written                                                                                                                                                      | Committed   |
-|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| `header`                       | `assets/header/vectors.yml`, `header.yml`                                                                                                                    | yes         |
-| `text`                         | `assets/text/<segment>.txt`, one record per string                                                                                                           | yes         |
-| `nemesis`                      | `<path>` (the exact `.nem` block) + the same stem as `.4bpp` (decoded)                                                                                       | `.nem` only |
-| `nemesis` + `format: font_art` | `assets/gfx/font/font.txt` (art) + `assets/gfx/nemesis/font.nem`                                                                                             | both        |
-| `table`                        | YAML with named values                                                                                                                                       | yes         |
-| `tiles4bpp`                    | indexed PNG sheets, 512 tiles each                                                                                                                           | yes         |
-| `pcm`, `raw`                   | verbatim                                                                                                                                                     | yes         |
-| `code`, `data`                 | verbatim `.m68k`; with `strings`, also `assets/text/<segment>.txt`                                                                                           | `.txt` only |
-| gaps (`unknown`)               | `assets/raw/unknown_XXXXXX.raw`, ≤ 64 KiB each                                                                                                               | no          |
-| `free`                         | nothing (the map records the fill byte)                                                                                                                      | —           |
-| `patch`                        | nothing (built by `ga3.patches` / `ga3.m68k`); inputs `text/menu_items.txt`, `patches/*.s`, `text/difficulty.txt`, `text/options.txt`, `data/hero_panel.yml` | `.txt` only |
-| `constants:` (not a segment)   | `assets/<constants.path>` (`data/gameplay.yml`), one value per constant                                                                                      | yes         |
+| Type                           | Written                                                                                                                                                                                             | Committed   |
+|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| `header`                       | `assets/header/vectors.yml`, `header.yml`                                                                                                                                                           | yes         |
+| `text`                         | `assets/text/<segment>.txt`, one record per string                                                                                                                                                  | yes         |
+| `nemesis`                      | `<path>` (the exact `.nem` block) + the same stem as `.4bpp` (decoded)                                                                                                                              | `.nem` only |
+| `nemesis` + `format: font_art` | `assets/gfx/font/font.txt` (art) + `assets/gfx/nemesis/font.nem`                                                                                                                                    | both        |
+| `table`                        | YAML with named values                                                                                                                                                                              | yes         |
+| `tiles4bpp`                    | indexed PNG sheets, 512 tiles each                                                                                                                                                                  | yes         |
+| `pcm`, `raw`                   | verbatim                                                                                                                                                                                            | yes         |
+| `code`, `data`                 | verbatim `.m68k`; with `strings`, also `assets/text/<segment>.txt`                                                                                                                                  | `.txt` only |
+| gaps (`unknown`)               | `assets/raw/unknown_XXXXXX.raw`, ≤ 64 KiB each                                                                                                                                                      | no          |
+| `free`                         | nothing (the map records the fill byte)                                                                                                                                                             | —           |
+| `patch`                        | nothing (built by `ga3.patches` / `ga3.m68k`); inputs `text/menu_items.txt`, `patches/*.s`, `text/difficulty.txt`, `text/options.txt`, `text/menus.txt`, `data/hero_panel.yml`, `gfx/screens/*.png` | `.txt` only |
+| `constants:` (not a segment)   | `assets/<constants.path>` (`data/gameplay.yml`), one value per constant                                                                                                                             | yes         |
 
 `--only SEGMENT…` restricts to named segments; `--png` also renders Nemesis
 previews into `build/preview/`; `--rom PATH` extracts from another image
@@ -103,27 +103,28 @@ committed.
 
 ## Byte identity, in numbers
 
-| Commit                        | `build/ga3.bin`                                                                                                                                   |
-|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| pristine assets               | `e9538c05…` = the base ROM                                                                                                                        |
-| translation edits ported      | `d2329d84…`; differs from the base only at the checksum, `0179F3–017A0A`, `01D861–01DBA5`, `0EBBDC`, `0EBC29–0EBC2E`                              |
-| menu version (0.3.6)          | `be7f3b21…`; adds the routine at `0116B6–0116E1`, the hook at `014F86` and glyph `V` in the font                                                  |
-| text proofreading (#6)        | `77895c70…`; text fixes, glyph `ё`, the main-menu items relocated to `0116F6–011716`                                                              |
-| kill counter (#11)            | `d47cd65f…`; code at `011716–011800`, `05AEAA–05AFC6`, `05B30A–05B41A`, hooks at `000E04`, `000E74`, `00C7F8`, `00F006`, `00F8BC`, `014FF6`       |
-| kill counter to 999 (#21)     | `1bc128b9…`; also «РАНГ» (#16), no counter in a duel (#17), the owner's splash year and header note (#19)                                         |
-| release 0.37.400              | `012e83d2…`; only the menu version line changes                                                                                                   |
-| bhi in the kill counter (#25) | `5d074317…`; the kill-counter hooks decide death with `bhi`                                                                                       |
-| 2 MiB build (#27)             | `9ed2e2ff…`; the image grows to 2 MiB of `FF`, the header's ROM end and checksum follow                                                           |
-| hero stats (#28)              | `ac945792…`; patch `hero_panel` at `100000–101FFF`, hook at `016278`                                                                              |
-| slash glyph (#29)             | `b93320b1…`; glyph `/` in slot `3E`, hit / super as «6/18»                                                                                        |
-| difficulty «ЖЕСТЬ)» (#31)     | `58dd06a9…`; patch `difficulty` at `102000–10227F`, hooks at `0152E4`, `00C1BE`, `00C1F6`, `00C1FE`, `00BDBA`, `00C66E`, `00C650`, `00E552`       |
-| БАНКИ МАГИИ (#32)             | `40e686ff…`; patch `options` at `102280–1023FF`, hooks at `0150FE`, `01525A`, `0152C8`, `01543C`, `00E476`; `potions` 0; МЕНЮ's row in `menu.txt` |
-| release 0.37.500              | `5d8d9737…`; against `main`, only the menu version line changes                                                                                   |
-| difficulty «ЖЕСТЬ»            | `bcac7c68…`; the smiley at `102011` becomes a space (and the checksum)                                                                            |
-| ЖЕСТЬ copies at the edge      | `bfb7f0db…`; patch `difficulty` section `place` at `102400–1026FF`, `spawn` changed; no new hook                                                  |
-| kill counter tiles at DF00    | `253d1795…`; `kill_counter` hud: digits at VRAM `DF00` (tiles `6F8–6FD`), uploaded again every 256 frames                                         |
-| ЖЕСТЬ twice the potions       | `c7528fb0…`; patch `difficulty` section `drop` at `102700–10275F`, hook at `0098B8`                                                               |
-| release 0.37.600              | `440fdd3c…`; against `main`, only the menu version line changes                                                                                   |
+| Commit                        | `build/ga3.bin`                                                                                                                                               |
+|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| pristine assets               | `e9538c05…` = the base ROM                                                                                                                                    |
+| translation edits ported      | `d2329d84…`; differs from the base only at the checksum, `0179F3–017A0A`, `01D861–01DBA5`, `0EBBDC`, `0EBC29–0EBC2E`                                          |
+| menu version (0.3.6)          | `be7f3b21…`; adds the routine at `0116B6–0116E1`, the hook at `014F86` and glyph `V` in the font                                                              |
+| text proofreading (#6)        | `77895c70…`; text fixes, glyph `ё`, the main-menu items relocated to `0116F6–011716`                                                                          |
+| kill counter (#11)            | `d47cd65f…`; code at `011716–011800`, `05AEAA–05AFC6`, `05B30A–05B41A`, hooks at `000E04`, `000E74`, `00C7F8`, `00F006`, `00F8BC`, `014FF6`                   |
+| kill counter to 999 (#21)     | `1bc128b9…`; also «РАНГ» (#16), no counter in a duel (#17), the owner's splash year and header note (#19)                                                     |
+| release 0.37.400              | `012e83d2…`; only the menu version line changes                                                                                                               |
+| bhi in the kill counter (#25) | `5d074317…`; the kill-counter hooks decide death with `bhi`                                                                                                   |
+| 2 MiB build (#27)             | `9ed2e2ff…`; the image grows to 2 MiB of `FF`, the header's ROM end and checksum follow                                                                       |
+| hero stats (#28)              | `ac945792…`; patch `hero_panel` at `100000–101FFF`, hook at `016278`                                                                                          |
+| slash glyph (#29)             | `b93320b1…`; glyph `/` in slot `3E`, hit / super as «6/18»                                                                                                    |
+| difficulty «ЖЕСТЬ)» (#31)     | `58dd06a9…`; patch `difficulty` at `102000–10227F`, hooks at `0152E4`, `00C1BE`, `00C1F6`, `00C1FE`, `00BDBA`, `00C66E`, `00C650`, `00E552`                   |
+| БАНКИ МАГИИ (#32)             | `40e686ff…`; patch `options` at `102280–1023FF`, hooks at `0150FE`, `01525A`, `0152C8`, `01543C`, `00E476`; `potions` 0; МЕНЮ's row in `menu.txt`             |
+| release 0.37.500              | `5d8d9737…`; against `main`, only the menu version line changes                                                                                               |
+| difficulty «ЖЕСТЬ»            | `bcac7c68…`; the smiley at `102011` becomes a space (and the checksum)                                                                                        |
+| ЖЕСТЬ copies at the edge      | `bfb7f0db…`; patch `difficulty` section `place` at `102400–1026FF`, `spawn` changed; no new hook                                                              |
+| kill counter tiles at DF00    | `253d1795…`; `kill_counter` hud: digits at VRAM `DF00` (tiles `6F8–6FD`), uploaded again every 256 frames                                                     |
+| ЖЕСТЬ twice the potions       | `c7528fb0…`; patch `difficulty` section `drop` at `102700–10275F`, hook at `0098B8`                                                                           |
+| release 0.37.600              | `440fdd3c…`; against `main`, only the menu version line changes                                                                                               |
+| menus in the banner's style   | `c747d542…`; patch `menus` at `102760–10491F`, hooks at `0155BC`, `015842`, `014DDE`, `014388`, `0151CA`, `014EF4`, `0150A8`, `0150CA`, `01598A` and pointers |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the
