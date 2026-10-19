@@ -28,7 +28,7 @@ dependencies = [
 [project.optional-dependencies]
 disasm = ["capstone==5.0.9"]
 # keep the ruff pin in step with .pre-commit-config.yaml (see CONTRIBUTING.md)
-dev = ["pytest>=8", "ruff>=0.16.6,<0.17", "pre-commit>=3"]
+dev = ["pytest>=8", "ruff>=0.16.6,<0.18", "pre-commit>=3"]
 
 [project.scripts]
 ga3 = "ga3.cli:main"
