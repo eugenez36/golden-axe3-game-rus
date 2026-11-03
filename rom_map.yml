@@ -89,6 +89,20 @@ patches:                         # assembled patches: source in assets/patches/,
       TICK: 0xC3EA                 # frames until the digit tiles are uploaded again (byte)
       VDP_CTRL: 0xC00004
       VDP_DATA: 0xC00000
+      POT: 0xC729                  # patch options: bit LIFE_BIT is OPTIONS -> 100 ВРАГОВ (0 at power-on: off)
+      LIFE_BIT: 7
+      LIFE_KILLS: 100              # kills for each extra life
+      DEMO: 0xC718                 # bit 0: the attract-mode demo is playing
+      LIVES: 0x13C                 # object: spare lives (constants.lives)
+      LIVES_MAX: 9                 # constants.lives max_hud: the HUD shows one digit
+      ICONS: 0x138                 # object: prisoner icons the HUD draws (copied from +0x13E, the prisoners)
+      ICONS_MAX: 5                 # the icons blink 5 times, as for five prisoners
+      P1_STATE: 0xDC24             # HUD state of player 1 (16 bytes), run every frame by 0103B4
+      P2_STATE: 0xDC34             # HUD state of player 2
+      BLINK: 0x0C                  # HUD state: blinking (byte), +1 frames to the next toggle, +2 toggles left
+      BLINK_FRAMES: 0x0F
+      SOUND: 0x00E4B2              # queue sound d0.b (keeps every register)
+      SOUND_LIFE: 0xDF             # the extra-life sound
     hooks:                         # [address, base-ROM bytes (hex), label]: each becomes jmp label.l
       count:
         - [0x000E04, "93 28 01 42 6A 04", melee_a0]   # sub.b d1,$142(a0); bpl
@@ -190,18 +204,27 @@ patches:                         # assembled patches: source in assets/patches/,
     source: patches/options.s
     symbols:
       CURSOR: 0xF160               # options cursor: 0..4 in the game, ITEMS-1 with this patch (word)
-      ITEMS: 6                     # СЛОЖНОСТЬ, КНОПКИ, МУЗ., ЗВУК, БАНКИ МАГИИ, МЕНЮ
+      ITEMS: 7                     # СЛОЖНОСТЬ, КНОПКИ, МУЗ., ЗВУК, БАНКИ МАГИИ, 100 ВРАГОВ, МЕНЮ
       POT_ITEM: 4
-      MENU_ITEM: 5
+      LIFE_ITEM: 5
+      MENU_ITEM: 6
       ROWS: 18                     # cursor column cleared from row 8 to row 0x19 (the game: 15, to 0x16)
       CURSOR_CLEAR: 0x440E0003     # VDP write command of plane cell C40E (row 8, column 7)
       CURSOR_CELL: 0xC00E          # plane cell of the cursor at row 0, column 7
       FILL: 0x01207C               # fill d2+1 rows of d1+1 cells from command d0 with d4
       TO_VDP: 0x01202E             # d0 (cell) -> VDP write command
       LABEL_WIDTH: 11              # characters of each new label (text/options.txt)
-      POT_LABEL: 0xCB10            # plane cell of the label: row 0x16, column 8 (МЕНЮ's place before)
-      POT_CELL: 0xCB30             # plane cell of the value: row 0x16, column 0x18 (under МУЗ./ЗВУК values)
-      POT: 0xC729                  # count minus the default, 0..6 (byte; kept over a soft reset, 0 at power-on)
+      VALUE_WIDTH: 4               # characters of each value of 100 ВРАГОВ: ВЫКЛ, ВКЛ
+      MUS_CELL: 0xC7B0             # plane cell of the МУЗ. value: row 0x0F, column 0x18 (the game: C830, row 0x10)
+      SND_CELL: 0xC8B0             # plane cell of the ЗВУК value: row 0x11 (the game: C9B0, row 0x13)
+      POT_LABEL: 0xC990            # plane cell of the label: row 0x13, column 8
+      POT_CELL: 0xC9B0             # plane cell of the value: row 0x13, column 0x18 (under МУЗ./ЗВУК values)
+      LIFE_LABEL: 0xCA90           # 100 ВРАГОВ: row 0x15, column 8
+      LIFE_CELL: 0xCAB0            # its value: row 0x15, column 0x18
+      POT: 0xC729                  # bits 0-6: potions minus the default, 0..6; bit 7: 100 ВРАГОВ (byte; kept over a soft reset, 0 at power-on)
+      POT_MASK: 0x7F
+      LIFE_BIT: 7
+      LIFE_FLAG: 0x80
       POT_MAX: 6                   # what the HUD can draw (constants.potions max)
       DEFAULT: 0x00E47F            # operand of `move.b #N,$140(a0)`: the constant `potions`
       DEMO: 0xC718                 # bit 0: the attract-mode demo is playing
@@ -218,6 +241,10 @@ patches:                         # assembled patches: source in assets/patches/,
         - [0x0152C8, "30 38 F1 60 D0 40", item]      # move.w $f160.w,d0; add.w d0,d0
         - [0x01543C, "0C 78 00 04 F1 60", leave]     # cmpi.w #4,$f160.w
         - [0x00E476, "4A 28 01 40 66 06", refill]    # tst.b $140(a0); bne.b $e482
+    pointers:
+      menu:
+        - [0x0153D6, "C8 30", MUS_CELL]              # МУЗ. value: move.w #$c830,d0
+        - [0x015422, "C9 B0", SND_CELL]              # ЗВУК value: move.w #$c9b0,d0
     strings: { section: labels, path: text/options.txt, label: LABELS }
     evidence: "options screen 0150A8-015128: labels drawn from the table 01512C (column, row, text, FF; moveq #8 = 9 labels), then 015110-015128 draw each value (d1 = 0) and the cursor (bra 01525A); cursor $F160 0..4 at 01525A-0152A6 (wraps at 015260/015266, column 7 cleared by 01207C with d0 = 440E0003, d2 = 0E, rows from the table 0152A8: 08 0B 10 13 16, tile A010); left/right 0152AE -> 0152C8 jump table 0152D8 (items 0-3, item 4 = rts at 0152E2); a button 01542C: cursor 4 leaves through 01518E, 2 / 3 play the music / sound; values drawn at C430 (difficulty), C830 / C9B0 (МУЗ. / ЗВУК: E030 + digit); other readers of $F160 belong to other screens (main menu 01377E, map 0170A0). Potions: 00E476 is the routine of constants.potions (callers 003EBA, 006984, 00E426, 00E6BE). POT $C729: of the long 0002CC / 0002E8 keeps over a soft reset ($C726 difficulty, $C727 buttons, $C728 used by the game), no instruction names $C729, watch FFC729 from boot through the options screen, stage 1, deaths and game over: written only by 0FFA7C, 0002DA (power-on clears) and 0002E8 (the soft-reset restore)"
 
@@ -482,12 +509,8 @@ segments:
   - { name: difficulty_spawn, start: 0x102080, size: 0x200, type: patch, fill: 0xFF,
       patch: difficulty, section: spawn,
       note: "difficulty: the hard enemy level and the queue of ordinary enemies spawned twice" }
-  - { name: options_labels, start: 0x102280, size: 0x10, type: patch, fill: 0xFF,
-      patch: options, section: labels,
-      note: "labels of the options items this patch adds, 11 characters each (text/options.txt)" }
-  - { name: options_menu,  start: 0x102290, size: 0x170, type: patch, fill: 0xFF,
-      patch: options, section: menu,
-      note: "options: the item БАНКИ МАГИИ (starting magic potions) and the six-item cursor (assets/patches/options.s)" }
+  - { name: free_102280,   start: 0x102280, end: 0x102400, type: free,   fill: 0xFF,
+      note: "the options patch's old slots (labels, menu), moved to 104920 when it grew a second item" }
   - { name: difficulty_place, start: 0x102400, size: 0x300, type: patch, fill: 0xFF,
       patch: difficulty, section: place,
       note: "difficulty: where a queued copy comes in (past a screen edge, on ground at the player's level)" }
@@ -503,5 +526,14 @@ segments:
   - { name: menus_art,     start: 0x102920, size: 0x2000, type: patch, fill: 0xFF,
       patch: menus, section: art,
       note: "menus: tiles, maps and palettes from assets/gfx/screens/*.png (ga3 banner-art)" }
-  - { name: free_104920,   start: 0x104920, end: 0x200000, type: free,   fill: 0xFF,
+  - { name: options_labels, start: 0x104920, size: 0x20, type: patch, fill: 0xFF,
+      patch: options, section: labels,
+      note: "labels of the options items this patch adds, 11 characters each, then the values ВЫКЛ / ВКЛ, 4 each (text/options.txt)" }
+  - { name: kill_counter_bonus, start: 0x104940, size: 0xC0, type: patch, fill: 0xFF,
+      patch: kill_counter, section: bonus,
+      note: "kill counter: a kill counted for a player, and the extra life every 100 kills when OPTIONS -> 100 ВРАГОВ is on (assets/patches/kill_counter.s)" }
+  - { name: options_menu,  start: 0x104A00, size: 0x200, type: patch, fill: 0xFF,
+      patch: options, section: menu,
+      note: "options: the items БАНКИ МАГИИ (starting magic potions) and 100 ВРАГОВ (a life every 100 kills), the seven-item cursor (assets/patches/options.s)" }
+  - { name: free_104C00,   start: 0x104C00, end: 0x200000, type: free,   fill: 0xFF,
       note: "the rest of the 1 MiB added by rom.build_size" }

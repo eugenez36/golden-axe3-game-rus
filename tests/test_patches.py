@@ -234,14 +234,14 @@ def _real_project():
     return open_project(ROOT)
 
 
-def test_kill_counter_assembles_into_its_three_slots():
+def test_kill_counter_assembles_into_its_four_slots():
     from ga3.assets.patch_asset import assembled
 
     proj = _real_project()
     segs = {
         s.get("section"): s for s in proj.map.by_type("patch") if s.get("patch") == "kill_counter"
     }
-    assert set(segs) == {"count", "hud", "tiles"}
+    assert set(segs) == {"count", "bonus", "hud", "tiles"}
     labels = None
     for section, seg in segs.items():
         body, todo, labels = assembled(seg, proj.paths)
@@ -253,6 +253,7 @@ def test_kill_counter_assembles_into_its_three_slots():
     assert labels["melee_a0"] == segs["count"].start
     assert labels["frame"] == segs["hud"].start
     assert labels["tiles"] == segs["tiles"].start
+    assert labels["kill"] == segs["bonus"].start
 
 
 def test_kill_counter_digits_live_where_no_sprite_art_goes():

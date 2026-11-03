@@ -1,0 +1,67 @@
+# 100 ВРАГОВ for player 2: a two-player game with the option on, player 2's
+# counter (FFC3E2) set to 99, then player 2 casts magic over enemies at 1 HP
+# (_magic_round_p2.inc): the kill that makes 100 gives player 2 a life (FFCA40,
+# object +0x13C: 2 -> 3), player 1 (FFC8E0) keeps 2.
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+press down 6
+press down 6
+press down 6
+press down 6
+press down 6
+wait 20
+press right 6
+press down 6
+press c 10
+wait 90
+press down 6
+wait 20
+press start 10
+wait 90
+pad2 start 10
+wait 20
+press start 10
+wait 60
+pad2 start 10
+press start 10
+wait 120
+press start 10
+pad2 start 10
+wait 700
+press start 6
+wait 60
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke16 FFC3E2 0063
+include _magic_round_p2.inc
+include _magic_round_p2.inc
+include _magic_round_p2.inc
+include _magic_round_p2.inc
+include _magic_round_p2.inc
+include _magic_round_p2.inc
+include _magic_round_p2.inc
+include _magic_round_p2.inc
+wait 60
+screenshot build/shots/life_2p.png 2
+dump wram build/dumps/life_2p_wram.bin

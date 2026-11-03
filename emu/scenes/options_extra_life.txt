@@ -1,0 +1,139 @@
+# Options item 100 ВРАГОВ (patch options) and the life it gives (patch
+# kill_counter), player 1. The options screen shows seven items, below КНОПКИ
+# two rows apart; the cursor goes down to 100 ВРАГОВ and right switches it to
+# ВКЛ. Stage 1, kill bot (_kill_round.inc):
+#   life_1: counter FFC3E0 = 99 before the rounds; the 7th round kills the
+#     100th: lives FFC8E0 (object +0x13C) 2 -> 3 (written by the bonus code),
+#     the counter shows 100 and the five prisoner icons blink under the HUD
+#     (shots on, off, on), then they are gone (shot after);
+#   life_2: 199 -> 200: lives 4;
+#   life_3: lives 9, 299 -> 300: still 9 (the HUD's one digit);
+#   life_4: option off (FFC729 bit 7 clear), lives 5, 399 -> 400: still 5.
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+screenshot build/shots/life_0_entry.png 2
+press down 6
+press down 6
+press down 6
+press down 6
+press down 6
+wait 20
+press right 6
+wait 20
+screenshot build/shots/life_1_on.png 2
+press down 6
+press c 10
+wait 90
+press start 10
+wait 90
+press start 10
+wait 120
+press start 10
+wait 700
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+poke8 FFC8E6 33
+hold right 40
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+poke16 FFC3E0 0063
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+screenshot build/shots/life_2_blink_on.png 2
+wait 16
+screenshot build/shots/life_3_blink_off.png 2
+wait 14
+screenshot build/shots/life_4_blink_on.png 2
+wait 60
+screenshot build/shots/life_5_after.png 2
+dump wram build/dumps/life_1_wram.bin
+poke16 FFC3E0 00C7
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+dump wram build/dumps/life_2_wram.bin
+poke8 FFC8E0 09
+poke16 FFC3E0 012B
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+screenshot build/shots/life_6_nine.png 2
+dump wram build/dumps/life_3_wram.bin
+poke8 FFC729 00
+poke8 FFC8E0 05
+poke16 FFC3E0 018F
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+include _kill_round.inc
+dump wram build/dumps/life_4_wram.bin

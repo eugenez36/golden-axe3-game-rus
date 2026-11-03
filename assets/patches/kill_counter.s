@@ -16,6 +16,9 @@
 ; HUD, and its three digit tiles go to free VRAM when the number changes.
 ; Nothing is shown in a duel.
 ; Reset: choosing a game mode in the main menu clears both counters.
+; Extra life: with OPTIONS -> 100 ВРАГОВ on (patch options), every LIFE_KILLS
+; kills give that player a life, the way the game gives one for five freed
+; prisoners: the prisoner icons blink and the extra-life sound plays.
 
 ; ---------------------------------------------------------------- counting
 
@@ -37,7 +40,7 @@ melee_a0:
         sub.b   d1,HP(a0)
         bhi.s   .done                   ; HP was above the damage (unsigned)
         clr.b   HP(a0)
-        bsr.w   kill
+        jsr     kill
 .done:  rts
 
 ; victim a1, attacker a0, damage d1
@@ -49,7 +52,7 @@ melee_a1:
         sub.b   d1,HP(a0)
         bhi.s   .done                   ; HP was above the damage (unsigned)
         clr.b   HP(a0)
-        bsr.w   kill
+        jsr     kill
 .done:  exg     a0,a1
         rts
 
@@ -70,7 +73,7 @@ magic:
         sub.b   d0,HP(a0)
         bhi.s   .back                   ; HP was above the damage (unsigned)
         clr.b   HP(a0)
-        bsr.w   kill
+        jsr     kill
 .back:  jmp     MAGIC_BACK
 
 ; an object is freed (replaces the first six bytes of the clear routine):
@@ -80,7 +83,7 @@ on_free:
         beq.s   .orig
         tst.b   HP(a0)
         beq.s   .orig                   ; died of a hit: counted then
-        bsr.s   kill
+        jsr     kill
 .orig:  movea.l a0,a1
         moveq   #0,d2
         move.w  $E(a0),d1
@@ -101,6 +104,18 @@ mark:
         move.b  #2,LAST_HIT(a0)
 .done:  rts
 
+; ---------------------------------------------------------------- reset
+
+; replaces `move.w MODE_SRC.w,MODE.w` when a game mode is chosen; the caller then rts
+new_game:
+        move.w  MODE_SRC.w,MODE.w
+        clr.l   KILLS.w                 ; both counters
+        rts
+
+        section bonus
+
+; ---------------------------------------------------------------- the kill
+
 ; enemy a0 is dead: count it for the player in its mark (to KILLS_MAX), clear
 ; the mark; the counters are words, player 1 then player 2
 kill:
@@ -114,17 +129,45 @@ kill:
 .count: cmpi.w  #KILLS_MAX,(a2)
         bcc.s   .done
         addq.w  #1,(a2)
+        bsr.s   bonus
 .done:  clr.b   LAST_HIT(a0)
         movea.l (sp)+,a2
         rts
 
-; ---------------------------------------------------------------- reset
-
-; replaces `move.w MODE_SRC.w,MODE.w` when a game mode is chosen; the caller then rts
-new_game:
-        move.w  MODE_SRC.w,MODE.w
-        clr.l   KILLS.w                 ; both counters
-        rts
+; a2 = the counter that has just gone up: on every LIFE_KILLS-th kill, with
+; the option on and outside the demo, its player gets a life (up to
+; LIVES_MAX, all the HUD's one digit can show) as at 0103FA-01041C: the five
+; prisoner icons blink (the HUD state of that player, run every frame by
+; 0103B4, brings the real icons back afterwards) and sound SOUND_LIFE plays
+bonus:
+        btst    #LIFE_BIT,POT.w
+        beq.s   .none
+        btst    #0,DEMO.w
+        bne.s   .none
+        movem.l d0/a1/a3,-(sp)
+        moveq   #0,d0
+        move.w  (a2),d0
+        divu.w  #LIFE_KILLS,d0
+        swap    d0                      ; the remainder
+        tst.w   d0
+        bne.s   .back
+        lea     P1.w,a1
+        lea     P1_STATE.w,a3
+        cmpa.w  #KILLS,a2
+        beq.s   .who
+        lea     P2.w,a1
+        lea     P2_STATE.w,a3
+.who:   cmpi.b  #LIVES_MAX,LIVES(a1)
+        bcc.s   .back
+        addq.b  #1,LIVES(a1)
+        move.b  #ICONS_MAX,ICONS(a1)
+        move.b  #1,BLINK(a3)            ; blinking
+        move.b  #BLINK_FRAMES,BLINK+1(a3)
+        move.b  #ICONS_MAX,BLINK+2(a3)  ; times
+        move.b  #SOUND_LIFE,d0
+        jsr     SOUND
+.back:  movem.l (sp)+,d0/a1/a3
+.none:  rts
 
 ; ---------------------------------------------------------------- display
 

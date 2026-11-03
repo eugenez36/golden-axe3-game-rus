@@ -37,7 +37,7 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
 - **Reproducible build.** `make` rebuilds the image from `assets/`; `make verify`
   checks it against `roms.sha1`. Freshly extracted assets give back the base
   ROM to the byte; the committed ones give the build recorded in `roms.sha1`.
-- **The ROM, taken apart.** Header and vectors as YAML, 226 strings in twelve text
+- **The ROM, taken apart.** Header and vectors as YAML, 229 strings in twelve text
   files, the font as text art, 14 Nemesis blocks, 22 indexed-PNG sheets of tile
   art, the PCM region, the HP table and gameplay constants, the hero panel's
   data, six captured palettes and Capstone listings
@@ -155,12 +155,15 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `0E9B00–0EC300`                  | dialogue, credits, ending text                                                                                                                                                                |
 | `0FC000–0FFA20`                  | PCM samples                                                                                                                                                                                   |
 | `0FFA20–100000`                  | the relocated entry stub                                                                                                                                                                      |
-| `100000–102700`                  | the hero stats panel, the «ЖЕСТЬ» difficulty and the БАНКИ МАГИИ option (patches `hero_panel`, `difficulty`, `options`)                                                                       |
+| `100000–102280`                  | the hero stats panel and the «ЖЕСТЬ» difficulty (patches `hero_panel`, `difficulty`)                                                                                                          |
+| `102280–102400`                  | free: the options patch's old slots                                                                                                                                                           |
+| `102400–102700`                  | «ЖЕСТЬ»: where a queued copy comes in (patch `difficulty`)                                                                                                                                    |
 | `102700–102760`                  | «ЖЕСТЬ»: the second potion from a gnome's hit (patch `difficulty`)                                                                                                                            |
 | `102760–104920`                  | the menus in the banner's style: code, the bar's text, tiles, maps and palettes (patch `menus`)                                                                                               |
-| `104920–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
+| `104920–104C00`                  | the options БАНКИ МАГИИ and 100 ВРАГОВ, the kill counter's kill and its extra life every 100 kills (patches `options`, `kill_counter`)                                                        |
+| `104C00–200000`                  | free: the build is expanded to 2 MiB (`rom.build_size`)                                                                                                                                       |
 
-Free space: **about 1 MiB** (1 029 856 bytes) at `104920–1FFFFF` — the build is expanded to 2 MiB
+Free space: **about 1 MiB** (1 029 120 bytes) at `104C00–1FFFFF` and 384 at `102280–1023FF` — the build is expanded to 2 MiB
 (`rom.build_size` in `rom_map.yml`; the base dump stays 1 MiB) — plus 28 bytes
 left of the 914 in the original image's three verified holes, which the patches
 (menu version, menu items, kill counter) fill. About half of the base image is

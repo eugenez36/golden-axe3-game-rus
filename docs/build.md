@@ -125,6 +125,7 @@ committed.
 | ЖЕСТЬ twice the potions       | `c7528fb0…`; patch `difficulty` section `drop` at `102700–10275F`, hook at `0098B8`                                                                           |
 | release 0.37.600              | `440fdd3c…`; against `main`, only the menu version line changes                                                                                               |
 | menus in the banner's style   | `c747d542…`; patch `menus` at `102760–10491F`, hooks at `0155BC`, `015842`, `014DDE`, `014388`, `0151CA`, `014EF4`, `0150A8`, `0150CA`, `01598A` and pointers |
+| options: 100 ВРАГОВ           | `593b97af…`; a life every 100 kills (patches `options`, `kill_counter`), seven options items, slots at `104920–104BFF`, pointers at `0153D6`, `015422`        |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the

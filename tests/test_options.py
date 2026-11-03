@@ -1,4 +1,4 @@
-"""The options item БАНКИ МАГИИ (patch options): starting magic potions."""
+"""The options items БАНКИ МАГИИ (starting magic potions) and 100 ВРАГОВ (patch options)."""
 
 from __future__ import annotations
 
@@ -23,12 +23,19 @@ def _sym():
     return _segs()[1]["menu"].get("patch_def")["symbols"]
 
 
-def test_label_is_one_record_from_the_slot_start():
+def test_labels_and_values_follow_each_other_from_the_slot_start():
     _proj, segs = _segs()
     rows = text.parse_strings_file(str(LABELS))
-    width = _sym()["LABEL_WIDTH"]
-    assert [(off, ln) for off, ln, _t in rows] == [(segs["labels"].start, width)]
-    assert [t for _o, _l, t in rows] == ["БАНКИ МАГИИ"]
+    sym = _sym()
+    width, value = sym["LABEL_WIDTH"], sym["VALUE_WIDTH"]
+    at = segs["labels"].start
+    assert [(off, ln) for off, ln, _t in rows] == [
+        (at, width),
+        (at + width, width),
+        (at + 2 * width, value),
+        (at + 2 * width + value, value),
+    ]
+    assert [t for _o, _l, t in rows] == ["БАНКИ МАГИИ", "100 ВРАГОВ", "ВЫКЛ", "ВКЛ"]
 
 
 def test_patch_assembles_label_and_hooks():
@@ -37,22 +44,36 @@ def test_patch_assembles_label_and_hooks():
 
     proj, segs = _segs()
     body, _todo, labels = assembled(segs["labels"], proj.paths)
-    assert body == table.encode("БАНКИ МАГИИ")
+    assert body == b"".join(
+        table.encode(t.ljust(n))
+        for t, n in [("БАНКИ МАГИИ", 11), ("100 ВРАГОВ", 11), ("ВЫКЛ", 4), ("ВКЛ", 4)]
+    )
     assert labels["LABELS"] == segs["labels"].start
     body, todo, labels = assembled(segs["menu"], proj.paths)
     assert 0 < len(body) <= segs["menu"].size
-    hooks = {e.at: e.new for e in todo}
-    assert sorted(hooks) == [0x00E476, 0x0150FE, 0x01525A, 0x0152C8, 0x01543C]
-    assert hooks[0x00E476] == b"\x4e\xf9" + labels["refill"].to_bytes(4, "big")  # jmp refill.l
+    edits = {e.at: e.new for e in todo}
+    assert sorted(edits) == [0x00E476, 0x0150FE, 0x01525A, 0x0152C8, 0x0153D6, 0x015422, 0x01543C]
+    assert edits[0x00E476] == b"\x4e\xf9" + labels["refill"].to_bytes(4, "big")  # jmp refill.l
+    sym = _sym()
+    assert edits[0x0153D6] == sym["MUS_CELL"].to_bytes(2, "big")  # move.w #$c830,d0 -> МУЗ. row 0F
+    assert edits[0x015422] == sym["SND_CELL"].to_bytes(2, "big")  # move.w #$c9b0,d0 -> ЗВУК row 11
 
 
-def test_menu_moves_three_rows_down_for_the_new_item():
+def _cell(row: int, col: int) -> int:
+    return 0xC000 + row * 0x80 + col * 2
+
+
+def test_items_below_buttons_are_two_rows_apart():
     sym = _sym()
     [layout] = [t for off, _ln, t in text.parse_strings_file(str(MENU)) if off == 0x01512C]
-    assert "{08}{19}МЕНЮ" in layout and "{08}{16}" not in layout
-    assert sym["POT_LABEL"] == 0xC000 + 0x16 * 0x80 + 8 * 2  # МЕНЮ's old place
-    assert sym["POT_CELL"] == 0xC000 + 0x16 * 0x80 + 0x18 * 2  # under the МУЗ./ЗВУК values
-    assert (sym["ITEMS"], sym["POT_ITEM"], sym["MENU_ITEM"]) == (6, 4, 5)
+    assert "{08}{0F}МУЗ." in layout and "{08}{11}ЗВУК" in layout and "{08}{18}МЕНЮ" in layout
+    assert sym["MUS_CELL"] == _cell(0x0F, 0x18)
+    assert sym["SND_CELL"] == _cell(0x11, 0x18)
+    assert (sym["POT_LABEL"], sym["POT_CELL"]) == (_cell(0x13, 8), _cell(0x13, 0x18))
+    assert (sym["LIFE_LABEL"], sym["LIFE_CELL"]) == (_cell(0x15, 8), _cell(0x15, 0x18))
+    assert (sym["ITEMS"], sym["POT_ITEM"], sym["LIFE_ITEM"], sym["MENU_ITEM"]) == (7, 4, 5, 6)
+    src = (ROOT / "assets" / "patches" / "options.s").read_text(encoding="utf-8")
+    assert ".rows:  dc.b    $08, $0B, $0F, $11, $13, $15, $18" in src
 
 
 def test_default_is_the_potions_constant_and_the_hud_limit():
@@ -65,9 +86,20 @@ def test_default_is_the_potions_constant_and_the_hud_limit():
     assert sym["POT_MAX"] == potions.get("max") == 6
 
 
-def test_setting_lives_in_the_byte_kept_over_a_soft_reset():
+def test_settings_live_in_the_byte_kept_over_a_soft_reset():
     sym = _sym()
     assert sym["POT"] == 0xC729  # 0002CC/0002E8 keep the long at $C726 (difficulty, buttons)
+    assert sym["POT_MASK"] == (1 << sym["LIFE_BIT"]) - 1 >= sym["POT_MAX"]
+    assert sym["LIFE_FLAG"] == 1 << sym["LIFE_BIT"]
+
+
+def test_kill_counter_reads_the_same_bit():
+    proj, _segs_ = _segs()
+    [kc_seg] = [s for s in proj.map.by_type("patch") if s.get("patch") == "kill_counter"][:1]
+    opt, kc = _sym(), kc_seg.get("patch_def")["symbols"]
+    assert (kc["POT"], kc["LIFE_BIT"], kc["DEMO"]) == (opt["POT"], opt["LIFE_BIT"], opt["DEMO"])
+    assert kc["LIVES_MAX"] == proj.map.constants["lives"].get("max_hud") == 9
+    assert kc["LIFE_KILLS"] == 100
 
 
 def test_text_commands_see_the_label():

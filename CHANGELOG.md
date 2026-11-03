@@ -10,9 +10,17 @@ hash recorded in `roms.sha1`.
 ## [Unreleased]
 
 The menus in the style of the README banner, and the banner itself replaced
-by the new title and menu, captured in the emulator.
+by the new title and menu, captured in the emulator. A new options item: a
+life for every hundred kills.
 
 ### Added
+
+- **OPTIONS → 100 ВРАГОВ** (patches `options` and `kill_counter`), ВЫКЛ by
+  default: with ВКЛ, every 100th kill of a player (100, 200, … up to the
+  counter's 999) gives that player a life, signalled the way the game signals
+  a life for five prisoners: the five prisoner icons blink with the extra-life
+  sound. No life above 9 (the HUD's one digit), none in the demo. Kept over a
+  soft reset with the other options (bit 7 of `$C729`).
 
 - **Menus in the banner's style** (patch `menus`, `assets/patches/menus.s`):
   the title, the main menu, the options and the character select get the
@@ -36,6 +44,10 @@ by the new title and menu, captured in the emulator.
 
 - **Main menu:** the version line moves to the middle of the bottom bar
   (`menu_version` ends at column 24).
+- **Options screen:** seven items; below КНОПКИ every item is two rows from
+  the next (МУЗ., ЗВУК, БАНКИ МАГИИ, 100 ВРАГОВ, МЕНЮ). The options patch's
+  slots move to `104920` (labels) and `104A00` (code); the kill counter's
+  `kill` moves to `104940`.
 
 ## [0.37.600] — 2026-10-16
 
