@@ -9,6 +9,34 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+The menus in the style of the README banner, and the banner itself replaced
+by the new title and menu, captured in the emulator.
+
+### Added
+
+- **Menus in the banner's style** (patch `menus`, `assets/patches/menus.s`):
+  the title, the main menu, the options and the character select get the
+  banner's navy sky with drifting cloud strips, its blocky gold logo with a
+  black outline (also in the intro's scroller and the falling letters), a gold
+  cursor and a black bottom bar under a gold line — СЕГА, НАЖМИ СТАРТ blinking
+  on the title, the version in the menu, 2О26 NЕWGАМЕ. The duel's ВЫБОР ГЕРОЯ
+  and ВЫБОР ЭТАПА turn gold, the ending's THE END is in the new letters. Slots at
+  `102760–10491F`; most of the patch points the game's own loaders at new
+  data.
+- **`ga3 banner-art`** draws the menus' art (`assets/gfx/screens/*.png`) from
+  `docs/branding/banner.svg`; **`make banner`** captures the title and the menu
+  (`emu/scenes/banner.txt`) and **`ga3 banner-anim`** turns the shots into the
+  README banner, `docs/branding/banner.png` (an animated PNG).
+- **Enigma codec** (`ga3.enigma`): the game's tilemap compression, decoder and
+  encoder; **`ga3.screen`**: indexed PNG → tiles, maps, sprite tiles, palettes.
+- **Patches:** `pointers:` (point the game's code at new data without a hook)
+  and `art:` (tiles, maps and palettes from PNGs) in a patch definition.
+
+### Changed
+
+- **Main menu:** the version line moves to the middle of the bottom bar
+  (`menu_version` ends at column 24).
+
 ## [0.37.600] — 2026-10-16
 
 Fixes to «ЖЕСТЬ» and the kill counter: copies come in past a screen edge, on

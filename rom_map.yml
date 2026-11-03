@@ -18,8 +18,9 @@
 #   free       filler verified to hold `fill`; candidate space for relocated data
 #   patch      generated 68000 routine (ga3.patches) in former free space, plus a
 #              jmp hook over six bytes elsewhere; nothing is extracted
-#   (a `palette` type will follow once a palette is located in the ROM; today they
-#    come from emulator CRAM captures listed under `palettes:` below)
+#   (palettes do sit in ROM -- the title's at 0EB200, 0EB278, 0EB2A2, inside
+#    text_dialogue; patch menus points the game at new ones instead of editing
+#    them. The captures under `palettes:` below remain a rendering reference)
 #
 # Per-segment keys (beyond name/start/end|size/type/path)
 #   note, evidence   free text; `evidence` says how an address was proven (CONTRIBUTING rule 3)
@@ -46,7 +47,7 @@ rom:
   header_checksum: 0x9BB5
   entry_point: 0x0FFA20          # translators moved it from the stock 0x200
 
-palettes:                        # CRAM captured in the emulator; no ROM source known (DMA from RAM)
+palettes:                        # CRAM captured in the emulator (the game DMAs CRAM from RAM, F200)
   title:            { path: palettes/title.pal,            source: "emu/scenes/title.txt, title screen" }
   title_menu:       { path: palettes/title_menu.pal,       source: "emu/scenes/title.txt, menu after START" }
   title_newgame:    { path: palettes/title_newgame.pal,    source: "emu/scenes/title.txt, second menu state" }
@@ -220,6 +221,117 @@ patches:                         # assembled patches: source in assets/patches/,
     strings: { section: labels, path: text/options.txt, label: LABELS }
     evidence: "options screen 0150A8-015128: labels drawn from the table 01512C (column, row, text, FF; moveq #8 = 9 labels), then 015110-015128 draw each value (d1 = 0) and the cursor (bra 01525A); cursor $F160 0..4 at 01525A-0152A6 (wraps at 015260/015266, column 7 cleared by 01207C with d0 = 440E0003, d2 = 0E, rows from the table 0152A8: 08 0B 10 13 16, tile A010); left/right 0152AE -> 0152C8 jump table 0152D8 (items 0-3, item 4 = rts at 0152E2); a button 01542C: cursor 4 leaves through 01518E, 2 / 3 play the music / sound; values drawn at C430 (difficulty), C830 / C9B0 (МУЗ. / ЗВУК: E030 + digit); other readers of $F160 belong to other screens (main menu 01377E, map 0170A0). Potions: 00E476 is the routine of constants.potions (callers 003EBA, 006984, 00E426, 00E6BE). POT $C729: of the long 0002CC / 0002E8 keeps over a soft reset ($C726 difficulty, $C727 buttons, $C728 used by the game), no instruction names $C729, watch FFC729 from boot through the options screen, stage 1, deaths and game over: written only by 0FFA7C, 0002DA (power-on clears) and 0002E8 (the soft-reset restore)"
 
+  menus:
+    source: patches/menus.s
+    symbols:
+      DRIFT: 0xBCC0                # frames until the clouds move again (byte; FFBCC0-FFBEFF never written after boot)
+      DRIFT_FRAMES: 8
+      DRIFT_STEP: 1                # pixels each move, every row alike (+: to the right, as the banner's clouds)
+      SCROLL_BACK: 0x0155C2        # plane B scroll routine, after `lea $ff0002.l,a0`
+      CURSOR_BACK: 0x01584A        # cursor tile upload, after `move.w #$10,d0`
+      TM_CELL: 0x44AE0003          # VDP write command of plane A C4AE, where the game put "TM"
+      INTRO_BACK: 0x014DE8         # title after the intro's slide, after that command
+      SKIP_BACK: 0x014392          # title when START skips the intro
+      OPTIONS_BACK: 0x0151D4       # main menu, back from the options
+      SKY_KEPT: 0x0150B8           # options screen entry, after palette 0 is blacked out
+      CLEAR: 0x0120E6              # clear plane A (the options screen's call)
+      LABELS_TABLE: 0x01512C       # options labels: column, row, text, FF (text/menu.txt)
+      LABELS_BACK: 0x0150D2        # options screen entry, after `lea $1512c(pc),a0`
+      COPY_PAL: 0x01209E           # copy d7+1 words from a1 to a2
+      MARKERS: 0x015A06            # character select: the table after its palettes (lea $15a06(pc),a0)
+      SELECT_BACK: 0x015992        # character select, after `move.w #$c18e,d0`
+      SELECT_SKY_TILE: 0x4EF       # VRAM 9DE0-A640 (67 tiles): never written on the 1- and 2-player select
+      MODE: 0xF176                 # chosen game mode: 0 one player, 1 two, 2+ duel
+      DUEL: 2
+      MENU_BACK: 0x014EFA          # title -> main menu, after `move.l #$49960003,d0`
+      TO_VDP: 0x01202E             # d0 (cell) -> VDP write command
+      BAR_LEFT: 0xCD02             # plane A cell, row 26, column 1
+      BAR_MIDDLE: 0xCD1C           # row 26, column 14: НАЖМИ СТАРТ, the menu's version
+      BAR_RIGHT: 0xCD36            # row 26, column 27
+      BAR_ATTR: 0xC000             # priority, palette 2 (colour 6: GREY)
+      LEFT_WIDTH: 4                # characters (text/menus.txt)
+      MIDDLE_WIDTH: 11
+      RIGHT_WIDTH: 12
+      GREY: 0x0A86                 # palette 2 colour 6: the banner's #7f94b3 (the game: $666)
+      GOLD_ATTR: 0xA000            # priority, palette 1 (colour 6: a gold shade)
+      BLANK: 0xE020                # the space glyph where the game wrote "TM"
+      SKY_TILE: 0x1C0              # first tile of the sky (VRAM 3800): the game's 0F8-148 cannot hold it
+      III_TOP: -60                 # "III": top of the art above the object's y (0F7: screen line 119)
+      NOP: 0x4E71
+    hooks:                         # [address, base-ROM bytes (hex), label]: each becomes jmp label.l
+      code:
+        - [0x0155BC, "41 F9 00 FF 00 02", drift]      # lea $ff0002.l,a0
+        - [0x015842, "41 FA 00 18 30 3C", cursor]     # lea $1585c(pc),a0; move.w #$10,d0 (first word)
+        - [0x014DDE, "23 FC 44 AE 00 03", bar_intro]  # move.l #$44ae0003,$c00004.l (first 6 of 10 bytes)
+        - [0x014388, "23 FC 44 AE 00 03", bar_skip]   # the same
+        - [0x0151CA, "23 FC 44 AE 00 03", bar_options]  # the same
+        - [0x014EF4, "20 3C 49 96 00 03", menu]       # move.l #$49960003,d0
+        - [0x0150A8, "30 3C 00 00 45 F8", options_sky]  # move.w #$0,d0; lea $f200.w,a2 (first word)
+        - [0x0150CA, "61 00 D0 1A 41 FA", options_bar]  # bsr.w $120e6; lea $1512c(pc),a0 (first word)
+        - [0x01598A, "41 FA 00 7A 30 3C", select_sky]   # lea $15a06(pc),a0; move.w #$c18e,d0 (first word)
+    pointers:                      # [address, base-ROM bytes (hex), value]: the value replaces the bytes
+      code:
+        - [0x0158B8, "00 01 B7 80", LOGO_TILES]       # title tile list: the logo (tile 080)
+        - [0x015632, "00 01 B7 80", LOGO_TILES]       # intro: lea $1b780.l,a0 (the 2x scroller's logo)
+        - [0x017494, "00 01 B7 80", LOGO_TILES]       # ending tile list: the logo (tile 080)
+        - [0x015776, "00 0E B4 90", LOGO_MAP]         # title: lea $eb490.l,a0 (38 x 6 cells at C104)
+        - [0x0155F8, "00 0E B4 90", LOGO_MAP]         # intro: lea $eb490.l,a0
+        - [0x0172E2, "00 0E B4 90", LOGO_MAP]         # ending: lea $eb490.l,a0
+        - [0x0172F8, "00 0E B5 1C", TH_MAP]           # ending: lea $eb51c.l,a0 ("TH" of THE END, 8 x 6, the logo's tiles)
+        - [0x01579E, "00 0E B2 00", LOGO_PAL]         # title: lea $eb200.l,a1 (palette 1, 12 colours)
+        - [0x014D14, "00 0E B2 00", LOGO_PAL]         # title after the flash
+        - [0x0144F6, "00 0E B2 00", LOGO_PAL]         # intro
+        - [0x014508, "00 0E B2 00", LOGO_PAL]         # intro
+        - [0x01568C, "00 0E B2 00", LOGO_PAL]         # intro: palette 0 (the scroller's logo)
+        - [0x01569E, "00 0E B2 00", LOGO_PAL]         # intro
+        - [0x0158BC, "00 F8", SKY_TILE]               # title tile list: the sky's first tile
+        - [0x0158BE, "00 01 D0 D6", SKY_TILES]        # title tile list: the sky
+        - [0x0157B6, "00 F8", SKY_TILE]               # title: move.w #$f8,d0, the sky map's base
+        - [0x0157BA, "00 0E B5 E8", SKY_MAP]          # title: lea $eb5e8.l,a0 (32 x 28 cells, twice)
+        - [0x0157F8, "00 0E B2 78", SKY_PAL]          # title: lea $eb278.l,a1 (palette 0)
+        - [0x015801, "04", SKY_PAL_COLOURS-1]         # title: moveq #4,d7, the colours
+        - [0x014D42, "00 0E B2 78", SKY_PAL]          # 014D40: lea $eb278.l,a0 (palette 0 after the flash)
+        - [0x014D47, "04", SKY_PAL_COLOURS-1]         # 014D40: moveq #4,d7
+        - [0x014D4A, "E2 48", NOP]                    # 014D40: lsr.w #1,d0, the sky is no longer halved
+        - [0x0158D0, "00 01 D6 D2", III_TILES]        # title tile list: "III" (tile 17D)
+        - [0x015886, "00 0E B7 DE", III_SPRITE]       # "III" object: mapping
+        - [0x014394, "E0 54", BLANK]                  # "TM" (row 9, column 23) gone: it sat on the old "III"
+        - [0x01439A, "E0 4D", BLANK]
+        - [0x014DEA, "E0 54", BLANK]
+        - [0x014DF0, "E0 4D", BLANK]
+        - [0x0151D6, "E0 54", BLANK]
+        - [0x0151DC, "E0 4D", BLANK]
+        - [0x014EA6, "C9 96", BAR_MIDDLE]             # blinking title text: row 26, column 14 (was row 19)
+        - [0x014EB9, "11", MIDDLE_WIDTH-1]            # its blank phase: moveq #$11,d7
+        - [0x014EC9, "11", MIDDLE_WIDTH-1]            # its text phase
+        - [0x014ECC, "E0 00", GOLD_ATTR]              # its colour: palette 1 (gold), was 3 (white)
+        - [0x01581C, "06 66", GREY]                   # title: move.w #$666,$f2cc.w
+        - [0x014E08, "06 66", GREY]                   # menu: move.w #$666,$f24c.w
+        - [0x0150D3, "08", 7]                         # options labels: moveq #8,d7, the title is drawn by options_bar
+        - [0x016484, "00 01", SELECT_SKY_TILE]        # character select tile list: the lava's tile 1 -> the sky's
+        - [0x016486, "00 01 DB AC", SELECT_TILES]     # the lava's tiles -> the sky's
+        - [0x0159D6, "40 01", SELECT_SKY_TILE+0x6000] # move.w #$4001,d0: the map's base, palette 3 (was 2)
+        - [0x0159DA, "00 0E B8 08", SELECT_MAP]       # lea $eb808.l,a0: the lava's map -> the sky's (40 x 28)
+    art:
+      section: art
+      planes:
+        - { tiles: LOGO_TILES, max_tiles: 120,
+            files: [[gfx/screens/title_logo.png, LOGO_MAP], [gfx/screens/ending_th.png, TH_MAP]] }
+        - { tiles: SKY_TILES, max_tiles: 92, files: [[gfx/screens/title_sky.png, SKY_MAP]] }  # VRAM 3800-4380
+        - { tiles: SELECT_TILES, max_tiles: 67, files: [[gfx/screens/select_sky.png, SELECT_MAP]] }
+      sprites:
+        - { tiles: III_TILES, file: gfx/screens/title_iii.png,
+            pieces: [[0, 0, 4, 4], [4, 0, 4, 4], [8, 0, 2, 4], [0, 4, 4, 2], [4, 4, 4, 2], [8, 4, 2, 2]] }
+      palettes:
+        - { label: LOGO_PAL, file: gfx/screens/title_logo.png, colours: 12 }
+        - { label: SKY_PAL, file: gfx/screens/title_sky.png, colours: 10 }
+        - { label: SELECT_PAL, file: gfx/screens/select_sky.png, colours: 8 }
+        - { label: DUEL_TITLE_PAL, file: gfx/screens/select_title.png, colours: 8 }
+      raw:
+        - { label: CURSOR_TILE, file: gfx/screens/title_cursor.png }
+    strings: { section: text, path: text/menus.txt, label: BAR_TEXT }
+    evidence: "title setup 0156B0-015840: Nemesis list 0158B4 (count-1, then tile word + source long: logo 1B780 at 080, sky 1D0D6 at 0F8, 1D3A8 at 149, 1D552 at 168, 1D6D2 at 17D) loaded by 012D1E; logo map 0EB490 Enigma (decoder 01252C, base d0) base A080 -> 38 x 6 cells at C104 (012042); palette 0EB200 (12 words) -> F2A0, sky map 0EB5E8 base 00F8 -> E000 and E040 (32 x 28 twice), sky palette 0EB278 (5 words) -> F280, text palette 0EB2A2 -> F2E0, $666 -> F2CC (palette 2 colour 6); cursor 32 bytes at 01585C -> tile 10 (015842); III object 01587C (mapping 0EB7DE, attr A17D, x 120 y F7; mapping: pieces-1, flag, then 8 bytes a piece read by the sprite builder 012964: y, size, tile, x, mirrored x, flipped y); intro 0155EC: map 0EB490 base 8002 and tiles 1B780 doubled by 013A40/01398A for 38 x 6 cells and 120 tiles, palette 0EB200 -> F200/F280; 014D40: 0EB278 halved into (a1) (callers 0143B4, 014D28, 0151EE); flash 014CE4 then 014D12 reloads 0EB200; ending 017212: list 017490 (logo 1B780 at 080), logo map at FF0000, map 0EB51C (48 words, logo tiles: the T and H of THE END, emulator) at FF01C8, drawn at 01741E (8 x 6 cells), then E, E, N, D copied out of the logo map by its 4-cell grid (01742E, table 01748C: 04 04 05 03, two blank cells after the first); plane B scroll 0155B2/0155B8 -> 0155BC: groups of rows (table 0155E2) step d0, d0 += d1; blink 014E98: every 32 frames 18 characters of 014EDA at C996 (attr E000) or blanks; TM E054 E04D at C4AE: 014392, 014DE8, 0151D4; title -> menu 014EEC: 01207C clears from C996, 27 x 6 cells; VRAM on the title: tiles end at 34A0 (dump, emu), 3800-4380 unused; Enigma maps round-trip with ga3.enigma (tests/test_enigma.py)"
+
 constants:                       # numbers inside code (instruction operands), edited by name; see ga3.constants
   path: data/gameplay.yml
   values:
@@ -262,8 +374,8 @@ segments:
       evidence: "frame_wait: disasm 00F006 bclr #0,$c70a / btst #0,$c70a / beq; the VBlank handler 0108F4 sets that bit (010906, 01096E); one call per frame in play (emu/scenes/stage1_fight.txt)" }
   - { name: menu_version,  start: 0x0116B6, size: 0x40,    type: patch,  fill: 0xFF,
       routine: menu_version, hook: 0x014F86, hook_bytes: "72 00 60 00 00 86", return_to: 0x015010,
-      vram_end: 0xCD4C, attr: 0xE000,
-      note: "draws 'V <package version>' right-aligned at plane A row 26, ending at column 38; carved out of free_0116B6",
+      vram_end: 0xCD30, attr: 0xE000,
+      note: "draws 'V <package version>' right-aligned at plane A row 26, ending at column 24 (the middle of patch menus' bottom bar; column 38 until then); carved out of free_0116B6",
       evidence: "disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)" }
   - { name: menu_items,    start: 0x0116F6, size: 0x20,    type: patch,  fill: 0xFF,
       routine: menu_items, strings_path: text/menu_items.txt, item_width: 8, items: 4,
@@ -382,5 +494,14 @@ segments:
   - { name: difficulty_drop, start: 0x102700, size: 0x60, type: patch, fill: 0xFF,
       patch: difficulty, section: drop,
       note: "difficulty: a second potion from a gnome's hit at the hardest level" }
-  - { name: free_102760,   start: 0x102760, end: 0x200000, type: free,   fill: 0xFF,
+  - { name: menus_code,    start: 0x102760, size: 0x1A0, type: patch, fill: 0xFF,
+      patch: menus, section: code,
+      note: "menus: cloud drift, cursor tile, bottom bar, the III sprite mapping (assets/patches/menus.s)" }
+  - { name: menus_text,    start: 0x102900, size: 0x20, type: patch, fill: 0xFF,
+      patch: menus, section: text,
+      note: "menus: the bottom bar's fixed text (text/menus.txt)" }
+  - { name: menus_art,     start: 0x102920, size: 0x2000, type: patch, fill: 0xFF,
+      patch: menus, section: art,
+      note: "menus: tiles, maps and palettes from assets/gfx/screens/*.png (ga3 banner-art)" }
+  - { name: free_104920,   start: 0x104920, end: 0x200000, type: free,   fill: 0xFF,
       note: "the rest of the 1 MiB added by rom.build_size" }

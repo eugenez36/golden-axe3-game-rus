@@ -61,6 +61,7 @@ carries strings (`strings:` in the map) and one per patch that writes strings:
 | `code_main_d`              | `code_main_d.txt` | button roles, `ИГРОК 2: СТАРТ`, score labels    |
 | `difficulty_names` (patch) | `difficulty.txt`  | difficulty names, 3 × 6 characters              |
 | `options_labels` (patch)   | `options.txt`     | labels of the new options items, 11 characters  |
+| `menus_text` (patch)       | `menus.txt`       | the title's bottom bar, left and right          |
 | `text_stages`              | `stages.txt`      | stage names, 12 × 20 characters, centred        |
 | `code_main_e`              | `code_main_e.txt` | `МАРШРУТ`, `ТЫ ПОГИБ`                           |
 | `text_ending`              | `ending.txt`      | ending screens                                  |

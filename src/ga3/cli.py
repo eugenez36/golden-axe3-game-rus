@@ -16,6 +16,7 @@ from pathlib import Path
 from . import (
     __version__,
     balance,
+    banner_art,
     font,
     nemesis,
     palette,
@@ -481,6 +482,26 @@ def cmd_font(args) -> int:
     return 0
 
 
+def cmd_banner_art(args) -> int:
+    proj = _proj(args)
+    svg = proj.root / args.svg
+    out = proj.paths.assets / "gfx" / "screens"
+    for f in banner_art.generate(svg, out):
+        print(f.relative_to(proj.root))
+    return 0
+
+
+def cmd_banner_anim(args) -> int:
+    proj = _proj(args)
+    shots = sorted((proj.root / args.shots).glob("f*.png"))
+    try:
+        size = banner_art.animate(shots, proj.root / args.out, scale=args.scale, fps=args.fps)
+    except ValueError as exc:
+        return _fail(str(exc))
+    print(f"{args.out}: {len(shots)} frames, {size} bytes")
+    return 0
+
+
 def cmd_balance(args) -> int:
     from . import constants
 
@@ -721,6 +742,21 @@ def build_parser() -> argparse.ArgumentParser:
     q.add_argument("-o", "--out", default="build/preview/font.png")
     q.add_argument("--scale", type=int, default=4)
     p.set_defaults(func=cmd_font)
+
+    p = sub.add_parser(
+        "banner-art", help="draw assets/gfx/screens/*.png (the menus' art) from the banner"
+    )
+    p.add_argument("--svg", default="docs/branding/banner.svg", help="relative to the project root")
+    p.set_defaults(func=cmd_banner_art)
+
+    p = sub.add_parser(
+        "banner-anim", help="the README banner: emu/scenes/banner.txt's shots -> one APNG"
+    )
+    p.add_argument("--shots", default="build/shots/banner")
+    p.add_argument("-o", "--out", default="docs/branding/banner.png")
+    p.add_argument("--scale", type=int, default=2)
+    p.add_argument("--fps", type=int, default=10)
+    p.set_defaults(func=cmd_banner_anim)
 
     p = sub.add_parser("balance", help="gameplay tables by name")
     s = p.add_subparsers(dest="balcmd", required=True)

@@ -15,4 +15,6 @@
 | [ru/proofreading.md](ru/proofreading.md) | you want the proofreading decisions behind the text (in Russian)                                                               |
 
 `images/` holds the seven screenshots the documents cite; `branding/` the README
-banner and the social-preview image.
+banner (`banner.png`, captured from the game by `make banner`), the pixel-art
+`banner.svg` the menus' art is drawn from (`ga3 banner-art`) and the
+social-preview image.

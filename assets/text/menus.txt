@@ -1,0 +1,7 @@
+# menus: the fixed text of the title's bottom bar, patch menus in rom_map.yml
+# Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
+# Left and right of the bar, drawn in palette 2 (grey); the middle is the
+# blinking text of text/menu.txt (014EDA) on the title, the version in the menu.
+
+102900:4 | СЕГА
+102904:12 | 2О26 NЕWGАМЕ

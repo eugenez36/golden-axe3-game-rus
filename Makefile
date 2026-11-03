@@ -9,6 +9,7 @@
 #   make asm        Capstone listings for every code segment -> assets/code/asm/
 #   make emu        build the headless Genesis Plus GX frontend -> build/emu/headless_gpgx
 #   make regress    run every emu/scenes/*.txt against build/ga3.bin, JOBS at a time
+#   make banner     capture the title and menu in the emulator -> docs/branding/banner.png
 #   make clean      rm -rf build/
 #   make distclean  clean + virtualenv + caches
 #   make venv       create .venv and install ga3 with the [dev,disasm] extras
@@ -27,10 +28,10 @@ GPGX     ?= $(CURDIR)/emu/gpgx
 BASEROM  := baserom/ga3.bin
 BUILDROM := build/ga3.bin
 EMU      := build/emu/headless_gpgx
-SCENES   := $(wildcard emu/scenes/*.txt)
+SCENES   := $(filter-out emu/scenes/banner.txt,$(wildcard emu/scenes/*.txt))
 
 .DEFAULT_GOAL := build
-.PHONY: build extract verify test lint assets asm emu regress clean distclean venv help
+.PHONY: build extract verify test lint assets asm emu regress banner clean distclean venv help
 
 build: $(GA3) $(BASEROM) rom_map.yml
 	$(GA3) build
@@ -63,6 +64,11 @@ regress: build emu
 	@# scenes write disjoint files, so they run in parallel; xargs fails if any scene does
 	@printf '%s\n' $(SCENES) | xargs -P $(JOBS) -I{} \
 	  sh -c 'echo "== {}"; $(EMU) --rom $(BUILDROM) --script {} --quiet || { echo "FAILED {}"; exit 1; }'
+
+banner: build emu
+	rm -rf build/shots/banner
+	$(EMU) --rom $(BUILDROM) --script emu/scenes/banner.txt --quiet
+	$(GA3) banner-anim
 
 clean:
 	rm -rf build/
