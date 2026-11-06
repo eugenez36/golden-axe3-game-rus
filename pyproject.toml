@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ga3"
-version = "0.37.600"
+version = "0.37.700"
 description = "ROM-hacking toolkit for Golden Axe III (Sega Mega Drive) — NEWGAME 2003 Russian translation"
 readme = "README.md"
 license = "MIT"
