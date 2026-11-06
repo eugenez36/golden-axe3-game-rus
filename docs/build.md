@@ -128,6 +128,7 @@ committed.
 | options: 100 ВРАГОВ           | `593b97af…`; a life every 100 kills (patches `options`, `kill_counter`), seven options items, slots at `104920–104BFF`, pointers at `0153D6`, `015422`        |
 | release 0.37.700              | `9e8c0a63…`; against `main`, only the menu version line changes                                                                                               |
 | prisoners per life            | `87d71ceb…`; patch `kill_counter` section `bonus` reads the game's operand at `010401` for its icons (+4 bytes)                                               |
+| release 0.37.800              | `37748e0c…`; against `main`, only the menu version line changes                                                                                               |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the
@@ -180,6 +181,26 @@ value is the 3-bit count inside the opcode word (1..8, so `max` is at most 8). `
 prints every `table` segment's values as well, and `ga3 balance set
 TABLE.FIELD VALUE` (`walk_speed.kain_x 0x200`) edits one field of its asset
 file; the hero panel (patch `hero_panel`) derives its numbers from these files.
+
+## Releases
+
+A release is a merged `quest/release-X.YY.ZZZ` branch (version in
+`pyproject.toml` and `ga3.__version__`, the CHANGELOG section, the README
+roadmap line, `roms.sha1` and a row above), an annotated tag `vX.YY.ZZZ` on the
+merge commit, and a GitHub release whose notes are the CHANGELOG section and
+whose files are the build itself: `ga3-X.YY.ZZZ.bin` (`build/ga3.bin`, for
+anyone who just wants to play) and `ga3-X.YY.ZZZ.ips` (`build/ga3.ips`, for a
+dump of the base translation). The image is never committed; the release page
+is the only place it lives.
+
+```sh
+make dist                        # build/dist/ga3-X.YY.ZZZ.bin, .ips, .sha256 (after make verify)
+git tag -a vX.YY.ZZZ -F notes.txt && git push origin vX.YY.ZZZ
+gh release create vX.YY.ZZZ build/dist/ga3-X.YY.ZZZ.* --title X.YY.ZZZ --notes-file notes.md
+```
+
+The `.sha256` file lets a player check the download; the `.bin` of a release
+is also the `build/ga3.bin` hash recorded in `roms.sha1` at that tag.
 
 ## Command reference
 

@@ -10,6 +10,7 @@
 #   make emu        build the headless Genesis Plus GX frontend -> build/emu/headless_gpgx
 #   make regress    run every emu/scenes/*.txt against build/ga3.bin, JOBS at a time
 #   make banner     capture the title and menu in the emulator -> docs/branding/banner.png
+#   make dist       the release files: build/dist/ga3-VERSION.bin, .ips and their sha256
 #   make clean      rm -rf build/
 #   make distclean  clean + virtualenv + caches
 #   make venv       create .venv and install ga3 with the [dev,disasm] extras
@@ -31,7 +32,7 @@ EMU      := build/emu/headless_gpgx
 SCENES   := $(filter-out emu/scenes/banner.txt,$(wildcard emu/scenes/*.txt))
 
 .DEFAULT_GOAL := build
-.PHONY: build extract verify test lint assets asm emu regress banner clean distclean venv help
+.PHONY: build extract verify test lint assets asm emu regress banner dist clean distclean venv help
 
 build: $(GA3) $(BASEROM) rom_map.yml
 	$(GA3) build
@@ -69,6 +70,13 @@ banner: build emu
 	rm -rf build/shots/banner
 	$(EMU) --rom $(BUILDROM) --script emu/scenes/banner.txt --quiet
 	$(GA3) banner-anim
+
+dist: verify
+	@# the files a GitHub release carries: the image for players, the patch for a base dump
+	@ver=$$($(GA3) --version | cut -d' ' -f2) && mkdir -p build/dist && \
+	  cp $(BUILDROM) build/dist/ga3-$$ver.bin && cp build/ga3.ips build/dist/ga3-$$ver.ips && \
+	  (cd build/dist && sha256sum ga3-$$ver.bin ga3-$$ver.ips > ga3-$$ver.sha256) && \
+	  ls -l build/dist/ga3-$$ver.*
 
 clean:
 	rm -rf build/

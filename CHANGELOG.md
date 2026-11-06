@@ -9,8 +9,21 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+## [0.37.800] — 2026-11-06
+
+Gameplay by name: the heroes' speeds and powers, the spells' damage, the
+continue countdown and the prisoners a life costs join the HP table, lives,
+credits and potions under `ga3 balance`; the hero panel reads the same files.
+The toolkit builds twice as fast and the emulator has the RESET button; the
+main menu shows `V 0.37.800`.
+
 ### Added
 
+- **Releases carry the game.** Every GitHub release has the built image
+  `ga3-X.YY.ZZZ.bin` (download, open in a Mega Drive emulator, play) and the
+  patch `ga3-X.YY.ZZZ.ips` as files, with a `.sha256` to check them;
+  `make dist` writes them to `build/dist/`, and the README opens with where
+  to get them.
 - **Prisoners per life by name.** Constant `prisoners` (`0103F2` … `010410`:
   the freed prisoners that earn a life, 5; the icons shown and the blinks
   follow it; up to 8, the HUD draws 5 icons); `ga3 balance set prisoners 3`.
@@ -262,7 +275,8 @@ toolkit and documentation work behind them. First release numbered
   screenshots, dumps, watchpoints.
 - CI, pre-commit hooks, bilingual README, contribution and style guides.
 
-[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.700...HEAD
+[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.800...HEAD
+[0.37.800]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.700...v0.37.800
 [0.37.700]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.600...v0.37.700
 [0.37.600]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.500...v0.37.600
 [0.37.500]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.400...v0.37.500
