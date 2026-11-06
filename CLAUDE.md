@@ -3,7 +3,7 @@
 
 **Rules:**
 - User decides when and what to commit
-- Never add "Generated with Claude Code" or "Co-Authored-By: Claude" to commits
+- Never add "Generated with Claude Code" or "Co-Authored-By: Claude" to commits or to pull requests (a squash merge turns the PR description into the commit)
 
 **Project workflow:**
 - Every change on a fresh branch from `main`: `quest/…` for features, `glitch/…` for fixes and docs
