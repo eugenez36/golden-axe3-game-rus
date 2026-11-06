@@ -185,10 +185,17 @@ comes back when the game redraws the screen; interrupts are off while it talks
 to the VDP. `SHOWN` (`FFC3E8`, one byte a player) is in the RAM range the game
 never writes.
 
-**Numbers.** From `docs/heroes.md`: `tests/test_hero_panel.py` checks hp, hit,
-super and speed against the attack table, the walk table and the HP table of
-the ROM; tempo (seconds between combo hits) is a measurement. Edit the names,
-labels or values in `data/hero_panel.yml` and rebuild.
+**Numbers.** The build takes them from the game's own tables, the files
+`data/hero_panel.yml` names under `sources` (`src/ga3/hero_panel.py`,
+`resolve`): hp from `hp_table` (`slot_0`, where every hero starts; the bar's
+full length is `slot_3`), hit and super from the constants `KEY_hit` /
+`KEY_super` of `data/gameplay.yml` (the first combo hit and the launch), speed
+from `walk_speed` (`KEY_x`, 8.8 pixels a frame, shown as pixels a second), the
+bars' maxima from the strongest and the fastest hero; `KEY` is each hero's
+`key` (`kain` …). `ga3 balance set kain_super 20` therefore changes both the
+game and the panel. Tempo (seconds between combo hits) is a measurement and
+stays in `hero_panel.yml` with the names and labels. `tests/test_hero_panel.py`
+checks the derived numbers against the ROM's tables.
 
 **Checked.** `emu/scenes/hero_select_stats.txt`: the four heroes alone, two
 pairs with two players, the duel without a panel; the stage that follows starts

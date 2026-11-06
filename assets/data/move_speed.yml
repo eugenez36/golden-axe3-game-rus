@@ -1,0 +1,65 @@
+# move_speed: 60 x u16, ROM 0337FA-033872
+# four rows of 15 classes (0x1E bytes a row), signed 8.8 pixels per frame: dash speed, jump velocity up, dash-jump velocity up, steering in the air; classes 5-14 are enemies; docs/heroes.md, Movement
+# evidence: lea $337fa,a5 at 003BF6, row 0 read as +class x 2 for the dash; row 1 (0x33818) used at 004B74 for the jump; measured in the emulator: dash exactly 3 / 4 / 5 / 4 px per frame, a standing jump 64 / 68 / 69 / 69 px high for Proud / Kain / Chronos / Sarah; 0x0BE0 jumps 276 px, 0 or negative never leaves the ground
+format: u16
+values:
+  dash_proud: 768
+  dash_beast: 1664
+  dash_kain: 1024
+  dash_chronos: 1280
+  dash_sarah: 1024
+  dash_enemy_5: 640
+  dash_enemy_6: 640
+  dash_enemy_7: 768
+  dash_enemy_8: 768
+  dash_enemy_9: 640
+  dash_enemy_10: 640
+  dash_enemy_11: 640
+  dash_enemy_12: 896
+  dash_enemy_13: 896
+  dash_enemy_14: 896
+  jump_proud: 1472
+  jump_beast: 1536
+  jump_kain: 1520
+  jump_chronos: 1536
+  jump_sarah: 1536
+  jump_enemy_5: 1472
+  jump_enemy_6: 1472
+  jump_enemy_7: 1472
+  jump_enemy_8: 1472
+  jump_enemy_9: 1536
+  jump_enemy_10: 1472
+  jump_enemy_11: 1520
+  jump_enemy_12: 1520
+  jump_enemy_13: 1520
+  jump_enemy_14: 1520
+  dash_jump_proud: 1728
+  dash_jump_beast: 1792
+  dash_jump_kain: 1776
+  dash_jump_chronos: 1792
+  dash_jump_sarah: 1792
+  dash_jump_enemy_5: 1728
+  dash_jump_enemy_6: 1728
+  dash_jump_enemy_7: 1728
+  dash_jump_enemy_8: 1728
+  dash_jump_enemy_9: 1776
+  dash_jump_enemy_10: 1728
+  dash_jump_enemy_11: 1776
+  dash_jump_enemy_12: 1776
+  dash_jump_enemy_13: 1776
+  dash_jump_enemy_14: 1776
+  air_proud: 512
+  air_beast: 512
+  air_kain: 512
+  air_chronos: 512
+  air_sarah: 512
+  air_enemy_5: 512
+  air_enemy_6: 512
+  air_enemy_7: 512
+  air_enemy_8: 512
+  air_enemy_9: 512
+  air_enemy_10: 512
+  air_enemy_11: 512
+  air_enemy_12: 512
+  air_enemy_13: 512
+  air_enemy_14: 512

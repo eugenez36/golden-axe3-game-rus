@@ -285,9 +285,9 @@ def _panel_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
     glyphs = fontlib.parse_art_file(str(paths.asset(spec["art"])))
     vram, max_tiles = spec["vram"], spec["max_tiles"]
     try:
-        doc = hero_panel.load_data(paths.asset(spec["data"]))
+        doc = hero_panel.load_resolved(paths.asset(spec["data"]), paths.assets)
         panel = hero_panel.render(doc, glyphs, vram // 32, max_tiles)
-    except (ValueError, KeyError) as exc:
+    except (ValueError, KeyError, OSError) as exc:
         raise BuildError(f"{seg}: hero panel: {exc}") from None
     tile_words = [
         int.from_bytes(panel.tiles[i : i + 2], "big") for i in range(0, len(panel.tiles), 2)
@@ -307,6 +307,16 @@ def _panel_tables(seg: Segment, paths: Paths) -> tuple[str, dict[str, int]]:
         "FULL_W": fw, "FULL_H": fh, "FULL_SIZE": fw * fh * 2,
         "HALF_W": hw, "HALF_H": hh, "HALF_SIZE": hw * hh * 2,
     }  # fmt: skip
+
+
+def _panel_sources(data: Path, paths: Paths) -> list[Path]:
+    """The table files the panel's numbers come from (none when the data file is unreadable)."""
+    from .. import hero_panel
+
+    try:
+        return list(hero_panel.source_paths(hero_panel.load_data(data), paths.assets).values())
+    except (OSError, ValueError):
+        return []
 
 
 def _bytes(label: str, data: bytes) -> list[str]:
@@ -534,7 +544,8 @@ class PatchHandler(Handler):
             if pdef.get("glyphs"):
                 found.append(paths.asset(pdef["glyphs"]["art"]))
             if pdef.get("panel"):
-                found += [paths.asset(pdef["panel"]["art"]), paths.asset(pdef["panel"]["data"])]
+                data = paths.asset(pdef["panel"]["data"])
+                found += [paths.asset(pdef["panel"]["art"]), data, *_panel_sources(data, paths)]
             if pdef.get("strings"):
                 found.append(paths.asset(pdef["strings"]["path"]))
             found += [paths.asset(f) for f in _art_files(pdef)]

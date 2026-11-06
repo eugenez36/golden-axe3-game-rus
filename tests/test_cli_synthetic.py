@@ -35,7 +35,8 @@ def test_inspection_commands(synthetic_extracted, capsys):
     assert run(s, "info") == 0
     assert "SYNTHETIC TEST IMAGE" in capsys.readouterr().out
     assert run(s, "balance", "show") == 0
-    assert "slot_3      75" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "slot_3              75 (0x4B)" in out and "entry_1          48879 (0xBEEF)" in out
     assert run(s, "text", "verify") == 0
     assert "3 strings" in capsys.readouterr().out
     assert run(s, "font", "info") == 0
@@ -55,6 +56,23 @@ def test_balance_set_hp_writes_the_table(synthetic_extracted, capsys):
     assert bytes(s.project.build_rom.read_bytes()[0x210:0x214]) == bytes([40, 41, 42, 43])
     assert run(s, "balance", "set-hp", "1", "2") == 1
     assert "expected 4 values" in capsys.readouterr().err
+
+
+def test_balance_set_writes_a_table_field(synthetic_extracted, capsys):
+    s = synthetic_extracted
+    assert run(s, "balance", "set", "words.entry_1", "0x1FF") == 0
+    assert "words.entry_1: 48879 -> 511" in capsys.readouterr().out
+    assert run(s, "balance", "set", "hp_table.slot_0", "60") == 0
+    assert "more than the HUD can draw" in capsys.readouterr().err
+    assert run(s, "build") == 0
+    built = s.project.build_rom.read_bytes()
+    assert built[0x210] == 60 and built[0x216:0x218] == b"\x01\xff"
+    assert run(s, "balance", "set", "words.nope", "1") == 1
+    assert "no field 'nope'; known: entry_0, entry_1" in capsys.readouterr().err
+    assert run(s, "balance", "set", "words.entry_0", "70000") == 1
+    assert "outside 0..65535" in capsys.readouterr().err
+    assert run(s, "balance", "set", "text_demo.x", "1") == 1
+    assert "not a table" in capsys.readouterr().err
 
 
 def test_patch_and_diff(synthetic_project, capsys):
@@ -156,7 +174,7 @@ def test_unknown_segment_name_is_a_clean_error(synthetic_extracted, capsys):
     doc = yaml.safe_load((s.root / pl.MAP_FILE).read_text(encoding="utf-8"))
     doc["segments"] = [seg for seg in doc["segments"] if seg["name"] != "hp_table"]
     (s.root / pl.MAP_FILE).write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
-    assert run(s, "balance", "show") == 1
+    assert run(s, "balance", "set-hp", "1", "2", "3", "4") == 1
     assert capsys.readouterr().err.startswith("error: no segment named 'hp_table'")
 
 
