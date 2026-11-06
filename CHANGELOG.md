@@ -11,6 +11,13 @@ hash recorded in `roms.sha1`.
 
 ### Added
 
+- **Continue countdown by name.** Constants `countdown` (`00E650`: the seconds
+  «ИГРАЕМ? 9» counts from after the last death, one digit) and
+  `countdown_frames` (`00E65C`, `00E71A`: frames a count lasts, 60) in
+  `data/gameplay.yml`; `ga3 balance set countdown 5`. Checked in the emulator:
+  the count at `FFC783` steps every `countdown_frames` frames and the game over
+  starts at zero. The image is unchanged.
+
 - **Hero parameters by name.** Two new table segments, `walk_speed`
   (`0x337E6`, `data/walk_speed.yml`: X and depth walking speed of every
   class) and `move_speed` (`0x337FA`, `data/move_speed.yml`: dash, jump,
