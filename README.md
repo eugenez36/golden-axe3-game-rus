@@ -54,8 +54,9 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
   used).
 - **Gameplay by name.** `ga3 balance show` lists every table and constant;
   `ga3 balance set-hp 60 60 60 60` edits the HP table, `set lives 5` /
-  `set credits 9` / `set potions 3` the spare lives, the continues and the
-  default of OPTIONS → БАНКИ МАГИИ (starting magic potions, 0–6), `set
+  `set credits 9` / `set potions 3` / `set countdown 5` the spare lives, the
+  continues, the default of OPTIONS → БАНКИ МАГИИ (starting magic potions, 0–6)
+  and the continue screen's countdown, `set
   kain_super 20` / `set magic_l2 40` a hero's hit and launch powers and the
   spells' damage, `set walk_speed.kain_x 0x200` / `set move_speed.jump_sarah
   0x700` the walking, dash and jump speeds of every class. The hero panel on
