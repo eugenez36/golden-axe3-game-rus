@@ -9,9 +9,12 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+## [0.37.700] — 2026-11-06
+
 The menus in the style of the README banner, and the banner itself replaced
 by the new title and menu, captured in the emulator. A new options item: a
-life for every hundred kills.
+life for every hundred kills. The toolkit builds twice as fast; the main menu
+shows `V 0.37.700`.
 
 ### Added
 
@@ -220,7 +223,8 @@ toolkit and documentation work behind them. First release numbered
   screenshots, dumps, watchpoints.
 - CI, pre-commit hooks, bilingual README, contribution and style guides.
 
-[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.600...HEAD
+[Unreleased]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.700...HEAD
+[0.37.700]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.600...v0.37.700
 [0.37.600]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.500...v0.37.600
 [0.37.500]: https://github.com/eugenez36/golden-axe3-game-rus/compare/v0.37.400...v0.37.500
 [0.37.400]: https://github.com/eugenez36/golden-axe3-game-rus/compare/1e4ccb1...v0.37.400
