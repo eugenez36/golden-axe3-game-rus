@@ -388,7 +388,11 @@ the patch (watch `FFC8E0`: `pc=1049AA`), the five icons on, off, on and gone;
 199 → 200: lives 4; with 9 lives 299 → 301: still 9; with `$C729` = 0 and 5
 lives 399 → 400: still 5. `emu/scenes/options_extra_life_2p.txt`: a
 two-player game, player 2's magic makes their 100th kill: player 2's lives
-(`FFCA40`) 2 → 3, player 1's stay 2. `options_extra_life_2p_blink.txt`, a
+(`FFCA40`) 2 → 3, player 1's stay 2. The icons shown and the number of
+blinks are read at run time from the game's own operand (`ICONS_SRC`, the
+`move.b #5,$138(a1)` at `0103FE`): the constant `prisoners` (`ga3 balance set
+prisoners 3`) changes both the game's rule and this signal.
+`options_extra_life_2p_blink.txt`, a
 Work RAM dump every 8 frames: on that kill player 2's HUD state (`FFDC34`)
 starts the blink, the five icons (`FFCA3C`) toggle five times 15 frames apart
 and the real count comes back; they show under player 2's HUD a frame later,

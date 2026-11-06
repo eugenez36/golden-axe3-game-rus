@@ -136,8 +136,9 @@ kill:
 
 ; a2 = the counter that has just gone up: on every LIFE_KILLS-th kill, with
 ; the option on and outside the demo, its player gets a life (up to
-; LIVES_MAX, all the HUD's one digit can show) as at 0103FA-01041C: the five
-; prisoner icons blink (the HUD state of that player, run every frame by
+; LIVES_MAX, all the HUD's one digit can show) as at 0103FA-01041C: the
+; prisoner icons blink (as many as prisoners a life costs, read from the
+; game's own operand at ICONS_SRC) (the HUD state of that player, run every frame by
 ; 0103B4, brings the real icons back afterwards) and sound SOUND_LIFE plays
 bonus:
         btst    #LIFE_BIT,POT.w
@@ -160,10 +161,10 @@ bonus:
 .who:   cmpi.b  #LIVES_MAX,LIVES(a1)
         bcc.s   .back
         addq.b  #1,LIVES(a1)
-        move.b  #ICONS_MAX,ICONS(a1)
+        move.b  ICONS_SRC,ICONS(a1)     ; as many icons as prisoners a life costs
         move.b  #1,BLINK(a3)            ; blinking
         move.b  #BLINK_FRAMES,BLINK+1(a3)
-        move.b  #ICONS_MAX,BLINK+2(a3)  ; times
+        move.b  ICONS_SRC,BLINK+2(a3)   ; times (the game's own operand: constants.prisoners)
         move.b  #SOUND_LIFE,d0
         jsr     SOUND
 .back:  movem.l (sp)+,d0/a1/a3

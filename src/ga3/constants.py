@@ -27,15 +27,33 @@ from .rom_map import Constant, RomMap, Site
 PACK = {"u8": ">B", "u16": ">H"}
 
 
+def _read(raw: bytes, c: Constant, site: Site) -> int:
+    """The constant inside ``raw``, the bytes of the instruction at ``site``."""
+    if site.quick:  # addq / subq: bits 9-11 of the opcode word, 0 means 8
+        q = (struct.unpack(">H", raw[site.offset : site.offset + 2])[0] >> 9) & 7
+        return q or 8
+    return struct.unpack(PACK[c.format], raw[site.offset : site.offset + c.width])[0]
+
+
+def _write(data: bytearray, c: Constant, site: Site, value: int) -> None:
+    at = site.at + site.offset
+    if site.quick:
+        if not 1 <= value <= 8:
+            raise BuildError(f"constants.{c.name}: a quick operand holds 1..8, not {value}")
+        word = struct.unpack(">H", bytes(data[at : at + 2]))[0] & ~(7 << 9)
+        struct.pack_into(">H", data, at, word | ((value & 7) << 9))
+    else:
+        data[at : at + c.width] = struct.pack(PACK[c.format], value)
+
+
 def _operand(data: bytes | bytearray, c: Constant, site: Site) -> int:
     """The constant as the image ``data`` holds it at ``site``."""
-    at = site.at + site.offset
-    return struct.unpack(PACK[c.format], bytes(data[at : at + c.width]))[0]
+    return _read(bytes(data[site.at : site.at + len(site.expect)]), c, site)
 
 
 def _base_value(c: Constant, site: Site) -> int:
     """The constant in the base-ROM bytes the map gives for ``site``."""
-    return struct.unpack(PACK[c.format], site.expect[site.offset : site.offset + c.width])[0]
+    return _read(site.expect, c, site)
 
 
 def check(rom: Rom, rm: RomMap) -> list[str]:
@@ -104,8 +122,7 @@ def build(rom: Rom, rm: RomMap, paths: Paths) -> list[str]:
                     f"constants.{c.name}: 0x{s.at:06X} holds {found.hex(' ')}, "
                     f"expected {s.expect.hex(' ')}"
                 )
-            at = s.at + s.offset
-            rom.data[at : at + c.width] = struct.pack(PACK[c.format], value)
+            _write(rom.data, c, s, value)
         was = _base_value(c, c.sites[0])
         if value != was:
             note = f"constants.{c.name}: {was} -> {value}"
