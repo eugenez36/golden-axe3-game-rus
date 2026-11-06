@@ -9,6 +9,15 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+### Added
+
+- **Emulator:** `softreset`, the console's RESET button (`gen_reset(0)`, as
+  the libretro frontend; Work RAM and the I/O registers kept). `reset` stays
+  the power-on reset, which clears RAM. Scenes `options_reset.txt` (100 ВРАГОВ
+  kept over `softreset`, cleared by `reset`) and
+  `options_extra_life_2p_blink.txt` (player 2's prisoner icons blink five
+  times for the life at 100 kills, a Work RAM dump every 8 frames).
+
 ## [0.37.700] — 2026-11-06
 
 The menus in the style of the README banner, and the banner itself replaced

@@ -381,8 +381,16 @@ the patch (watch `FFC8E0`: `pc=1049AA`), the five icons on, off, on and gone;
 199 → 200: lives 4; with 9 lives 299 → 301: still 9; with `$C729` = 0 and 5
 lives 399 → 400: still 5. `emu/scenes/options_extra_life_2p.txt`: a
 two-player game, player 2's magic makes their 100th kill: player 2's lives
-(`FFCA40`) 2 → 3, player 1's stay 2. `options_potions` with both items: the
-potions value moves and ВКЛ stays (`$C729` = `86`).
+(`FFCA40`) 2 → 3, player 1's stay 2. `options_extra_life_2p_blink.txt`, a
+Work RAM dump every 8 frames: on that kill player 2's HUD state (`FFDC34`)
+starts the blink, the five icons (`FFCA3C`) toggle five times 15 frames apart
+and the real count comes back; they show under player 2's HUD a frame later,
+and the blink pauses while magic plays, as the game's own does. Player 1's
+state (`FFDC24`) stays quiet. `options_potions` with both items: the
+potions value moves and ВКЛ stays (`$C729` = `86`). `options_reset.txt`: ВКЛ
+is kept over `softreset` (the RESET button: the entry stub at `0FFA20` sees
+the I/O registers set and skips clearing RAM, then `0002C2` restores the long
+at `$C726` by the signature at `$C400`) and cleared by `reset` (power-on).
 
 ## Menus in the banner's style (`menus`)
 

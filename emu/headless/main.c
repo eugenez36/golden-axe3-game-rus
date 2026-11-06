@@ -680,6 +680,16 @@ static int run_script(const char *path, int depth)
       apply_overclock();
       if (verbose) fprintf(stderr, "[sys ] reset at frame %ld\n", frame_counter);
     }
+    else if (!strcmp(cmd, "softreset"))
+    {
+      /* the console's RESET button, as the libretro frontend's retro_reset():
+         gen_reset(0) alone. Work RAM and the I/O registers keep their contents,
+         which is how the SEGA init at the entry point (0FFA20: tst.l $a10008)
+         tells a reset from power-on and skips clearing RAM. */
+      gen_reset(0);
+      apply_overclock();
+      if (verbose) fprintf(stderr, "[sys ] soft reset at frame %ld\n", frame_counter);
+    }
     else if (!strcmp(cmd, "echo"))
     {
       printf("%s%s%s%s%s\n", a1 ? a1 : "", a2 ? " " : "", a2 ? a2 : "",
@@ -813,7 +823,8 @@ static void usage(const char *argv0)
     "  clearwatch             remove RAM and VRAM watchpoints (breakpoints stay)\n"
     "  poke8/poke16 ADDR VAL  patch Work RAM on the fly (hex)\n"
     "  state save|load PATH   save / load a savestate\n"
-    "  reset                  reset the system\n"
+    "  reset                  reset the system (power on: Work RAM cleared)\n"
+    "  softreset              the RESET button: Work RAM kept\n"
     "  status                 print frame / viewport / watch hits\n"
     "  echo TEXT              print up to three words\n"
     "  quiet                  silence progress messages\n"

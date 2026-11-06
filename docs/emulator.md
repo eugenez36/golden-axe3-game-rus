@@ -53,7 +53,8 @@ spaces, at most three are read.
 | `clearwatch`              | remove RAM and VRAM watchpoints (breakpoints stay)                   |
 | `poke8 / poke16 ADDR VAL` | patch Work RAM (hex, 68000 address; the byte swap is handled)        |
 | `state save\|load PATH`   | savestate                                                            |
-| `reset`                   | reset the console                                                    |
+| `reset`                   | reset the console as at power-on (Work RAM cleared)                  |
+| `softreset`               | the RESET button: Work RAM kept                                      |
 | `status`                  | print the frame, the viewport and the watch hits                     |
 | `echo TEXT`               | print up to three words                                              |
 | `quiet`                   | silence progress messages                                            |
