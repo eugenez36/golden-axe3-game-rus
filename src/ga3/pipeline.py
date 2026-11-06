@@ -126,6 +126,10 @@ def build(proj: Project, base: Rom, out: Path | None = None, ips: bool = True, l
     size = proj.map.image_size
     if len(rom.data) < size:
         rom.expand(size, fill=0xFF)
+    handlers = {id(h): h for h in map(handler_for, proj.map.segments)}
+    for h in handlers.values():
+        if (reset := getattr(h, "reset", None)) is not None:
+            reset()  # a handler that remembers what it wrote starts every build clean
     for seg in proj.map.segments:
         h = handler_for(seg)
         try:
@@ -179,7 +183,7 @@ def read_sha_file(path: Path) -> dict[str, str]:
     out: dict[str, str] = {}
     if not path.exists():
         return out
-    for lineno, raw in enumerate(path.read_text().splitlines(), 1):
+    for lineno, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue

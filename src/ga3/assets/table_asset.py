@@ -37,7 +37,7 @@ class TableHandler(Handler):
         return fmt, width, list(fields)
 
     def extract(self, rom: Rom, seg: Segment, paths: Paths) -> list[Path]:
-        fmt, width, fields = self._layout(seg)
+        fmt, _width, fields = self._layout(seg)
         values = struct.unpack(f">{len(fields)}{FMT[fmt]}", bytes(rom.data[seg.start : seg.end]))
         doc = {
             "format": fmt,

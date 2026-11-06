@@ -38,9 +38,9 @@ def _blob_for(raw: bytes, nem_path: Path, xor_attr, seg: Segment) -> tuple[bytes
             pass  # a damaged .nem is simply recompressed from the tiles
     xor = None if xor_attr is None else bool(xor_attr)
     blob = nemesis.compress(raw, xor_mode=xor, slack=False)
-    if len(blob) > seg.size:
+    if len(blob) > seg.size and xor is not None:
         # last resort: the other XOR mode might be shorter
-        alt = nemesis.compress(raw, xor_mode=None, slack=False)
+        alt = nemesis.compress(raw, xor_mode=not xor, slack=False)
         blob = min(blob, alt, key=len)
     return blob, f"recompressed {len(blob)} B (slot {seg.size}, margin {seg.size - len(blob)})"
 

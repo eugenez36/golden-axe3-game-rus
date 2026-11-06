@@ -60,7 +60,7 @@ def test_readmes_count_the_strings_and_their_files():
 
 def test_text_format_lists_every_strings_file():
     _proj, paths = _strings_files()
-    listed = set(re.findall(r"^\|[^|]*\| `([\w.]+\.txt)` +\|", _read(TEXT_FORMAT), re.M))
+    listed = set(re.findall(r"^\|[^|]*\| `([\w.]+\.txt)` +\|", _read(TEXT_FORMAT), re.MULTILINE))
     have = {p.name for p in paths}
     assert listed == have, (
         f"docs/text_format.md strings-file table: missing {sorted(have - listed)}, "
@@ -72,7 +72,7 @@ def test_patches_doc_lists_every_patch():
     proj = open_project(ROOT)
     names = {s.get("patch") or s.get("routine") for s in proj.map.by_type("patch")}
     overview = _read(PATCHES).split("\n## ", 1)[0]  # the table before the first section
-    listed = set(re.findall(r"^\| `(\w+)` +\|", overview, re.M))
+    listed = set(re.findall(r"^\| `(\w+)` +\|", overview, re.MULTILINE))
     assert names <= listed, f"docs/patches.md table lacks {sorted(names - listed)}"
     assert listed <= names, f"docs/patches.md table lists unknown {sorted(listed - names)}"
 
@@ -83,7 +83,7 @@ def test_build_doc_records_the_current_build_hash():
         for line in _read(ROOT / "roms.sha1").splitlines()
         if line.endswith("build/ga3.bin")
     )
-    table = re.findall(r"^\| [^|]+\| `([0-9a-f]{8})…`", _read(BUILD), re.M)
+    table = re.findall(r"^\| [^|]+\| `([0-9a-f]{8})…`", _read(BUILD), re.MULTILINE)
     assert table and table[-1] == sha[:8], (
         f"docs/build.md «Byte identity» table should end with the build in roms.sha1 "
         f"(`{sha[:8]}…`), not `{table[-1] if table else None}…`"

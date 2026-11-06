@@ -330,6 +330,8 @@ def test_map_attaches_patch_definitions_and_rejects_bad_ones():
     del bad["section"]
     with pytest.raises(rom_map.RomMapError, match="needs section"):
         rom_map.parse(doc([bad], {"p": {}}))
+    with pytest.raises(rom_map.RomMapError, match="patch 'q' has no segment"):
+        rom_map.parse(doc([seg("a", 0x100, "x")], {"p": {}, "q": {}}))
 
 
 def test_kill_counter_keeps_the_games_death_test_for_any_damage():

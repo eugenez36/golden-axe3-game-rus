@@ -22,6 +22,7 @@ blues, 8 the bottom bar, 9 its gold line.
 
 from __future__ import annotations
 
+import itertools
 import re
 from pathlib import Path
 
@@ -67,7 +68,7 @@ class Banner:
         ]
 
     def gradient(self, name: str) -> list[tuple[float, RGB]]:
-        m = re.search(rf'<linearGradient id="{name}".*?</linearGradient>', self.svg, re.S)
+        m = re.search(rf'<linearGradient id="{name}".*?</linearGradient>', self.svg, re.DOTALL)
         if not m:
             raise ValueError(f"banner: no gradient {name!r}")
         stops = re.findall(r'offset="([\d.]+)" stop-color="(#[0-9a-f]+)"', m.group(0))
@@ -89,7 +90,7 @@ class Banner:
 
 def _lerp(stops: list[tuple[float, RGB]], t: float) -> RGB:
     t = min(1.0, max(0.0, t))
-    for (t0, c0), (t1, c1) in zip(stops, stops[1:], strict=False):
+    for (t0, c0), (t1, c1) in itertools.pairwise(stops):
         if t <= t1:
             f = 0.0 if t1 == t0 else (t - t0) / (t1 - t0)
             return tuple(round(a + (b - a) * f) for a, b in zip(c0, c1, strict=True))  # type: ignore[return-value]
@@ -146,7 +147,7 @@ def _letters(black: list, gold: list) -> list[tuple[list, list, int, int]]:
     """
     cover = sorted({c for x, _y, w, _h in gold for c in range(x, x + w)})
     spans, start = [], cover[0]
-    for a, b in zip(cover, cover[1:], strict=False):
+    for a, b in itertools.pairwise(cover):
         if b != a + 1:
             spans.append((start, a + 1))
             start = b

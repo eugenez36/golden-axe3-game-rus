@@ -43,6 +43,7 @@ from __future__ import annotations
 import re
 import struct
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 
 from .. import enigma, m68k, nemesis, patches, screen, table, text
@@ -420,8 +421,12 @@ def _value(expr: str, names: dict[str, int], where: str) -> int:
     return total
 
 
-def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, int]]:
-    """Assemble the patch this segment belongs to: its section's bytes, its hooks, the labels."""
+def assemble_patch(seg: Segment, paths: Paths) -> tuple[dict[str, bytes], dict[str, int]]:
+    """Assemble the whole patch ``seg`` belongs to: every section's bytes and the labels.
+
+    The generated tables (glyphs, panel, art, strings) go into their own
+    sections, so the result is the same whichever section's segment asks.
+    """
     pdef = seg.get("patch_def")
     source = paths.asset(pdef["source"])
     if not source.exists():
@@ -437,12 +442,16 @@ def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, 
         )
     except m68k.AsmError as exc:
         raise BuildError(f"{seg}: {source.name}: {exc}") from None
+    return out, {**symbols, **labels}
+
+
+def section_edits(seg: Segment, names: dict[str, int]) -> list[Edit]:
+    """The hooks and pointers of this segment's section, resolved against ``names``."""
     todo = []
     for at, expect, label in _hooks(seg):
-        if label not in labels:
+        if label not in names:
             raise BuildError(f"{seg}: hook at {at:06X} names unknown label {label!r}")
-        todo.append(Edit(at, expect, patches.jmp_abs(labels[label])))
-    names = {**symbols, **labels}
+        todo.append(Edit(at, expect, patches.jmp_abs(names[label])))
     for at, expect, expr in _pointers(seg):
         value = _value(expr, names, f"{seg}: pointer at {at:06X}")
         if (
@@ -456,10 +465,21 @@ def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, 
             Edit(at, expect, (value & ((1 << (8 * len(expect))) - 1)).to_bytes(len(expect), "big"))
         )
     spans = sorted((e.at, e.end) for e in todo)
-    for (a0, a1), (b0, _b1) in zip(spans, spans[1:], strict=False):
+    for (a0, a1), (b0, _b1) in pairwise(spans):
         if b0 < a1:
             raise BuildError(f"{seg}: edits at {a0:06X} and {b0:06X} overlap")
-    return out[seg.get("section")], todo, labels
+    return todo
+
+
+def assembled(seg: Segment, paths: Paths) -> tuple[bytes, list[Edit], dict[str, int]]:
+    """Assemble the patch this segment belongs to: its section's bytes, its edits, its names.
+
+    The names are the patch's symbols and labels together (what ``pointers:``
+    may refer to). The handler caches the assembly per patch; this is the
+    uncached form for tests and tools.
+    """
+    out, names = assemble_patch(seg, paths)
+    return out[seg.get("section")], section_edits(seg, names), names
 
 
 def touched(seg: Segment) -> list[tuple[int, int]]:
@@ -493,7 +513,19 @@ def _edit_problem(rom: Rom, seg: Segment, at: int, expect: bytes) -> str | None:
 
 class PatchHandler(Handler):
     def __init__(self):
+        self.reset()
+
+    def reset(self) -> None:
+        """Forget the previous build: what each segment wrote, and the assembled patches."""
         self._applied: dict[str, tuple[bytes, list[Edit]]] = {}
+        self._assembled: dict[str, tuple[dict[str, bytes], dict[str, int]]] = {}
+
+    def _assemble(self, seg: Segment, paths: Paths) -> tuple[dict[str, bytes], dict[str, int]]:
+        """One assembly per patch per build: its sections' segments share the result."""
+        name = seg.get("patch")
+        if name not in self._assembled:
+            self._assembled[name] = assemble_patch(seg, paths)
+        return self._assembled[name]
 
     def sources(self, seg: Segment, paths: Paths) -> list[Path]:
         pdef = seg.get("patch_def")
@@ -516,7 +548,8 @@ class PatchHandler(Handler):
 
     def build(self, rom: Rom, seg: Segment, paths: Paths) -> str | None:
         if seg.get("patch_def") is not None:
-            body, todo, _labels = assembled(seg, paths)
+            out, names = self._assemble(seg, paths)
+            body, todo = out[seg.get("section")], section_edits(seg, names)
         else:
             todo = edits(seg)
             body = None
@@ -541,9 +574,11 @@ class PatchHandler(Handler):
         problems = []
         if bytes(rom.data[seg.start : seg.end]) != slot:
             problems.append(f"{seg}: a later segment overwrote the patch's slot")
-        for e in todo:
-            if bytes(rom.data[e.at : e.end]) != e.new:
-                problems.append(f"{seg}: a later segment overwrote the edit at 0x{e.at:06X}")
+        problems.extend(
+            f"{seg}: a later segment overwrote the edit at 0x{e.at:06X}"
+            for e in todo
+            if bytes(rom.data[e.at : e.end]) != e.new
+        )
         return problems
 
     def check(self, rom: Rom, seg: Segment) -> list[str]:

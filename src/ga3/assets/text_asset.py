@@ -8,6 +8,7 @@ rest of the segment stays a passthrough of the base ROM.
 
 from __future__ import annotations
 
+import itertools
 from pathlib import Path
 
 from .. import text
@@ -64,7 +65,7 @@ def embedded_spans(seg: Segment) -> list[tuple[int, int]]:
             raise BuildError(f"{seg}: string {off:06X}:{ln} lies outside the segment")
         spans.append((off, ln))
     spans.sort()
-    for (a, la), (b, _lb) in zip(spans, spans[1:], strict=False):
+    for (a, la), (b, _lb) in itertools.pairwise(spans):
         if a + la > b:
             raise BuildError(f"{seg}: strings {a:06X}:{la} and {b:06X} overlap")
     return spans

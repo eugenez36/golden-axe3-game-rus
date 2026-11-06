@@ -13,6 +13,8 @@ from __future__ import annotations
 import hashlib
 import os
 import struct
+import sys
+from array import array
 
 HDR_CHECKSUM = 0x18E
 HDR_ROM_START = 0x1A0
@@ -70,7 +72,10 @@ class Rom:
         body = self.data[CHECKSUM_FROM:]
         if len(body) & 1:  # odd tail: pad with zero, as the boot loader does
             body = body + b"\x00"
-        return sum(struct.unpack(">%dH" % (len(body) // 2), body)) & 0xFFFF
+        words = array("H", body)
+        if sys.byteorder == "little":
+            words.byteswap()
+        return sum(words) & 0xFFFF
 
     def stored_checksum(self) -> int:
         return self.u16(HDR_CHECKSUM)
@@ -200,9 +205,13 @@ def make_ips(orig: bytes, patched: bytes) -> bytes:
 
 
 def _run_length(data: bytes, pos: int, end: int) -> int:
-    """How many bytes from ``pos`` (before ``end``) equal ``data[pos]``."""
-    value, n = data[pos], 1
-    while pos + n < end and data[pos + n] == value and n < IPS_MAX_RECORD:
+    """How many bytes from ``pos`` (before ``end``) equal ``data[pos]``, at most a record."""
+    limit = min(end, pos + IPS_MAX_RECORD)
+    same = bytes([data[pos]]) * IPS_RLE_MIN
+    n = 1
+    while pos + n + IPS_RLE_MIN <= limit and data[pos + n : pos + n + IPS_RLE_MIN] == same:
+        n += IPS_RLE_MIN  # whole chunks of equal bytes
+    while pos + n < limit and data[pos + n] == data[pos]:
         n += 1
     return n
 

@@ -166,30 +166,27 @@ def import_indexed(path: str, count: int | None = None) -> bytes:
     destroyed the information we need.
     """
     Image = _require_pil()
-    img = Image.open(path)
-    if img.mode != "P":
-        raise ValueError(f"{path}: expected an indexed (mode P) PNG, got mode {img.mode}")
-    if img.width % TILE_W or img.height % TILE_H:
-        raise ValueError(f"{path}: size {img.width}x{img.height} is not a multiple of 8")
-    px = img.load()
-    cols, rows_n = img.width // TILE_W, img.height // TILE_H
+    with Image.open(path) as img:
+        if img.mode != "P":
+            raise ValueError(f"{path}: expected an indexed (mode P) PNG, got mode {img.mode}")
+        if img.width % TILE_W or img.height % TILE_H:
+            raise ValueError(f"{path}: size {img.width}x{img.height} is not a multiple of 8")
+        w, flat = img.width, img.tobytes()  # one byte per pixel, row by row
+    cols, rows_n = w // TILE_W, img.height // TILE_H
     available = cols * rows_n
     total = available if count is None else count
     if total > available:
         raise ValueError(f"{path}: holds {available} tiles, {total} requested")
+    over = max(flat[: rows_n * TILE_H * w], default=0)
+    if over > 15:
+        at = flat.index(over)
+        raise ValueError(f"{path}: palette index {over} at ({at % w},{at // w}) exceeds 15")
     out = bytearray()
     for i in range(total):
         tx, ty = (i % cols) * TILE_W, (i // cols) * TILE_H
-        rows = []
         for y in range(TILE_H):
-            row = []
-            for x in range(TILE_W):
-                v = px[tx + x, ty + y]
-                if v > 15:
-                    raise ValueError(f"{path}: palette index {v} at ({tx + x},{ty + y}) exceeds 15")
-                row.append(v)
-            rows.append(row)
-        out += tile_encode(rows)
+            row = flat[(ty + y) * w + tx : (ty + y) * w + tx + TILE_W]
+            out += bytes(row[x] << 4 | row[x + 1] for x in range(0, TILE_W, 2))
     return bytes(out)
 
 
@@ -208,5 +205,5 @@ def render_ascii(data: bytes, off: int, count: int, cols: int = 16) -> str:
                 break
             for y, row in enumerate(tile_decode(data, t)):
                 band[y] += "".join(shades[v] for v in row) + "|"
-        lines += band + ["." * (cols * (TILE_W + 1))]
+        lines += [*band, "." * (cols * (TILE_W + 1))]
     return "\n".join(lines)

@@ -95,7 +95,7 @@ def _parse_lines(source: str) -> list[Line]:
     return lines
 
 
-_REG = re.compile(r"^(d[0-7]|a[0-7]|sp)$", re.I)
+_REG = re.compile(r"^(d[0-7]|a[0-7]|sp)$", re.IGNORECASE)
 
 
 def _reg(s: str) -> tuple[str, int]:
@@ -166,10 +166,18 @@ def _ea_bits(o: Operand) -> int:
 
 
 def _s16(v: int) -> int:
+    """A 16-bit displacement of an address: ``$C7A4`` is the sign-extended ``$FFFFC7A4``."""
     if 0x8000 <= v <= 0xFFFF:
         v -= 0x10000
     if not -0x8000 <= v <= 0x7FFF:
         raise AsmError(f"displacement {v} out of range")
+    return v
+
+
+def _rel16(v: int, what: str) -> int:
+    """A 16-bit relative displacement (branches, ``d16(pc)``): the sign is the sign."""
+    if not -0x8000 <= v <= 0x7FFF:
+        raise AsmError(f"{what} is {v} bytes away, beyond the 16-bit displacement")
     return v
 
 
@@ -233,7 +241,9 @@ class _Assembler:
         if o.mode == "absl":
             return struct.pack(">I", self.value(o.expr, scope) & 0xFFFFFFFF)
         if o.mode == "pcdisp":
-            return struct.pack(">h", _s16(self.value(o.expr, scope) - at))
+            return struct.pack(
+                ">h", _rel16(self.value(o.expr, scope) - at, "the pc-relative operand")
+            )
         return b""
 
     # -------------------------------------------------------- instructions
@@ -264,11 +274,15 @@ class _Assembler:
                 if not self.sizing and (not -0x80 <= disp <= 0x7F or disp == 0):
                     raise AsmError(f"short branch to {args[0]} is {disp} bytes away")
                 return struct.pack(">BB", 0x60 | cc, disp & 0xFF)
-            disp = 0 if self.sizing else _s16(target - (here + 2))
+            disp = 0 if self.sizing else _rel16(target - (here + 2), f"branch to {args[0]}")
             return struct.pack(">Hh", 0x6000 | cc << 8, disp)
         if base in ("dbra", "dbf"):
             d = _operand(args[0])
-            disp = 0 if self.sizing else _s16(self.value(args[1], scope) - (here + 2))
+            disp = (
+                0
+                if self.sizing
+                else _rel16(self.value(args[1], scope) - (here + 2), f"{base} to {args[1]}")
+            )
             return struct.pack(">Hh", 0x51C8 | d.reg, disp)
 
         o = [_operand(a) for a in args]
