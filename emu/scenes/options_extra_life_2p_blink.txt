@@ -1,0 +1,318 @@
+# The frames of player 2's extra life: the setup of options_extra_life_2p.txt
+# (option on, two players, player 2's counter at 99), then three magic casts
+# by player 2 and a Work RAM dump every 8 frames (19 a cast, 45 after the last).
+# The third cast's kills make 100: player 2 gets a life (FFCA40: 2 -> 3) and
+# player 2's HUD state (FFDC34; +C blinking, +D frames, +E toggles left) starts
+# the blink: the five prisoner icons (FFCA3C) show under player 2's HUD a frame
+# later, toggle every 15 frames five times (shots kill, on, off, on) and the real
+# count, 0, is back (shot after). The blink pauses while magic plays, as the
+# game's own does. Player 1's state (FFDC24) and lives (FFC8E0) stay the same.
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+press down 6
+press down 6
+press down 6
+press down 6
+press down 6
+wait 20
+press right 6
+press down 6
+press c 10
+wait 90
+press down 6
+wait 20
+press start 10
+wait 90
+pad2 start 10
+wait 20
+press start 10
+wait 60
+pad2 start 10
+press start 10
+wait 120
+press start 10
+pad2 start 10
+wait 700
+press start 6
+wait 60
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke8 FFC8E6 33
+poke8 FFCA46 33
+pad2 right 40
+poke16 FFC3E2 0063
+# One round of the magic bot for player 2 (second pad): every enemy slot to
+# 1 HP, both players immortal, player 2 gets a potion and casts (A).
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFD126 01
+poke8 FFD286 01
+poke8 FFD3E6 01
+poke8 FFD546 01
+poke8 FFD6A6 01
+poke8 FFD806 01
+poke8 FFC8E6 33
+poke8 FFCA46 33
+poke8 FFCA44 01
+pad2 a 8
+wait 8
+dump wram build/dumps/blink2p_0_00_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_01_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_02_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_03_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_04_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_05_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_06_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_07_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_08_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_09_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_10_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_11_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_12_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_13_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_14_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_15_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_16_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_17_wram.bin
+wait 8
+dump wram build/dumps/blink2p_0_18_wram.bin
+# One round of the magic bot for player 2 (second pad): every enemy slot to
+# 1 HP, both players immortal, player 2 gets a potion and casts (A).
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFD126 01
+poke8 FFD286 01
+poke8 FFD3E6 01
+poke8 FFD546 01
+poke8 FFD6A6 01
+poke8 FFD806 01
+poke8 FFC8E6 33
+poke8 FFCA46 33
+poke8 FFCA44 01
+pad2 a 8
+wait 8
+dump wram build/dumps/blink2p_1_00_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_01_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_02_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_03_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_04_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_05_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_06_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_07_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_08_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_09_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_10_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_11_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_12_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_13_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_14_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_15_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_16_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_17_wram.bin
+wait 8
+dump wram build/dumps/blink2p_1_18_wram.bin
+# One round of the magic bot for player 2 (second pad): every enemy slot to
+# 1 HP, both players immortal, player 2 gets a potion and casts (A).
+poke8 FFCBA6 01
+poke8 FFCD06 01
+poke8 FFCE66 01
+poke8 FFCFC6 01
+poke8 FFD126 01
+poke8 FFD286 01
+poke8 FFD3E6 01
+poke8 FFD546 01
+poke8 FFD6A6 01
+poke8 FFD806 01
+poke8 FFC8E6 33
+poke8 FFCA46 33
+poke8 FFCA44 01
+pad2 a 8
+wait 8
+dump wram build/dumps/blink2p_2_00_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_01_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_02_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_03_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_04_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_05_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_06_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_07_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_08_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_09_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_10_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_11_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_12_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_13_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_14_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_15_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_16_wram.bin
+wait 8
+dump wram build/dumps/blink2p_2_17_wram.bin
+screenshot build/shots/blink2p_1_kill.png 2
+wait 8
+dump wram build/dumps/blink2p_2_18_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_00_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_01_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_02_wram.bin
+screenshot build/shots/blink2p_2_on.png 2
+wait 8
+dump wram build/dumps/blink2p_3_03_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_04_wram.bin
+screenshot build/shots/blink2p_3_off.png 2
+wait 8
+dump wram build/dumps/blink2p_3_05_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_06_wram.bin
+screenshot build/shots/blink2p_4_on.png 2
+wait 8
+dump wram build/dumps/blink2p_3_07_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_08_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_09_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_10_wram.bin
+screenshot build/shots/blink2p_5_after.png 2
+wait 8
+dump wram build/dumps/blink2p_3_11_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_12_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_13_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_14_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_15_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_16_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_17_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_18_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_19_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_20_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_21_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_22_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_23_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_24_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_25_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_26_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_27_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_28_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_29_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_30_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_31_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_32_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_33_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_34_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_35_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_36_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_37_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_38_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_39_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_40_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_41_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_42_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_43_wram.bin
+wait 8
+dump wram build/dumps/blink2p_3_44_wram.bin

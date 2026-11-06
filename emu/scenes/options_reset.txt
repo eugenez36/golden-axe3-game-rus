@@ -1,0 +1,50 @@
+# OPTIONS -> 100 ВРАГОВ over a reset. The game keeps the long at $C726 (the
+# options) over the RESET button by the signature at $C400 (0002C2); power-on
+# clears it. The setting is bit 7 of $C729 (patch options):
+#   reset_1_on:    100 ВРАГОВ set to ВКЛ, bit 7 of FFC729 set;
+#   reset_2_soft:  after `softreset` (RESET button): still ВКЛ, bit 7 set;
+#   reset_3_power: after `reset` (power-on): ВЫКЛ, FFC729 = 0.
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+press down 6
+press down 6
+press down 6
+press down 6
+press down 6
+wait 20
+press right 6
+wait 20
+screenshot build/shots/reset_1_on.png 2
+dump wram build/dumps/reset_1_wram.bin
+press down 6
+press c 10
+wait 90
+softreset
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+screenshot build/shots/reset_2_soft.png 2
+dump wram build/dumps/reset_2_wram.bin
+press down 6
+press down 6
+press c 10
+wait 90
+reset
+include _boot.inc
+press down 6
+press down 6
+press down 6
+wait 20
+press start 10
+wait 90
+screenshot build/shots/reset_3_power.png 2
+dump wram build/dumps/reset_3_wram.bin
