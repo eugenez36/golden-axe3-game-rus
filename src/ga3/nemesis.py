@@ -262,8 +262,7 @@ def _nibble_stream(raw: bytes, xor_mode: bool) -> list[int]:
         value = (row ^ prev) if xor_mode else row
         if xor_mode:
             prev = row
-        for shift in range(28, -4, -4):
-            nibbles.append((value >> shift) & 0x0F)
+        nibbles.extend((value >> shift) & 0x0F for shift in range(28, -4, -4))
     return nibbles
 
 
@@ -290,6 +289,10 @@ def _runs_optimal(nibbles: list[int], cost: dict[Symbol, int]) -> list[Symbol]:
     on its own: runs never cross a pixel boundary.
     """
     default = MAX_CODE_LEN + 4
+    # price[v][r]: bits for a run of r pixels of value v (index 0 unused)
+    price = [
+        [default] + [cost.get((v, r), default) for r in range(1, MAX_RUN + 1)] for v in range(16)
+    ]
     out: list[Symbol] = []
     i = 0
     n = len(nibbles)
@@ -299,19 +302,23 @@ def _runs_optimal(nibbles: list[int], cost: dict[Symbol, int]) -> list[Symbol]:
         while j < n and nibbles[j] == v:
             j += 1
         length = j - i
+        if length == 1:
+            out.append((v, 1))
+            i = j
+            continue
 
         # best[k]: cheapest cut of k pixels; choice[k]: length of the last run
-        best: list[int | None] = [0] + [None] * length
+        pv = price[v]
+        best = [0] * (length + 1)
         choice = [0] * (length + 1)
         for k in range(1, length + 1):
-            for r in range(1, min(MAX_RUN, k) + 1):
-                prev = best[k - r]
-                if prev is None:
-                    continue
-                c = prev + cost.get((v, r), default)
-                if best[k] is None or c < best[k]:
-                    best[k] = c
-                    choice[k] = r
+            lo, pick = pv[1] + best[k - 1], 1
+            for r in range(2, min(MAX_RUN, k) + 1):
+                c = best[k - r] + pv[r]
+                if c < lo:
+                    lo, pick = c, r
+            best[k] = lo
+            choice[k] = pick
         parts = []
         k = length
         while k > 0:
@@ -354,7 +361,8 @@ def _package_merge(freqs: dict, max_len: int = MAX_CODE_LEN) -> dict:
         for sym in members:
             lengths[sym] += 1
 
-    # degenerate cases: a zero-length code is impossible
+    # a symbol no package picked (only possible with more symbols than the depth
+    # can hold; Nemesis has at most 16 x 8) still needs a code of some length
     for sym in lengths:
         if lengths[sym] == 0:
             lengths[sym] = max_len

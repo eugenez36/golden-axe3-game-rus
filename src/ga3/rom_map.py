@@ -276,6 +276,9 @@ def _attach_patches(patches: dict[str, Any], segments: list[Segment]) -> None:
         if section in by_patch.setdefault(name, {}):
             raise RomMapError(f"patch {name!r}: section {section!r} is given twice")
         by_patch[name][section] = seg
+    unused = sorted(set(patches) - set(by_patch))
+    if unused:
+        raise RomMapError(f"patch {unused[0]!r} has no segment (patch: NAME + section: NAME)")
     for name, slots in by_patch.items():
         sections = {sec: seg.start for sec, seg in slots.items()}
         for seg in slots.values():

@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
   "PyYAML>=6.0",
-  "Pillow>=10",
+  "Pillow>=11.3",  # Image.get_flattened_data (ga3.screen, banner_art)
 ]
 
 [project.optional-dependencies]

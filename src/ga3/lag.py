@@ -9,6 +9,7 @@ lost to work that did not fit (decompression, heavy scenes).
 
 from __future__ import annotations
 
+import itertools
 import re
 import subprocess
 import tempfile
@@ -51,7 +52,7 @@ def parse_log(lines) -> LagReport:
     frames = [int(m.group(1)) for line in lines if (m := _FRAME.search(line))]
     if not frames:
         return LagReport(0, 0, 0)
-    gaps = [(a, b - a) for a, b in zip(frames, frames[1:], strict=False) if b - a > 1]
+    gaps = [(a, b - a) for a, b in itertools.pairwise(frames) if b - a > 1]
     return LagReport(frames[0], frames[-1], len(frames), gaps)
 
 

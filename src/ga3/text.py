@@ -79,7 +79,7 @@ def parse_strings_file(path: str) -> list[Row]:
             if ":" not in head:
                 raise ValueError(f"{path}:{lineno}: header must be OFFSET:LENGTH")
             off_s, len_s = head.split(":", 1)
-            rows.append((int(off_s, 16), int(len_s), txt[1:] if txt.startswith(" ") else txt))
+            rows.append((int(off_s, 16), int(len_s), txt.removeprefix(" ")))
     return rows
 
 

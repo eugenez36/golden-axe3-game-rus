@@ -431,7 +431,7 @@ def _text_preview(args, proj: pipeline.Project, units) -> int:
             continue
         width = max(ln for _o, ln, _t in rows)
         blank = raw[0:32]  # the space glyph
-        sheet = b""
+        sheet = bytearray()
         for _off, _ln, txt in rows:
             enc = table.encode(txt).ljust(width, b"\x20")
             for b in enc:
@@ -806,9 +806,10 @@ def main(argv: list[str] | None = None) -> int:
         return args.func(args)
     except KeyboardInterrupt:
         return 130
-    except (RuntimeError, ValueError, LookupError, OSError) as exc:
-        # PipelineError/BuildError are RuntimeErrors, RomMapError a ValueError,
-        # a bad segment name a LookupError, a missing file an OSError.
+    except (RuntimeError, ValueError, OSError) as exc:
+        # PipelineError/BuildError are RuntimeErrors, RomMapError and AsmError
+        # ValueErrors, a missing file an OSError. Anything else (a KeyError, an
+        # IndexError) is a bug in ga3 and keeps its traceback.
         if os.environ.get("GA3_DEBUG"):
             raise
         return _fail(str(exc) or type(exc).__name__)

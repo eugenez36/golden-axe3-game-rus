@@ -164,3 +164,17 @@ two:    bra.s   .x
 def test_errors_name_the_line(src, match):
     with pytest.raises(m68k.AsmError, match=match):
         m68k.assemble(src, ORIGIN, SYMS)
+
+
+def test_a_branch_beyond_16_bits_is_refused_not_wrapped():
+    """A label 0x9000 bytes ahead used to assemble as a branch 0x7000 bytes back."""
+    src = "        bra.w   far\n        section b\nfar:    rts\n"
+    with pytest.raises(m68k.AsmError, match="branch to far is 36862 bytes away"):
+        m68k.assemble_sections(src, {"": 0x100000, "b": 0x109000})
+    with pytest.raises(m68k.AsmError, match="pc-relative operand"):
+        m68k.assemble_sections(
+            "        lea     far(pc),a0\n        section b\nfar:    rts\n",
+            {"": 0x100000, "b": 0x109000},
+        )
+    out, _labels = m68k.assemble_sections(src, {"": 0x100000, "b": 0x107FFE})
+    assert out[""] == bytes.fromhex("60007FFC")  # the largest forward displacement

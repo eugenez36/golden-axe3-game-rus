@@ -48,6 +48,24 @@ life for every hundred kills.
   the next (МУЗ., ЗВУК, БАНКИ МАГИИ, 100 ВРАГОВ, МЕНЮ). The options patch's
   slots move to `104920` (labels) and `104A00` (code); the kill counter's
   `kill` moves to `104940`.
+- **Toolkit, faster build:** a patch with several sections is assembled once
+  per build instead of once per section (its `art:` PNGs were Nemesis-packed
+  again for every section); the run cutting of the Nemesis packer, the import
+  of indexed PNG sheets, the IPS run-length search and the header checksum
+  do less work. `ga3 build` takes about half the time; the image is the same.
+- **Toolkit:** `rom_map.yml` refuses a `patches:` entry no segment uses;
+  `ga3` no longer turns a `KeyError`/`IndexError` of its own into a one-word
+  `error:` line (a bug keeps its traceback); Pillow 11.3 or newer is required
+  (the toolkit already used its API).
+
+### Fixed
+
+- **Assembler:** a branch or `d16(pc)` operand farther than 32 KiB used to be
+  assembled silently with the wrong sign (a jump 0x9000 bytes ahead became a
+  jump 0x7000 bytes back); it is now an error naming the line.
+- **Toolkit:** the patch handler forgets the previous build before the next
+  one (it kept what every segment wrote, for the overwrite check, across
+  builds in one process).
 
 ## [0.37.600] — 2026-10-16
 
