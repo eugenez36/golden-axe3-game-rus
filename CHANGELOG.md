@@ -11,6 +11,15 @@ hash recorded in `roms.sha1`.
 
 ### Added
 
+- **Prisoners per life by name.** Constant `prisoners` (`0103F2` … `010410`:
+  the freed prisoners that earn a life, 5; the icons shown and the blinks
+  follow it; up to 8, the HUD draws 5 icons); `ga3 balance set prisoners 3`.
+  A constant's site may now be an `addq` / `subq` (`[address, bytes, offset,
+  quick]`: the 3-bit count in the opcode). Patch `kill_counter` reads the
+  game's operand for the icons of its life every 100 kills (`ICONS_SRC`), so
+  the two signals agree; its `bonus` section grows by 4 bytes and the build
+  hash changes.
+
 - **Continue countdown by name.** Constants `countdown` (`00E650`: the seconds
   «ИГРАЕМ? 9» counts from after the last death, one digit) and
   `countdown_frames` (`00E65C`, `00E71A`: frames a count lasts, 60) in

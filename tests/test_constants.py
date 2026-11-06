@@ -130,6 +130,44 @@ def test_max_is_a_hard_limit(synth_constants):
         pl.build(s.project, s.rom, log=lambda *_: None)
 
 
+def test_quick_site_edits_the_count_of_a_subq(synth_constants):
+    """``[address, bytes, offset, quick]``: the 3-bit count of addq / subq (8 is stored as 0)."""
+    s = synth_constants
+    img = bytearray(s.image)
+    img[0x20C:0x210] = bytes.fromhex("5B29013E")  # subq.b #5,$13e(a1)
+    rom = Rom(img)
+    rom.fix_checksum()
+    s.image = bytes(rom.data)
+    (s.root / pl.BASEROM_REL).write_bytes(s.image)
+    doc = yaml.safe_load((s.root / pl.MAP_FILE).read_text(encoding="utf-8"))
+    doc["rom"]["sha1"] = hashlib.sha1(s.image).hexdigest()
+    doc["rom"]["header_checksum"] = rom.stored_checksum()
+    (s.root / pl.MAP_FILE).write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+    sites = [[0x204, "04 05 06", 1], [0x20C, "5B 29 01 3E", 0, "quick"]]
+    v = {"format": "u8", "sites": sites, "max": 8, "evidence": "synthetic"}
+    _with_constants(s, {"lives": v})
+    assert s.project.map.constants["lives"].sites[1].quick
+    pl.extract_all(s.project, s.rom, log=lambda *_: None)
+    gp = s.root / "assets" / "data" / "gameplay.yml"
+    assert yaml.safe_load(gp.read_text(encoding="utf-8"))["values"] == {"lives": 5}
+    assert pl.check_map(s.project, s.rom) == []
+    for value, word in ((3, "5729"), (8, "5129"), (1, "5329")):
+        balance.set_constant(s.project.map, gp, "lives", value)
+        out = bytes(pl.build(s.project, s.rom, log=lambda *_: None).data)
+        assert out[0x205] == value and out[0x20C:0x20E].hex() == word, value
+    gp.write_text("values:\n  lives: 0\n", encoding="utf-8")
+    with pytest.raises(pl.PipelineError, match=r"holds 1\.\.8"):
+        pl.build(s.project, s.rom, log=lambda *_: None)
+    for d, msg in (
+        ({"sites": [[0x20C, "5B 29", 0, "quick"]], "max": 9, "evidence": "e"}, "max at most 8"),
+        ({"format": "u16", "sites": [[0x20C, "5B 29", 0, "quick"]], "evidence": "e"}, "format u8"),
+        ({"sites": [[0x20C, "5B", 0, "quick"]], "evidence": "e"}, "runs past"),
+        ({"sites": [[0x20C, "5B 29", 0, "fast"]], "evidence": "e"}, "quick"),
+    ):
+        with pytest.raises(rom_map.RomMapError, match=msg):
+            _parse({"n": d})
+
+
 def test_missing_asset_is_reported(synth_constants):
     s = synth_constants
     assert any("constants: missing" in p for p in pl.check_assets(s.project))

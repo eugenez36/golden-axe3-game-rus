@@ -56,11 +56,15 @@ CONSTANT_WIDTH = {"u8": 1, "u16": 2}
 @dataclass(frozen=True)
 class Site:
     """One instruction that carries a constant: its address, its base-ROM bytes
-    (hex in the map) and the offset of the operand inside them."""
+    (hex in the map) and the offset of the operand inside them.
+
+    ``quick`` sites carry the value in the opcode word at ``offset`` instead:
+    the 3-bit count of ``addq`` / ``subq`` (bits 9-11, 8 stored as 0)."""
 
     at: int
     expect: bytes
     offset: int
+    quick: bool = False
 
 
 @dataclass
@@ -205,7 +209,10 @@ def _parse_constants(block: Any, size: int) -> tuple[str | None, dict[str, Const
     ``[address, "base-ROM bytes of the instruction", operand offset]`` for each
     instruction that carries it -- and, like a segment, ``evidence`` (required),
     ``note`` and ``max_hud`` (a warning above it). ``max`` is a hard limit: a
-    larger value is refused by ``ga3 balance set`` and by the build.
+    larger value is refused by ``ga3 balance set`` and by the build. A site
+    ``[address, "hex bytes", offset, quick]`` is an ``addq`` / ``subq``: the
+    value is the 3-bit count in the opcode word at ``offset`` (1..8), so such a
+    constant needs ``max`` of at most 8.
     """
     if not block:
         return None, {}
@@ -229,19 +236,29 @@ def _parse_constants(block: Any, size: int) -> tuple[str | None, dict[str, Const
             raise RomMapError(f'{where}: sites: expected [[address, "hex bytes", offset], ...]')
         sites = []
         for i, s in enumerate(raw_sites):
-            if not (isinstance(s, list) and len(s) == 3 and isinstance(s[1], str)):
-                raise RomMapError(f'{where}.sites[{i}]: expected [address, "hex bytes", offset]')
+            if not (
+                isinstance(s, list)
+                and len(s) in (3, 4)
+                and isinstance(s[1], str)
+                and (len(s) == 3 or s[3] == "quick")
+            ):
+                raise RomMapError(
+                    f'{where}.sites[{i}]: expected [address, "hex bytes", offset] or [..., quick]'
+                )
             at = _int(s[0], f"{where}.sites[{i}] address")
             offset = _int(s[2], f"{where}.sites[{i}] offset")
+            quick = len(s) == 4
+            if quick and (fmt != "u8" or not 1 <= d.get("max", 8) <= 8):
+                raise RomMapError(f"{where}: a quick site needs format u8 and max at most 8")
             try:
                 expect = bytes.fromhex(s[1])
             except ValueError:
                 raise RomMapError(f"{where}.sites[{i}]: {s[1]!r} is not hex bytes") from None
-            if offset + CONSTANT_WIDTH[fmt] > len(expect):
+            if offset + (2 if quick else CONSTANT_WIDTH[fmt]) > len(expect):
                 raise RomMapError(f"{where}.sites[{i}]: the operand runs past the bytes given")
             if at + len(expect) > size:
                 raise RomMapError(f"{where}.sites[{i}]: 0x{at:06X} is past rom.size")
-            sites.append(Site(at, expect, offset))
+            sites.append(Site(at, expect, offset, quick))
         attrs = {k: v for k, v in d.items() if k not in ("format", "sites")}
         if "max" in attrs:
             top = (1 << (8 * CONSTANT_WIDTH[fmt])) - 1

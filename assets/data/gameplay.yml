@@ -5,6 +5,7 @@
 # potions (u8, at 00E47C): default of OPTIONS -> БАНКИ МАГИИ (patch options, which bypasses this instruction and reads its operand): magic potions a player gets when they have none, at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars
 # countdown (u8, at 00E650): the continue screen's countdown, seconds from which it counts to zero (one digit on the screen); a count lasts countdown_frames frames, and A, B or C takes a second at once
 # countdown_frames (u8, at 00E65C, 00E71A): frames a count of the continue countdown lasts (60: one second at 60 Hz); the byte at $5(a1) counts them down (00E714) unless A, B or C is pressed, which ends the second at once
+# prisoners (u8, at 0103F2, 0103FA, 0103FE, 010410, 0103CC): freed prisoners that earn a player an extra life (object +0x13E; the HUD draws up to 5 icons of +0x138); the same number of icons blinks that many times, and patch kill_counter reads it for its life every 100 kills (ICONS_SRC)
 # magic_l0 (u8, at 00F91A, 00F91E, 00F922, 00F926, 00F92A): damage of a level-0 spell (1-2 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once
 # magic_l1 (u8, at 00F91B, 00F91F, 00F923, 00F927, 00F92B): damage of a level-1 spell (3-5 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once
 # magic_l2 (u8, at 00F91C, 00F920, 00F924, 00F928, 00F92C): damage of a level-2 spell (6 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once
@@ -24,6 +25,7 @@ values:
   potions: 0
   countdown: 9
   countdown_frames: 60
+  prisoners: 5
   magic_l0: 6
   magic_l1: 16
   magic_l2: 32

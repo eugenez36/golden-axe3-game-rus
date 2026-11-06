@@ -127,6 +127,7 @@ committed.
 | menus in the banner's style   | `c747d542…`; patch `menus` at `102760–10491F`, hooks at `0155BC`, `015842`, `014DDE`, `014388`, `0151CA`, `014EF4`, `0150A8`, `0150CA`, `01598A` and pointers |
 | options: 100 ВРАГОВ           | `593b97af…`; a life every 100 kills (patches `options`, `kill_counter`), seven options items, slots at `104920–104BFF`, pointers at `0153D6`, `015422`        |
 | release 0.37.700              | `9e8c0a63…`; against `main`, only the menu version line changes                                                                                               |
+| prisoners per life            | `87d71ceb…`; patch `kill_counter` section `bonus` reads the game's operand at `010401` for its icons (+4 bytes)                                               |
 
 `ga3 map --check` confirms the map against the base ROM: Nemesis header fields,
 exact block sizes, zero padding, free-space fill bytes, patch hooks and slots, the reset vector, the
@@ -173,7 +174,9 @@ against its base-ROM bytes, writes the operand and notes each changed value;
 edits a value; the table is in [rom_map.md](rom_map.md#constants-instruction-operands-values-in-assetsdatagameplayyml).
 A site may also be a plain data byte (the magic damage table `0x00F91A`, the
 heroes' attack records at `0x0EED40`): the mechanism is the same, the bytes
-around the operand are checked and the operand written. `ga3 balance show`
+around the operand are checked and the operand written. A site ending in
+`quick` (`[0x0103FA, "5B 29 01 3E", 0, quick]`) is an `addq` / `subq`: the
+value is the 3-bit count inside the opcode word (1..8, so `max` is at most 8). `ga3 balance show`
 prints every `table` segment's values as well, and `ga3 balance set
 TABLE.FIELD VALUE` (`walk_speed.kain_x 0x200`) edits one field of its asset
 file; the hero panel (patch `hero_panel`) derives its numbers from these files.
