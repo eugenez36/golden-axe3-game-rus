@@ -32,6 +32,23 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
     committed)                    the ROM taken apart)     roms.sha1)
 ```
 
+## Download and play
+
+No build needed: every entry on the
+[Releases page](https://github.com/eugenez36/golden-axe3-game-rus/releases)
+carries two files.
+
+- **`ga3-X.YY.ZZZ.bin`** — the built image of that version, ready for any Mega
+  Drive emulator (Genesis Plus GX, BlastEm, Kega Fusion, RetroArch) or a flash
+  cartridge: download, open, play.
+- **`ga3-X.YY.ZZZ.ips`** — the same changes as a patch, for those who apply it
+  to their own dump of the NEWGAME 2003 translation (its sha1 is the first line
+  of `roms.sha1`).
+
+The image is a release file only: it is never in the repository (a pre-commit
+hook refuses ROM images), and the version in the main menu says which build
+you hold.
+
 ## Highlights
 
 - **Reproducible build.** `make` rebuilds the image from `assets/`; `make verify`
@@ -96,6 +113,7 @@ $EDITOR assets/gfx/font/font.txt          # a glyph
 ga3 balance set-hp 60 60 60 60            # the HP table
 ga3 balance set walk_speed.kain_x 0x200   # a hero parameter (ga3 balance show)
 make && ga3 verify --update               # rebuild, record the new hash
+make dist                                 # release files: build/dist/ga3-VERSION.bin, .ips, .sha256
 
 # see it in the actual game
 make emu && make regress                  # screenshots land in build/shots/
@@ -188,3 +206,4 @@ still `unknown`; `ga3 map` prints the exact figure and the ranges.
 - [x] **v0.37.500 — Hero stats, ЖЕСТЬ and БАНКИ МАГИИ** · hero panel on the select screen, third difficulty, starting magic potions in OPTIONS, 2 MiB build ([CHANGELOG](CHANGELOG.md))
 - [x] **v0.37.600 — ЖЕСТЬ and kill counter fixes** · copies past a screen edge on the ground, two potions from a gnome, counter digits at VRAM `DF00` ([CHANGELOG](CHANGELOG.md))
 - [x] **v0.37.700 — Banner-style menus, 100 ВРАГОВ** · the title, menus and character select in the banner's style, a life for every hundred kills (OPTIONS → 100 ВРАГОВ), a build twice as fast ([CHANGELOG](CHANGELOG.md))
+- [x] **v0.37.800 — Gameplay by name** · hero speeds and powers, magic damage, continue countdown and prisoners per life under `ga3 balance`, the hero panel reads the same files; a build twice as fast, `softreset` in the emulator ([CHANGELOG](CHANGELOG.md))
