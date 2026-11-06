@@ -1,7 +1,11 @@
-# options: labels of the options items patch options adds
+# options: labels and values of the options items patch options adds
 # Format: OFFSET:LENGTH | text. Edit only the text right of '|'.
-# At most 11 characters each (shorter is padded with spaces); patch options in
-# rom_map.yml, slot options_labels. БАНКИ МАГИИ: the potions a player gets when
-# they have none (default: the constant potions in data/gameplay.yml).
+# Labels at most 11 characters each, values 4 (shorter is padded with spaces);
+# patch options in rom_map.yml, slot options_labels. БАНКИ МАГИИ: the potions a
+# player gets when they have none (default: the constant potions in
+# data/gameplay.yml). 100 ВРАГОВ: an extra life every 100 kills, off or on.
 
-102280:11 | БАНКИ МАГИИ
+104920:11 | БАНКИ МАГИИ
+10492B:11 | 100 ВРАГОВ
+104936:4 | ВЫКЛ
+10493A:4 | ВКЛ

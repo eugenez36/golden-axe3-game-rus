@@ -237,9 +237,9 @@ read. Measured from one savestate: the same enemy does 2 / 1 / 2 … to all four
 
 ## Lives and extra lives
 
-| Parameter           | Where                                                                                                                            | Value                         |
-|---------------------|----------------------------------------------------------------------------------------------------------------------------------|-------------------------------|
-| Spare lives         | object `+0x13C`; gameplay constant `lives` (`00E420`, `00E6E8`)                                                                  | 2 (one digit in the HUD, 0–9) |
-| Freed prisoners     | object `+0x13E` (`+1` at `00A2E4`/`00A2F2` when a chained villager is freed); `+0x138` is the copy the HUD draws (up to 5 icons) | —                             |
-| Extra life          | `0103F2`: when `+0x13E` reaches 5, subtract 5 and add a life (`010416`), sound `DF`, the icons blink                             | every 5 prisoners = +1 life   |
-| Credits (continues) | `FFC77C`; gameplay constant `credits` (`0003B6`)                                                                                 | 4                             |
+| Parameter           | Where                                                                                                                                                                                      | Value                         |
+|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------|
+| Spare lives         | object `+0x13C`; gameplay constant `lives` (`00E420`, `00E6E8`)                                                                                                                            | 2 (one digit in the HUD, 0–9) |
+| Freed prisoners     | object `+0x13E` (`+1` at `00A2E4`/`00A2F2` when a chained villager is freed); `+0x138` is the copy the HUD draws (up to 5 icons)                                                           | —                             |
+| Extra life          | `0103F2`: when `+0x13E` reaches 5, subtract 5 and add a life (`010416`), sound `DF`, the icons blink; OPTIONS → 100 ВРАГОВ: the same every 100 kills (patch `kill_counter`, up to 9 lives) | every 5 prisoners = +1 life   |
+| Credits (continues) | `FFC77C`; gameplay constant `credits` (`0003B6`)                                                                                                                                           | 4                             |

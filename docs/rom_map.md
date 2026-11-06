@@ -9,11 +9,11 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 
 | Type | Bytes | Share |
 |---|---|---|
-| free | 1029860 | 49.1% |
+| free | 1029508 | 49.1% |
 | unknown | 533485 | 25.4% |
 | tiles4bpp | 360448 | 17.2% |
 | code | 111060 | 5.3% |
-| patch | 19630 | 0.9% |
+| patch | 19982 | 1.0% |
 | pcm | 14880 | 0.7% |
 | nemesis | 14050 | 0.7% |
 | text | 13217 | 0.6% |
@@ -77,14 +77,16 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `102000–102020` | patch | difficulty_names |  | filled with 0xFF; difficulty names on the options screen, 3 x 6 characters (text/difficulty.txt) |
 | `102020–102080` | patch | difficulty_menu |  | filled with 0xFF; difficulty: the options menu item with a third value (assets/patches/difficulty.s) |
 | `102080–102280` | patch | difficulty_spawn |  | filled with 0xFF; difficulty: the hard enemy level and the queue of ordinary enemies spawned twice |
-| `102280–102290` | patch | options_labels |  | filled with 0xFF; labels of the options items this patch adds, 11 characters each (text/options.txt) |
-| `102290–102400` | patch | options_menu |  | filled with 0xFF; options: the item БАНКИ МАГИИ (starting magic potions) and the six-item cursor (assets/patches/options.s) |
+| `102280–102400` | free | free_102280 |  | filled with 0xFF; the options patch's old slots (labels, menu), moved to 104920 when it grew a second item |
 | `102400–102700` | patch | difficulty_place |  | filled with 0xFF; difficulty: where a queued copy comes in (past a screen edge, on ground at the player's level) |
 | `102700–102760` | patch | difficulty_drop |  | filled with 0xFF; difficulty: a second potion from a gnome's hit at the hardest level |
 | `102760–102900` | patch | menus_code |  | filled with 0xFF; menus: cloud drift, cursor tile, bottom bar, the III sprite mapping (assets/patches/menus.s) |
 | `102900–102920` | patch | menus_text |  | filled with 0xFF; menus: the bottom bar's fixed text (text/menus.txt) |
 | `102920–104920` | patch | menus_art |  | filled with 0xFF; menus: tiles, maps and palettes from assets/gfx/screens/\*.png (ga3 banner-art) |
-| `104920–200000` | free | free_104920 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
+| `104920–104940` | patch | options_labels |  | filled with 0xFF; labels of the options items this patch adds, 11 characters each, then the values ВЫКЛ / ВКЛ, 4 each (text/options.txt) |
+| `104940–104A00` | patch | kill_counter_bonus |  | filled with 0xFF; kill counter: a kill counted for a player, and the extra life every 100 kills when OPTIONS -> 100 ВРАГОВ is on (assets/patches/kill_counter.s) |
+| `104A00–104C00` | patch | options_menu |  | filled with 0xFF; options: the items БАНКИ МАГИИ (starting magic potions) and 100 ВРАГОВ (a life every 100 kills), the seven-item cursor (assets/patches/options.s) |
+| `104C00–200000` | free | free_104C00 |  | filled with 0xFF; the rest of the 1 MiB added by rom.build_size |
 
 ## Constants (instruction operands, values in `assets/data/gameplay.yml`)
 
