@@ -506,36 +506,51 @@ def cmd_balance(args) -> int:
     from . import constants
 
     proj = _proj(args)
-    seg = proj.map.by_name("hp_table")
-    path = proj.paths.asset(seg.path)
-    values = balance.read_hp(path)
     cpath = proj.paths.asset(proj.map.constants_path) if proj.map.constants else None
     if args.balcmd == "show":
-        print(f"HP table ({seg.path}, ROM {seg.start:06X}):")
-        for k, v in values.items():
-            print(f"  {k:10s} {v:3d} (0x{v:02X})")
+        for seg in proj.map.by_type("table"):
+            path = proj.paths.asset(seg.path)
+            if not path.exists():
+                print(f"{seg.name} ({seg.path}, ROM {seg.start:06X}): missing, run `ga3 extract`")
+                continue
+            values = balance.read_table(path)
+            print(f"{seg.name} ({seg.path}, ROM {seg.start:06X}, {seg.get('format', 'u8')}):")
+            for k, v in values.items():
+                print(f"  {k:16s} {v:5d} (0x{v:X})")
         if cpath is not None:
             current = constants.read_values(cpath)
             print(f"Constants ({proj.map.constants_path}):")
             for c in proj.map.constants.values():
                 where = ", ".join(f"{s.at:06X}" for s in c.sites)
                 most = f", max {c.limit}" if "max" in c.attrs else ""
-                print(f"  {c.name:10s} {current.get(c.name, '?'):>3} ({c.format} at {where}{most})")
+                print(f"  {c.name:14s} {current.get(c.name, '?'):>3} ({c.format} at {where}{most})")
         return 0
     if args.balcmd == "set":
-        if cpath is None:
-            return _fail("rom_map.yml declares no constants")
+        value = int(args.value, 0)
+        table, _dot, field = args.name.partition(".")
         try:
-            old, warnings = balance.set_constant(proj.map, cpath, args.name, int(args.value, 0))
+            if field:  # TABLE.FIELD: a table segment's asset
+                seg = proj.map.by_name(table)
+                if seg.type != "table":
+                    return _fail(f"{table} is a {seg.type} segment, not a table")
+                old, warnings = balance.set_table_field(
+                    seg, proj.paths.asset(seg.path), field, value
+                )
+                where = seg.path
+            else:
+                if cpath is None:
+                    return _fail("rom_map.yml declares no constants")
+                old, warnings = balance.set_constant(proj.map, cpath, args.name, value)
+                where = proj.map.constants_path
         except ValueError as exc:
             return _fail(str(exc))
         for w in warnings:
             print("  warning: " + w, file=sys.stderr)
-        print(
-            f"{args.name}: {old} -> {int(args.value, 0)}  "
-            f"(written to {proj.map.constants_path}; run `ga3 build`)"
-        )
+        print(f"{args.name}: {old} -> {value}  (written to {where}; run `ga3 build`)")
         return 0
+    seg = proj.map.by_name("hp_table")
+    path = proj.paths.asset(seg.path)
+    values = balance.read_hp(path)
     new = [int(v, 0) for v in args.values]
     if len(new) != len(values):
         return _fail(f"expected {len(values)} values")
@@ -758,14 +773,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--fps", type=int, default=10)
     p.set_defaults(func=cmd_banner_anim)
 
-    p = sub.add_parser("balance", help="gameplay tables by name")
+    p = sub.add_parser("balance", help="gameplay tables and constants by name")
     s = p.add_subparsers(dest="balcmd", required=True)
-    s.add_parser("show")
-    q = s.add_parser("set-hp")
+    s.add_parser("show", help="every table segment's values and every constant")
+    q = s.add_parser("set-hp", help="the four slots of the HP table")
     q.add_argument("values", nargs="+")
-    q = s.add_parser("set", help="one gameplay constant (rom_map.yml constants:), e.g. lives 5")
-    q.add_argument("name")
-    q.add_argument("value")
+    q = s.add_parser(
+        "set",
+        help="a gameplay constant (rom_map.yml constants:), e.g. lives 5, or a table field, "
+        "e.g. walk_speed.kain_x 0x200",
+    )
+    q.add_argument("name", help="NAME of a constant or TABLE.FIELD")
+    q.add_argument("value", help="decimal or 0x hex")
     p.set_defaults(func=cmd_balance)
 
     p = sub.add_parser("disasm", help="m68000 disassembly window (needs the [disasm] extra)")

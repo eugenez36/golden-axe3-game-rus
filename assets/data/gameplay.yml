@@ -3,7 +3,33 @@
 # lives (u8, at 00E420, 00E6E8): spare lives of each player (object +0x13C), shown as one digit next to the portrait
 # credits (u8, at 0003B6): continues per game («КРЕДИТЫ 4» on the continue screen)
 # potions (u8, at 00E47C): default of OPTIONS -> БАНКИ МАГИИ (patch options, which bypasses this instruction and reads its operand): magic potions a player gets when they have none, at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars
+# magic_l0 (u8, at 00F91A, 00F91E, 00F922, 00F926, 00F92A): damage of a level-0 spell (1-2 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once
+# magic_l1 (u8, at 00F91B, 00F91F, 00F923, 00F927, 00F92B): damage of a level-1 spell (3-5 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once
+# magic_l2 (u8, at 00F91C, 00F920, 00F924, 00F928, 00F92C): damage of a level-2 spell (6 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once
+# magic_team (u8, at 00F91D, 00F921, 00F925, 00F929, 00F92D): damage of the team spell (level 3: crossed weapons, 10 potions between the players), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once
+# enemy_magic (u8, at 00F92E, 00F92F): damage an enemy's spell does to each player (the two bytes after the heroes' entries of 0x00F91A, index 0x14 + player)
+# proud_hit (u8, at 0EEDC4): Proud: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# proud_super (u8, at 0EEDCC): Proud: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# kain_hit (u8, at 0EED6C): Kain: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# kain_super (u8, at 0EED72): Kain: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# chronos_hit (u8, at 0EEDF6): Chronos: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# chronos_super (u8, at 0EEDFC): Chronos: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# sarah_hit (u8, at 0EED92): Sarah: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# sarah_super (u8, at 0EED98): Sarah: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
 values:
   lives: 2
   credits: 4
   potions: 0
+  magic_l0: 6
+  magic_l1: 16
+  magic_l2: 32
+  magic_team: 56
+  enemy_magic: 20
+  proud_hit: 8
+  proud_super: 24
+  kain_hit: 6
+  kain_super: 18
+  chronos_hit: 4
+  chronos_super: 12
+  sarah_hit: 5
+  sarah_super: 15

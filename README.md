@@ -52,11 +52,16 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
   Latin **V**, the parentheses and **/** were added to a translation that never
   had them; the build refuses a font that would not fit its 840-byte slot (837
   used).
-- **Gameplay by name.** `ga3 balance set-hp 60 60 60 60` edits the HP table;
-  `ga3 balance set lives 5` / `set credits 9` / `set potions 3` the spare
-  lives, the continues and the default of OPTIONS → БАНКИ МАГИИ (starting magic
-  potions, 0–6). These are numbers inside the code, each instruction checked
-  against the base ROM; the addresses are the map's business.
+- **Gameplay by name.** `ga3 balance show` lists every table and constant;
+  `ga3 balance set-hp 60 60 60 60` edits the HP table, `set lives 5` /
+  `set credits 9` / `set potions 3` the spare lives, the continues and the
+  default of OPTIONS → БАНКИ МАГИИ (starting magic potions, 0–6), `set
+  kain_super 20` / `set magic_l2 40` a hero's hit and launch powers and the
+  spells' damage, `set walk_speed.kain_x 0x200` / `set move_speed.jump_sarah
+  0x700` the walking, dash and jump speeds of every class. The hero panel on
+  the character select reads the same files, so it never disagrees with the
+  game. These are numbers inside the code and its tables, each checked against
+  the base ROM; the addresses are the map's business.
 - **New code in 68000 assembly.** Patches live in `assets/patches/*.s`, are
   assembled by the built-in `ga3.m68k` (every instruction form checked with
   Capstone) and hook the game only where the base ROM holds the expected
@@ -87,6 +92,7 @@ make test       # pytest (ROM-gated tests skip without the ROM)
 $EDITOR assets/text/dialogue.txt          # a string; may not grow
 $EDITOR assets/gfx/font/font.txt          # a glyph
 ga3 balance set-hp 60 60 60 60            # the HP table
+ga3 balance set walk_speed.kain_x 0x200   # a hero parameter (ga3 balance show)
 make && ga3 verify --update               # rebuild, record the new hash
 
 # see it in the actual game
@@ -130,7 +136,8 @@ assets/           the ROM taken apart — see STYLE.md for what is committed
   gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (indexed)
   palettes/       *.pal captured from the emulator (no ROM source known yet)
   sound/pcm/      samples.pcm
-  data/           hp_table.yml, gameplay.yml (lives, credits, potions), hero_panel.yml
+  data/           hp_table.yml, walk_speed.yml, move_speed.yml, gameplay.yml (lives, credits, potions, hit and launch
+                  powers, magic damage), hero_panel.yml (names and tempo; the numbers come from the other files)
   patches/        *.s: 68000 sources of the assembled patches (kill_counter, hero_panel, difficulty, options, menus)
   code/asm/       Capstone listings (generated)
 build/            everything derived (ignored): ROM, IPS, emulator, shots, dumps, previews

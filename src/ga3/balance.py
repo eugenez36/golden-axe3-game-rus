@@ -32,18 +32,52 @@ from pathlib import Path
 import yaml
 
 
-def read_hp(path: Path) -> dict[str, int]:
+def read_table(path: Path) -> dict[str, int]:
+    """The ``values`` of a table asset (``assets/data/*.yml`` of a ``table`` segment)."""
     doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     return dict(doc.get("values") or {})
 
 
-def write_hp(path: Path, values: dict[str, int]) -> None:
+def write_table(path: Path, values: dict[str, int]) -> None:
+    """Write new ``values`` into a table asset, keeping its header comments and format."""
     text = path.read_text(encoding="utf-8")
     header = [ln for ln in text.splitlines() if ln.startswith("#")]
     doc = yaml.safe_load(text) or {}
     doc["values"] = dict(values)
-    body = yaml.safe_dump(doc, sort_keys=False)
+    body = yaml.safe_dump(doc, sort_keys=False, allow_unicode=True)
     path.write_text("\n".join(header) + ("\n" if header else "") + body, encoding="utf-8")
+
+
+read_hp = read_table
+write_hp = write_table
+
+
+def set_table_field(seg, path: Path, field: str, value: int) -> tuple[int, list[str]]:
+    """Write one field of a ``table`` segment's asset; the previous value and warnings.
+
+    Raises ValueError for an unknown field or a value the format cannot hold.
+    """
+    from .assets.base import BuildError
+    from .assets.table_asset import TableHandler
+
+    try:
+        fmt, width, fields = TableHandler()._layout(seg)  # the fields, named or entry_N
+    except BuildError as exc:
+        raise ValueError(str(exc)) from None
+    if field not in fields:
+        raise ValueError(f"{seg.name} has no field {field!r}; known: {', '.join(fields)}")
+    limit = (1 << (8 * width)) - 1
+    if not 0 <= value <= limit:
+        raise ValueError(f"{seg.name}.{field} {value} is outside 0..{limit} ({fmt})")
+    warnings = []
+    max_hud = seg.get("max_hud")
+    if max_hud is not None and value > max_hud:
+        warnings.append(f"{seg.name}.{field} {value} is more than the HUD can draw ({max_hud})")
+    values = read_table(path)
+    old = values.get(field)
+    values[field] = value
+    write_table(path, values)
+    return old, warnings
 
 
 def validate_hp(values: list[int], max_hud: int | None = None) -> list[str]:

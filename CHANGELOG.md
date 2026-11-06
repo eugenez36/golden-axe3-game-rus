@@ -11,6 +11,20 @@ hash recorded in `roms.sha1`.
 
 ### Added
 
+- **Hero parameters by name.** Two new table segments, `walk_speed`
+  (`0x337E6`, `data/walk_speed.yml`: X and depth walking speed of every
+  class) and `move_speed` (`0x337FA`, `data/move_speed.yml`: dash, jump,
+  dash-jump and air speed of 15 classes), and new constants in
+  `data/gameplay.yml`: `KEY_hit` / `KEY_super` (the power of each hero's first
+  combo hit and launch), `magic_l0` … `magic_team` and `enemy_magic` (the
+  spells' damage). `ga3 balance show` lists every table and constant;
+  `ga3 balance set TABLE.FIELD VALUE` edits a table field
+  (`walk_speed.kain_x 0x200`). The hero panel of the character select derives
+  hp, hit, super and speed from these files (`hero_panel.yml` keeps the names
+  and the measured tempo), so a change shows on the select screen and in play:
+  checked in the emulator (Kain at `0x300` walks exactly 3 px a frame, the panel
+  shows 180). The image is unchanged.
+
 - **Emulator:** `softreset`, the console's RESET button (`gen_reset(0)`, as
   the libretro frontend; Work RAM and the I/O registers kept). `reset` stays
   the power-on reset, which clears RAM. Scenes `options_reset.txt` (100 ВРАГОВ

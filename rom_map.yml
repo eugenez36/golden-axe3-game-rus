@@ -384,6 +384,115 @@ constants:                       # numbers inside code (instruction operands), e
       note: "default of OPTIONS -> БАНКИ МАГИИ (patch options, which bypasses this instruction and reads its operand): magic potions a player gets when they have none, at the start of a game, after a death and after a continue (object +0x140; a count above zero is kept); the HUD draws 6 as three full jars"
       evidence: "watch FFC8E4 (P1 object +0x140) from boot: cleared with the object (00E532, 00E55A), then 00E47C writes 1 when the game starts (with 00E420 setting the lives), at each death (with 00697A) and at a continue (with 00E6CE / 00E6E8) when the count is 0; with potions poked to 4 or 5 the same deaths and continue write nothing and the HUD keeps them; other writers: 000A20 (addq.b #1 on a pick-up, only below 6: cmpi.b #6 at 000A1A), 00F65A-00F67C (paying for a spell, docs/heroes.md), 00FCCC/00FCD4, 0004F6/000506 (a pad cheat on player 2); built with 6, the HUD shows three full jars at the start and A casts the level-2 spell, spending all six; poked to 9, the HUD draws garbage tiles (its tile table 0x0518EC is indexed by count x 2), hence max 6"
 
+    magic_l0:
+      format: u8
+      sites:                     # byte table 0x00F91A, one entry per class (0..4) x level
+        - [0x00F91A, "06", 0]
+        - [0x00F91E, "06", 0]
+        - [0x00F922, "06", 0]
+        - [0x00F926, "06", 0]
+        - [0x00F92A, "06", 0]
+      max: 0x7F
+      note: "damage of a level-0 spell (1-2 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once"
+      evidence: "lea $f91a,a1 at 00F892; index $DC52 = class x 4 + level (docs/heroes.md, Magic); the same bytes for every class, which the build keeps: all sites of a constant must agree"
+    magic_l1:
+      format: u8
+      sites:                     # byte table 0x00F91A, one entry per class (0..4) x level
+        - [0x00F91B, "10", 0]
+        - [0x00F91F, "10", 0]
+        - [0x00F923, "10", 0]
+        - [0x00F927, "10", 0]
+        - [0x00F92B, "10", 0]
+      max: 0x7F
+      note: "damage of a level-1 spell (3-5 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once"
+      evidence: "lea $f91a,a1 at 00F892; index $DC52 = class x 4 + level (docs/heroes.md, Magic); the same bytes for every class, which the build keeps: all sites of a constant must agree"
+    magic_l2:
+      format: u8
+      sites:                     # byte table 0x00F91A, one entry per class (0..4) x level
+        - [0x00F91C, "20", 0]
+        - [0x00F920, "20", 0]
+        - [0x00F924, "20", 0]
+        - [0x00F928, "20", 0]
+        - [0x00F92C, "20", 0]
+      max: 0x7F
+      note: "damage of a level-2 spell (6 potions), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once"
+      evidence: "lea $f91a,a1 at 00F892; index $DC52 = class x 4 + level (docs/heroes.md, Magic); the same bytes for every class, which the build keeps: all sites of a constant must agree"
+    magic_team:
+      format: u8
+      sites:                     # byte table 0x00F91A, one entry per class (0..4) x level
+        - [0x00F91D, "38", 0]
+        - [0x00F921, "38", 0]
+        - [0x00F925, "38", 0]
+        - [0x00F929, "38", 0]
+        - [0x00F92D, "38", 0]
+      max: 0x7F
+      note: "damage of the team spell (level 3: crossed weapons, 10 potions between the players), to each of the four enemy slots; the same for every hero. From 0x80 the subtraction leaves a negative HP and the enemy dies at once"
+      evidence: "lea $f91a,a1 at 00F892; index $DC52 = class x 4 + level (docs/heroes.md, Magic); the same bytes for every class, which the build keeps: all sites of a constant must agree"
+    enemy_magic:
+      format: u8
+      sites:
+        - [0x00F92E, "14", 0]   # to player 1
+        - [0x00F92F, "14", 0]   # to player 2
+      max: 0x7F
+      note: "damage an enemy's spell does to each player (the two bytes after the heroes' entries of 0x00F91A, index 0x14 + player)"
+      evidence: "lea $f91a,a1 at 00F892; index $DC52 = class x 4 + level (docs/heroes.md, Magic); the same bytes for every class, which the build keeps: all sites of a constant must agree"
+    proud_hit:
+      format: u8
+      sites:
+        - [0x0EEDC4, "0A 08", 1]   # record 2 of the class-0 block at 0EEDBE: [type 0A, power]
+      max: 0x64
+      note: "Proud: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+    proud_super:
+      format: u8
+      sites:
+        - [0x0EEDCC, "0A 18", 1]   # record 6 of the class-0 block at 0EEDBE: [type 0A, power]
+      max: 0x64
+      note: "Proud: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+    kain_hit:
+      format: u8
+      sites:
+        - [0x0EED6C, "0A 06", 1]   # record 6 of the class-2 block at 0EED5E: [type 0A, power]
+      max: 0x64
+      note: "Kain: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+    kain_super:
+      format: u8
+      sites:
+        - [0x0EED72, "0A 12", 1]   # record 9 of the class-2 block at 0EED5E: [type 0A, power]
+      max: 0x64
+      note: "Kain: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+    chronos_hit:
+      format: u8
+      sites:
+        - [0x0EEDF6, "0A 04", 1]   # record 4 of the class-3 block at 0EEDEC: [type 0A, power]
+      max: 0x64
+      note: "Chronos: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+    chronos_super:
+      format: u8
+      sites:
+        - [0x0EEDFC, "0A 0C", 1]   # record 7 of the class-3 block at 0EEDEC: [type 0A, power]
+      max: 0x64
+      note: "Chronos: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+    sarah_hit:
+      format: u8
+      sites:
+        - [0x0EED92, "0A 05", 1]   # record 2 of the class-4 block at 0EED8C: [type 0A, power]
+      max: 0x64
+      note: "Sarah: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+    sarah_super:
+      format: u8
+      sites:
+        - [0x0EED98, "0A 0F", 1]   # record 5 of the class-4 block at 0EED8C: [type 0A, power]
+      max: 0x64
+      note: "Sarah: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves"
+      evidence: "lea $eed40,a2 at 007212: a word offset per class, then a block of [record size][records]; a hero record is [type, power] and damage is power / 2 (000DE6, 000E56); the records of the first combo hit and of the launch were traced from the animation scripts and hitbox tables and confirmed by the HUD damage in the emulator (docs/heroes.md, Attacks); tests/test_hero_panel.py reads the same records"
+
 segments:
   - { name: vectors,       start: 0x000000, end: 0x000100, type: header, path: header/vectors.yml,
       note: "mostly FFFFFFFF; code squeezed into unused vectors from 0x40" }
@@ -476,6 +585,14 @@ segments:
       tiles: 18, xor: true }
   - { name: nem_0295EE,    start: 0x0295EE, end: 0x029F08, type: nemesis, path: gfx/nemesis/nem_0295EE.nem,
       tiles: 208, xor: false }
+  - { name: walk_speed,    start: 0x0337E6, end: 0x0337FA, type: table,  path: data/walk_speed.yml,
+      format: u16, fields: [proud_x, proud_depth, beast_x, beast_depth, kain_x, kain_depth, chronos_x, chronos_depth, sarah_x, sarah_depth],
+      note: "walking speed of each class (0 Proud, 1 the winged beast-man of the duel, 2 Kain, 3 Chronos, 4 Sarah): X then depth, signed 8.8 pixels per frame (0x0190 = 1.5625); docs/heroes.md, Movement",
+      evidence: "lea $337e6,a4 at 0070B6, read as +class x 4 (0070B6-0070E0) into the velocity of the physics step 002C14; measured in the emulator: Proud 1.359, Kain 1.564, Chronos 2.000, Sarah 1.769 px per frame; 0x0320 doubles Kain's speed cleanly, 0 stops sideways walking, from about 0x3000 the hero leaves the screen" }
+  - { name: move_speed,    start: 0x0337FA, end: 0x033872, type: table,  path: data/move_speed.yml,
+      format: u16, fields: [dash_proud, dash_beast, dash_kain, dash_chronos, dash_sarah, dash_enemy_5, dash_enemy_6, dash_enemy_7, dash_enemy_8, dash_enemy_9, dash_enemy_10, dash_enemy_11, dash_enemy_12, dash_enemy_13, dash_enemy_14, jump_proud, jump_beast, jump_kain, jump_chronos, jump_sarah, jump_enemy_5, jump_enemy_6, jump_enemy_7, jump_enemy_8, jump_enemy_9, jump_enemy_10, jump_enemy_11, jump_enemy_12, jump_enemy_13, jump_enemy_14, dash_jump_proud, dash_jump_beast, dash_jump_kain, dash_jump_chronos, dash_jump_sarah, dash_jump_enemy_5, dash_jump_enemy_6, dash_jump_enemy_7, dash_jump_enemy_8, dash_jump_enemy_9, dash_jump_enemy_10, dash_jump_enemy_11, dash_jump_enemy_12, dash_jump_enemy_13, dash_jump_enemy_14, air_proud, air_beast, air_kain, air_chronos, air_sarah, air_enemy_5, air_enemy_6, air_enemy_7, air_enemy_8, air_enemy_9, air_enemy_10, air_enemy_11, air_enemy_12, air_enemy_13, air_enemy_14],
+      note: "four rows of 15 classes (0x1E bytes a row), signed 8.8 pixels per frame: dash speed, jump velocity up, dash-jump velocity up, steering in the air; classes 5-14 are enemies; docs/heroes.md, Movement",
+      evidence: "lea $337fa,a5 at 003BF6, row 0 read as +class x 2 for the dash; row 1 (0x33818) used at 004B74 for the jump; measured in the emulator: dash exactly 3 / 4 / 5 / 4 px per frame, a standing jump 64 / 68 / 69 / 69 px high for Proud / Kain / Chronos / Sarah; 0x0BE0 jumps 276 px, 0 or negative never leaves the ground" }
   - { name: kill_counter_hud, start: 0x05AEAA, size: 0x124, type: patch, fill: 0x00,
       patch: kill_counter, section: hud,
       note: "kill counter: frame hook, sprite-list walk, counter sprites" }

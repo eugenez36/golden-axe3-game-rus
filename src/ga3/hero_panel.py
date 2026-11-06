@@ -44,6 +44,71 @@ def load_data(path: Path) -> dict:
     return doc
 
 
+SOURCES = ("hp", "constants", "walk")  # files the numbers come from, relative to assets/
+
+
+def _values(path: Path) -> dict:
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    values = doc.get("values")
+    if not isinstance(values, dict):
+        raise ValueError(f"{path.name}: expected a values: mapping")
+    return values
+
+
+def resolve(doc: dict, hp: dict, constants: dict, walk: dict) -> dict:
+    """The panel's numbers from the game's tables: a copy of ``doc`` with hp, hit,
+    super and speed on every hero and the bars for hp, super and speed.
+
+    ``hp`` is the HP table (``slot_0``..``slot_3``: max HP by max-HP level),
+    ``constants`` the gameplay constants (``KEY_hit``, ``KEY_super``: the power
+    of a hero's first combo hit and launch) and ``walk`` the walking speeds
+    (``KEY_x``, signed 8.8 pixels per frame); ``KEY`` is each hero's ``key``.
+    """
+    try:
+        heroes = []
+        for hero in doc["heroes"]:
+            key = hero["key"]
+            heroes.append(
+                {
+                    **hero,
+                    "hp": int(hp["slot_0"]),
+                    "hit": int(constants[f"{key}_hit"]),
+                    "super": int(constants[f"{key}_super"]),
+                    "speed": int(int(walk[f"{key}_x"]) * 60 / 256 + 0.5),  # px per second
+                }
+            )
+        bars = {
+            **doc.get("bars", {}),
+            "hp": int(hp["slot_3"]),
+            "super": max(h["super"] for h in heroes),
+            "speed": max(h["speed"] for h in heroes),
+        }
+        if "tempo" not in bars:
+            raise KeyError("bars.tempo")
+    except KeyError as exc:
+        raise ValueError(f"hero panel: missing {exc}") from None
+    return {**doc, "heroes": heroes, "bars": bars}
+
+
+def source_paths(doc: dict, assets: Path) -> dict[str, Path]:
+    """The files named under ``sources`` (hp, constants, walk), relative to ``assets``."""
+    sources = doc.get("sources") or {}
+    missing = [k for k in SOURCES if not isinstance(sources.get(k), str)]
+    if missing:
+        raise ValueError(f"hero panel: sources needs {', '.join(missing)}")
+    return {k: assets / sources[k] for k in SOURCES}
+
+
+def load_resolved(path: Path, assets: Path) -> dict:
+    """``load_data`` plus ``resolve`` from the files its ``sources`` name."""
+    doc = load_data(path)
+    files = source_paths(doc, assets)
+    for p in files.values():
+        if not p.exists():
+            raise ValueError(f"{path.name}: missing {p}")
+    return resolve(doc, *(_values(files[k]) for k in SOURCES))
+
+
 class _Canvas:
     def __init__(self, cells_w: int, cells_h: int):
         self.w, self.h = cells_w * 8, cells_h * 8
@@ -138,6 +203,8 @@ def render(doc: dict, glyphs: dict[int, bytes], vram_tile: int, max_tiles: int) 
 
     full, half = [], []
     for hero in doc["heroes"]:
+        if not all(k in hero for k in ("hp", "hit", "super", "speed")):
+            raise ValueError("hero panel: the numbers are not resolved (see resolve)")
         if len(table.encode(hero["name"])) > HALF[0] - 2:
             raise ValueError(f"name {hero['name']!r} is longer than {HALF[0] - 2} characters")
         full.append(words(_full(hero, doc, glyphs)))

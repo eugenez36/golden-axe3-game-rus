@@ -10,8 +10,9 @@ from ga3 import font, hero_panel
 
 from .conftest import ROOT
 
-DATA = ROOT / "assets" / "data" / "hero_panel.yml"
-ART = ROOT / "assets" / "gfx" / "font" / "font.txt"
+ASSETS = ROOT / "assets"
+DATA = ASSETS / "data" / "hero_panel.yml"
+ART = ASSETS / "gfx" / "font" / "font.txt"
 VRAM_TILE = 0x3C40 // 32
 
 # select cursor -> class id (object +0x131), and the attack records of each
@@ -23,8 +24,34 @@ RECORDS = {3: (4, 7), 2: (6, 9), 4: (2, 5), 0: (2, 6)}
 
 @pytest.fixture(scope="module")
 def panel():
-    doc = hero_panel.load_data(DATA)
+    doc = hero_panel.load_resolved(DATA, ASSETS)
     return doc, hero_panel.render(doc, font.parse_art_file(str(ART)), VRAM_TILE, 118)
+
+
+def test_numbers_are_resolved_from_the_tables():
+    """hp, hit, super and speed come from the data files, not from hero_panel.yml."""
+    raw = hero_panel.load_data(DATA)
+    assert not any(k in h for h in raw["heroes"] for k in ("hp", "hit", "super", "speed"))
+    hp = {"slot_0": 40, "slot_1": 50, "slot_2": 60, "slot_3": 70}
+    constants = {
+        f"{h['key']}_{k}": v for h in raw["heroes"] for k, v in (("hit", 7), ("super", 21))
+    }
+    constants["kain_super"] = 30
+    walk = {f"{h['key']}_x": 0x100 for h in raw["heroes"]}
+    walk["chronos_x"] = 0x200  # 2 px per frame = 120 px per second
+    doc = hero_panel.resolve(raw, hp, constants, walk)
+    kain = next(h for h in doc["heroes"] if h["key"] == "kain")
+    chronos = next(h for h in doc["heroes"] if h["key"] == "chronos")
+    assert (kain["hp"], kain["hit"], kain["super"], kain["speed"]) == (40, 7, 30, 60)
+    assert chronos["speed"] == 120
+    assert doc["bars"] == {"tempo": raw["bars"]["tempo"], "hp": 70, "super": 30, "speed": 120}
+    with pytest.raises(ValueError, match="missing 'kain_hit'"):
+        hero_panel.resolve(raw, hp, {k: v for k, v in constants.items() if k != "kain_hit"}, walk)
+    with pytest.raises(ValueError, match="not resolved"):
+        hero_panel.render(raw, font.parse_art_file(str(ART)), VRAM_TILE, 118)
+    assert sorted(hero_panel.source_paths(raw, ASSETS)) == ["constants", "hp", "walk"]
+    with pytest.raises(ValueError, match="sources needs"):
+        hero_panel.source_paths({**raw, "sources": {"hp": "x"}}, ASSETS)
 
 
 def test_tiles_and_maps_fit(panel):

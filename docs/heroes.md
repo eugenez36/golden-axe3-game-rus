@@ -42,6 +42,14 @@ damage 6 / 16 / 32 (56 for the team spell), potions 0…6 at the start (OPTIONS 
 The player objects are `FFC7A4` (player 1) and `FFC904` (player 2), `0x160`
 bytes each.
 
+Editable by name (`ga3 balance show`): the walking speeds are the table
+`walk_speed` (`data/walk_speed.yml`), the dash, jump and air speeds
+`move_speed` (`data/move_speed.yml`), the first combo hit and the launch of
+each hero the constants `KEY_hit` / `KEY_super` and the spells' damage
+`magic_l0` … `magic_team`, `enemy_magic` (`data/gameplay.yml`); `ga3 balance
+set walk_speed.kain_x 0x200`, `ga3 balance set kain_super 20`. The hero panel
+of the character select reads the same files.
+
 ## Movement
 
 The physics step `002C14–002CA0` runs every frame for three axes (height,
@@ -49,14 +57,14 @@ depth, X) of velocity / acceleration / limit / position / fraction; the
 fixed-point add at `002E70` keeps the whole-pixel part as a signed byte.
 X position is object `+0x2E` (word, pixels), its fraction `+0x32`.
 
-| Parameter                     | Where                                                      | Proud          | Kain            | Chronos      | Sarah         | Class 1      |
-|-------------------------------|------------------------------------------------------------|----------------|-----------------|--------------|---------------|--------------|
-| Walk speed X                  | `0x337E6 + class×4`, high word (read at `0070B6–0070E0`)   | `0x0160` 1.375 | `0x0190` 1.5625 | `0x0200` 2.0 | `0x01C0` 1.75 | `0x0180` 1.5 |
-| Walk speed in depth (up/down) | same entry, low word                                       | `0x0100` 1.0   | 1.0             | 1.0          | 1.0           | 1.0          |
-| Dash speed X                  | `0x337FA + class×2` (row 0, read by `003BE8`)              | `0x0300` 3     | `0x0400` 4      | `0x0500` 5   | `0x0400` 4    | `0x0680`     |
-| Jump velocity up              | `0x33818 + class×2` (row 1, used at `004B74`)              | `0x05C0`       | `0x05F0`        | `0x0600`     | `0x0600`      | `0x0600`     |
-| Dash-jump velocity up         | `0x33836 + class×2` (row 2)                                | `0x06C0`       | `0x06F0`        | `0x0700`     | `0x0700`      | `0x0700`     |
-| Steering in the air           | `0x33854 + class×2` (row 3, only while left/right is held) | `0x0200` 2     | 2               | 2            | 2             | 2            |
+| Parameter                     | Where                                                                            | Proud          | Kain            | Chronos      | Sarah         | Class 1      |
+|-------------------------------|----------------------------------------------------------------------------------|----------------|-----------------|--------------|---------------|--------------|
+| Walk speed X                  | `0x337E6 + class×4`, high word (read at `0070B6–0070E0`): `walk_speed.KEY_x`     | `0x0160` 1.375 | `0x0190` 1.5625 | `0x0200` 2.0 | `0x01C0` 1.75 | `0x0180` 1.5 |
+| Walk speed in depth (up/down) | same entry, low word: `walk_speed.KEY_depth`                                     | `0x0100` 1.0   | 1.0             | 1.0          | 1.0           | 1.0          |
+| Dash speed X                  | `0x337FA + class×2` (row 0, read by `003BE8`): `move_speed.dash_KEY`             | `0x0300` 3     | `0x0400` 4      | `0x0500` 5   | `0x0400` 4    | `0x0680`     |
+| Jump velocity up              | `0x33818 + class×2` (row 1, used at `004B74`): `move_speed.jump_KEY`             | `0x05C0`       | `0x05F0`        | `0x0600`     | `0x0600`      | `0x0600`     |
+| Dash-jump velocity up         | `0x33836 + class×2` (row 2): `move_speed.dash_jump_KEY`                          | `0x06C0`       | `0x06F0`        | `0x0700`     | `0x0700`      | `0x0700`     |
+| Steering in the air           | `0x33854 + class×2` (row 3, only while left/right is held): `move_speed.air_KEY` | `0x0200` 2     | 2               | 2            | 2             | 2            |
 
 Rows of `0x337FA` are 15 words (classes 0–14), `0x1E` bytes apart.
 
@@ -135,6 +143,10 @@ maybe a scripted walk).
 
 The block of each hero: Proud `0x0EEDBE`, Kain `0x0EED5E`, Chronos `0x0EEDEC`,
 Sarah `0x0EED8C`, class 1 `0x0EEF4A` (its moves: 6 / 12 / 18, dash jump 18).
+The record of the first combo hit and of the launch are the constants
+`KEY_hit` / `KEY_super` (`proud_hit` …, `data/gameplay.yml`): Proud records 2
+and 6, Kain 6 and 9, Chronos 4 and 7, Sarah 2 and 5 of their blocks. The other
+moves keep their own records.
 Grab powers come from the tables at `0x006ABA` (hold), `0x006AD6` (throw),
 `0x006AF2` (jump throw); a thrown body hitting others does 8 (`001164`).
 Records with types `46`, `4A`, `4C` (power 20 and 48, probably attacks while
@@ -189,14 +201,14 @@ used `bgt` and left HP at 203 until they switched to `bhi` (PR #25).
 
 The same rules and damage for every hero; only the picture differs.
 
-| Parameter            | Where                                                                                                                    | Value                                                                               |
-|----------------------|--------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| Can cast             | `0052E0`: potions (`+0x140`) ≠ 0, no spell running (`$DC4A` = 0), RAM `$C72A` bit 5                                      | —                                                                                   |
-| Level and cost       | `00F608–00F624` (thresholds are `cmpi.b` operands, costs `moveq`)                                                        | 1–2 potions: level 0, costs 1; 3–5: level 1, costs 3; 6+: level 2, costs 6          |
-| Team spell (level 3) | `00F5D2`: both players crossed weapons (`$DC44` = 2, 180-frame window from `00F4EC`) and caster + partner potions ≥ 10   | the caster's potions are cleared, the partner pays the rest of 10                   |
-| Damage by level      | byte table `0x00F91A` (22 bytes), index `$DC52` = class × 4 + level, plus `0x14` for an enemy caster (20 to each player) | 6 / 16 / 32 / 56 for every hero; hits the four enemy slots from `FFCA64` (`00F8BC`) |
-| Effect by level      | byte table `0x00F7CE` (same index) → effect jump table `011C0C`                                                          | Proud `08–0B`, Kain `00–03`, Chronos `0C–0F`, Sarah `04–07`                         |
-| Sound by level       | table `0x00F942`                                                                                                         | Proud `C9–CC`, Kain `C5–C8`, Chronos `D1–D4`, Sarah `CD–D0`                         |
+| Parameter            | Where                                                                                                                                                                                                       | Value                                                                               |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| Can cast             | `0052E0`: potions (`+0x140`) ≠ 0, no spell running (`$DC4A` = 0), RAM `$C72A` bit 5                                                                                                                         | —                                                                                   |
+| Level and cost       | `00F608–00F624` (thresholds are `cmpi.b` operands, costs `moveq`)                                                                                                                                           | 1–2 potions: level 0, costs 1; 3–5: level 1, costs 3; 6+: level 2, costs 6          |
+| Team spell (level 3) | `00F5D2`: both players crossed weapons (`$DC44` = 2, 180-frame window from `00F4EC`) and caster + partner potions ≥ 10                                                                                      | the caster's potions are cleared, the partner pays the rest of 10                   |
+| Damage by level      | byte table `0x00F91A` (22 bytes), index `$DC52` = class × 4 + level, plus `0x14` for an enemy caster (20 to each player); constants `magic_l0` … `magic_team` (one value for all classes) and `enemy_magic` | 6 / 16 / 32 / 56 for every hero; hits the four enemy slots from `FFCA64` (`00F8BC`) |
+| Effect by level      | byte table `0x00F7CE` (same index) → effect jump table `011C0C`                                                                                                                                             | Proud `08–0B`, Kain `00–03`, Chronos `0C–0F`, Sarah `04–07`                         |
+| Sound by level       | table `0x00F942`                                                                                                                                                                                            | Proud `C9–CC`, Kain `C5–C8`, Chronos `D1–D4`, Sarah `CD–D0`                         |
 
 What each spell looks like (emulator frames, all four levels), and a name for
 the select screen:

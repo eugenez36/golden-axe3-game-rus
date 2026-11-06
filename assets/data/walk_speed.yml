@@ -1,0 +1,15 @@
+# walk_speed: 10 x u16, ROM 0337E6-0337FA
+# walking speed of each class (0 Proud, 1 the winged beast-man of the duel, 2 Kain, 3 Chronos, 4 Sarah): X then depth, signed 8.8 pixels per frame (0x0190 = 1.5625); docs/heroes.md, Movement
+# evidence: lea $337e6,a4 at 0070B6, read as +class x 4 (0070B6-0070E0) into the velocity of the physics step 002C14; measured in the emulator: Proud 1.359, Kain 1.564, Chronos 2.000, Sarah 1.769 px per frame; 0x0320 doubles Kain's speed cleanly, 0 stops sideways walking, from about 0x3000 the hero leaves the screen
+format: u16
+values:
+  proud_x: 352
+  proud_depth: 256
+  beast_x: 384
+  beast_depth: 256
+  kain_x: 400
+  kain_depth: 256
+  chronos_x: 512
+  chronos_depth: 256
+  sarah_x: 448
+  sarah_depth: 256
