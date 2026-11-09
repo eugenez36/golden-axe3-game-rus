@@ -54,7 +54,7 @@ you hold.
 - **Reproducible build.** `make` rebuilds the image from `assets/`; `make verify`
   checks it against `roms.sha1`. Freshly extracted assets give back the base
   ROM to the byte; the committed ones give the build recorded in `roms.sha1`.
-- **The ROM, taken apart.** Header and vectors as YAML, 229 strings in twelve text
+- **The ROM, taken apart.** Header and vectors as YAML, 210 strings in eleven text
   files, the font as text art, 14 Nemesis blocks, 22 indexed-PNG sheets of tile
   art, the PCM region, the HP table and gameplay constants, the hero panel's
   data, six captured palettes and Capstone listings

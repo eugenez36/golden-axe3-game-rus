@@ -634,10 +634,35 @@ segments:
       messages: 0x0EBB42,  # 16 big-endian offsets from here to the dialogue messages
       note: "NPC dialogue, credits and ending text; records before 0EBB64 are binary data that happens to be printable",
       evidence: "prose: dialogue pages on screen from 0EBB64 (emu/scenes/dialogue_pages.txt); 0EC281 is the end of the last credits record; messages: disasm 01778E lea $ebb42.l + adda.w (a0,d1.w),a0, header = box width, lines shown - 1, then lines ending in FF; every message shown in-game by pointing entry 0 at it in a scratch ROM" }
-  - { name: text_misc,     start: 0x0FB000, end: 0x0FB500, type: text,   path: text/misc.txt, min_len: 4,
-      note: "misc strings; several records are printable garbage — edit with care" }
-  - { name: pcm,           start: 0x0FC000, end: 0x0FFA20, type: pcm,    path: sound/pcm/samples.pcm,
-      note: "PCM sample data; sample table and rate unknown" }
+  # Sound bank 0F0000-0FFA10: SEGA's SMPS 68k layout (as in Sonic 1). The 68000 plays
+  # music and SFX (RAM FFC000); the Z80 only plays DAC samples. Issue #53.
+  - { name: snd_tables,    start: 0x0F0000, end: 0x0F0116, type: data,   path: code/snd_tables.m68k,
+      note: "driver pointer table (11 longs: +00 priority 0F0182, +04 special SFX 0F94E4, +08 music index 0F0116, +0C SFX index 0F93E4, +10 0F002C, +14 PSG envelopes 0F004E, +18 0xA0, +1C update 0F0202, +20/+24 Z80 program 0FACC8/0FAE5E, +28 Z80 loader 0F0858), then modulation and PSG envelope tables (envelopes end in 83)",
+      evidence: "0110BC lea $f0028.l,a0; movea.l (a0),a1; jsr (a1) -> bp 0F0858 at frame 9; 010C3C movea.l $f001c.l,a1; jmp (a1) -> bp 0F0202 once a frame (552 hits, frames 13-599); readers: 0F0796 +00, 0F0B90 +04, 0F0908 +08, 0F0A84 +0C, 0F0556 +10, 0F1160 +14, 0F088C +20/+24" }
+  - { name: snd_music_index, start: 0x0F0116, end: 0x0F0182, type: data, path: code/snd_music_index.m68k,
+      note: "27 long pointers to songs, IDs 81-9B (97 and 98 share 0F8864)",
+      evidence: "0F0908 movea.l $f0008.l,a4; subi.b #$81,d7; lsl.w #2,d7; movea.l (a4,d7.w),a4; bp 0F091C: a4 = 0F5EFC (8E) at frame 297 (title), 0F1E04 (83) in the main menu, 0F2868 (86) after the hero select" }
+  - { name: snd_priority,  start: 0x0F0182, end: 0x0F0202, type: data,   path: code/snd_priority.m68k,
+      note: "sound priority table, one byte per sound ID (128 bytes)" }
+  - { name: snd_driver,    start: 0x0F0202, end: 0x0F186C, type: code,   path: code/snd_driver.m68k,
+      note: "68k SMPS driver; 0F0202 per-frame update (lea $ffc000,a6), 0F0858 loads the Z80 program, 0F08FC plays a song",
+      evidence: "the last routine ends with rts at 0F186A; 0F186C is the first song header (song 82)" }
+  - { name: snd_music,     start: 0x0F186C, end: 0x0F93E4, type: data,   path: code/snd_music.m68k,
+      note: "27 SMPS songs: header = song-relative voice pointer (word), FM and PSG channel counts, tempo divider, tempo, then the channel table",
+      evidence: "every snd_music_index pointer lies in 0F186C-0F90A0; the SFX index follows at 0F93E4" }
+  - { name: snd_sfx,       start: 0x0F93E4, end: 0x0FACC8, type: data,   path: code/snd_sfx.m68k,
+      note: "SFX index (64 longs) at 0F93E4, special SFX index (5 longs) at 0F94E4, SFX data from 0F94F8",
+      evidence: "header +0C = 0F93E4 (read at 0F0A84), +04 = 0F94E4 (read at 0F0B90); SFX pointers lie in 0F94F8-0FAB74; the Z80 program follows at 0FACC8" }
+  - { name: z80_driver,    start: 0x0FACC8, end: 0x0FAE5E, type: data,   path: code/z80_driver.m68k,
+      note: "Z80 DAC driver, 406 bytes, copied to Z80 RAM 0000 (Z80 code: the 68000 listing tool does not apply)",
+      evidence: "0F088C-0F08B0 copy [0F0020]..[0F0024] to A00000; dump zram at frame 10 and in stage 1: bytes 0000-0195 equal the ROM, 406/406" }
+  - { name: dac_table,     start: 0x0FAE5E, end: 0x0FAEB8, type: data,   path: code/dac_table.m68k,
+      note: "18 DAC entries of 5 bytes: length (little-endian word), rate, offset (little-endian word) from the entry itself; Z80 bank 0F8000",
+      evidence: "0F08B4-0F08D2 write 0FAE5E to Z80 1FEE-1FF1 (zram dump: 5E AE 0F AE); Z80 0014-0024 set the bank from 1FF1/1FF0; Z80 015A-0189 index the table by 5 bytes and add the offset; entry 1 starts the samples at 0FAEB8" }
+  - { name: pcm,           start: 0x0FAEB8, end: 0x0FFA10, type: pcm,    path: sound/pcm/samples.pcm,
+      note: "8-bit unsigned DAC samples: 8 sounds behind the 18 dac_table entries; the last byte 0FFA0F is word padding",
+      evidence: "dac_table entries cover 0FAEB8-0FFA0F; 0FB000-0FB500 was mapped as text_misc, its 19 records were these bytes rendered with the font" }
+  - { name: free_0FFA10,   start: 0x0FFA10, end: 0x0FFA20, type: free,   fill: 0xFF, note: "16 bytes before the translators' entry stub" }
   - { name: entry_stub,    start: 0x0FFA20, end: 0x100000, type: code,   path: code/entry_stub.m68k,
       note: "the translators' relocated entry point", evidence: "reset vector at 0x4 = 000FFA20" }
   - { name: hero_panel,    start: 0x100000, size: 0x2000, type: patch, fill: 0xFF,
