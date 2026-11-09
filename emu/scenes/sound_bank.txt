@@ -1,11 +1,13 @@
 # Sound bank 0F0000-0FFA10 (issue #53). Run against the base ROM:
 #   ga3 --rom baserom/ga3.bin emu emu/scenes/sound_bank.txt
-# build/dumps/sound_bank.log: 0F0858 (Z80 program load) at boot, then 0F091C
+# build/dumps/sound_bank.log: 0F0858 (Z80 program load) at boot, 0F0202 (the
+# driver update) once every frame from frame 13, and 0F091C
 # with a4 = the song header: 0F5EFC (8E) title, 0F1E04 (83) main menu,
 # 0F2868 (86) after the hero select. build/dumps/sound_zram_*.bin: Z80 RAM,
 # bytes 0000-0195 equal ROM 0FACC8-0FAE5D, 1FEE-1FF1 = 5E AE 0F AE.
 watchlog build/dumps/sound_bank.log
 bp F0858
+bp F0202
 bp F091C
 quiet
 wait 10

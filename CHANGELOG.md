@@ -13,7 +13,7 @@ hash recorded in `roms.sha1`.
 
 - **The sound bank, mapped** (issue #53). `0F0000–0FFA10` is SEGA's SMPS 68k
   driver: pointer table `0F0000`, music index `0F0116` (27 songs, IDs
-  `81–9B`), driver code `0F0202` (listing `snd_driver.s`), songs `0F186C`,
+  `81–9B`), driver code `0F01FA` (listing `snd_driver.s`), songs `0F186C`,
   SFX `0F93E4`, the Z80 DAC driver `0FACC8` (406 bytes, copied to the Z80 at
   boot) and its sample table `0FAE5E`. Proof: `emu/scenes/sound_bank.txt`,
   `tests/test_sound_rom.py`. The build is unchanged.
