@@ -9,6 +9,22 @@ hash recorded in `roms.sha1`.
 
 ## [Unreleased]
 
+### Added
+
+- **The sound bank, mapped** (issue #53). `0F0000–0FFA10` is SEGA's SMPS 68k
+  driver: pointer table `0F0000`, music index `0F0116` (27 songs, IDs
+  `81–9B`), driver code `0F01FA` (listing `snd_driver.s`), songs `0F186C`,
+  SFX `0F93E4`, the Z80 DAC driver `0FACC8` (406 bytes, copied to the Z80 at
+  boot) and its sample table `0FAE5E`. Proof: `emu/scenes/sound_bank.txt`,
+  `tests/test_sound_rom.py`. The build is unchanged.
+
+### Fixed
+
+- **`text_misc` was sample data.** `0FB000–0FB500` holds bytes of the first
+  DAC sample, not strings: `assets/text/misc.txt` is gone (210 strings in
+  eleven files), and `samples.pcm` now starts where the samples do, `0FAEB8`
+  (it began mid-sample at `0FC000`).
+
 ## [0.37.800] — 2026-11-06
 
 Gameplay by name: the heroes' speeds and powers, the spells' damage, the

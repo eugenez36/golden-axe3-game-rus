@@ -54,7 +54,7 @@ you hold.
 - **Reproducible build.** `make` rebuilds the image from `assets/`; `make verify`
   checks it against `roms.sha1`. Freshly extracted assets give back the base
   ROM to the byte; the committed ones give the build recorded in `roms.sha1`.
-- **The ROM, taken apart.** Header and vectors as YAML, 229 strings in twelve text
+- **The ROM, taken apart.** Header and vectors as YAML, 210 strings in eleven text
   files, the font as text art, 14 Nemesis blocks, 22 indexed-PNG sheets of tile
   art, the PCM region, the HP table and gameplay constants, the hero panel's
   data, six captured palettes and Capstone listings
@@ -180,7 +180,7 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `05AEAA–05AFCE`, `05B30A–05B42A` | the kill counter's display code and digit glyphs, in two former holes                                                                                                                         |
 | `080000–0D8000`                  | 11 264 uncompressed 4bpp tiles                                                                                                                                                                |
 | `0E9B00–0EC300`                  | dialogue, credits, ending text                                                                                                                                                                |
-| `0FC000–0FFA20`                  | PCM samples                                                                                                                                                                                   |
+| `0F0000–0FFA10`                  | sound: SMPS 68k driver, 27 songs, SFX, the Z80 DAC driver at `0FACC8` and its samples from `0FAEB8`                                                                                           |
 | `0FFA20–100000`                  | the relocated entry stub                                                                                                                                                                      |
 | `100000–102280`                  | the hero stats panel and the «ЖЕСТЬ» difficulty (patches `hero_panel`, `difficulty`)                                                                                                          |
 | `102280–102400`                  | free: the options patch's old slots                                                                                                                                                           |

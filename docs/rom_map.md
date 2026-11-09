@@ -9,17 +9,17 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 
 | Type | Bytes | Share |
 |---|---|---|
-| free | 1029508 | 49.1% |
-| unknown | 533345 | 25.4% |
+| free | 1029524 | 49.1% |
+| unknown | 485473 | 23.1% |
 | tiles4bpp | 360448 | 17.2% |
-| code | 111060 | 5.3% |
+| code | 116806 | 5.6% |
+| data | 38988 | 1.9% |
 | patch | 19982 | 1.0% |
-| pcm | 14880 | 0.7% |
+| pcm | 19288 | 0.9% |
 | nemesis | 14050 | 0.7% |
-| text | 13217 | 0.6% |
+| text | 11937 | 0.6% |
 | header | 512 | 0.0% |
 | table | 144 | 0.0% |
-| data | 6 | 0.0% |
 
 ## Segments
 
@@ -71,10 +71,17 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `080000–0D8000` | tiles4bpp | art_main | `gfx/tiles` | 11264 uncompressed tiles in 22 sheets of 512; palette unknown, rendered with a grey ramp |
 | `0D8000–0E9B00` | unknown | unk_0D8000 |  |  |
 | `0E9B00–0EC300` | text | text_dialogue | `text/dialogue.txt` | NPC dialogue, credits and ending text; records before 0EBB64 are binary data that happens to be printable; *evidence: prose: dialogue pages on screen from 0EBB64 (emu/scenes/dialogue_pages.txt); 0EC281 is the end of the last credits record; messages: disasm 01778E lea $ebb42.l + adda.w (a0,d1.w),a0, header = box width, lines shown - 1, then lines ending in FF; every message shown in-game by pointing entry 0 at it in a scratch ROM* |
-| `0EC300–0FB000` | unknown | unk_0EC300 |  |  |
-| `0FB000–0FB500` | text | text_misc | `text/misc.txt` | misc strings; several records are printable garbage — edit with care |
-| `0FB500–0FC000` | unknown | unk_0FB500 |  |  |
-| `0FC000–0FFA20` | pcm | pcm | `sound/pcm/samples.pcm` | PCM sample data; sample table and rate unknown |
+| `0EC300–0F0000` | unknown | unk_0EC300 |  |  |
+| `0F0000–0F0116` | data | snd_tables | `code/snd_tables.m68k` | driver pointer table (11 longs: +00 priority 0F0182, +04 special SFX 0F94E4, +08 music index 0F0116, +0C SFX index 0F93E4, +10 0F002C, +14 PSG envelopes 0F004E, +18 0xA0, +1C update 0F0202, +20/+24 Z80 program 0FACC8/0FAE5E, +28 Z80 loader 0F0858), then modulation and PSG envelope tables (each envelope ends in a command byte: 80 loops, 81 holds, 82 jumps to the next byte's index, 83 holds and mutes; 0F117E-0F120C); *evidence: 0110BC lea $f0028.l,a0; movea.l (a0),a1; jsr (a1) -> bp 0F0858 at frame 9; 010C3C movea.l $f001c.l,a1; jmp (a1) -> bp 0F0202 once a frame (552 hits, frames 13-599); readers: 0F0796 +00, 0F0B90 +04, 0F0908 +08, 0F0A84 +0C, 0F0556 +10, 0F1160 +14, 0F088C +20/+24* |
+| `0F0116–0F0182` | data | snd_music_index | `code/snd_music_index.m68k` | 27 long pointers to songs, IDs 81-9B (97 and 98 share 0F8864); *evidence: 0F0908 movea.l $f0008.l,a4; subi.b #$81,d7; lsl.w #2,d7; movea.l (a4,d7.w),a4; bp 0F091C: a4 = 0F5EFC (8E) at frame 297 (title), 0F1E04 (83) in the main menu, 0F2868 (86) after the hero select* |
+| `0F0182–0F01FA` | data | snd_priority | `code/snd_priority.m68k` | sound priority table, one byte per sound ID 81-F8 (120 bytes); *evidence: 0F0796 movea.l $f0000.l,a0 (header +00); 0F07BA-0F07C4 subi.b #$81,d0; andi.w #$7f,d0; move.b (a0,d0.w),d2; the table stops where the driver's jmp vectors start (0F01FA)* |
+| `0F01FA–0F186C` | code | snd_driver | `code/snd_driver.m68k` | 68k SMPS driver; 0F01FA jmp 0F0202 and 0F01FE jmp 0F0F78 (two entry vectors), 0F0202 per-frame update (lea $ffc000,a6), 0F0858 loads the Z80 program, 0F08FC plays a song; *evidence: 0F01FA-0F0201 = 4EFA0006 4EFA0D78: jmp (pc) to 0F0202 and to 0F0F78, which opens with lea $ffc000,a6 like the update; the last routine ends with rts at 0F186A; 0F186C is the first song header (song 82)* |
+| `0F186C–0F93E4` | data | snd_music | `code/snd_music.m68k` | 27 SMPS songs: header = song-relative voice pointer (word), FM and PSG channel counts, tempo divider, tempo, then the channel table; *evidence: every snd_music_index pointer lies in 0F186C-0F90A0; the SFX index follows at 0F93E4* |
+| `0F93E4–0FACC8` | data | snd_sfx | `code/snd_sfx.m68k` | SFX index (64 longs) at 0F93E4, special SFX index (5 longs) at 0F94E4, SFX data from 0F94F8; *evidence: header +0C = 0F93E4 (read at 0F0A84), +04 = 0F94E4 (read at 0F0B90); SFX pointers lie in 0F94F8-0FAB74; the Z80 program follows at 0FACC8* |
+| `0FACC8–0FAE5E` | data | z80_driver | `code/z80_driver.m68k` | Z80 DAC driver, 406 bytes, copied to Z80 RAM 0000 (Z80 code: the 68000 listing tool does not apply); *evidence: 0F088C-0F08B0 copy [0F0020]..[0F0024] to A00000; dump zram at frame 10 and in stage 1: bytes 0000-0195 equal the ROM, 406/406* |
+| `0FAE5E–0FAEB8` | data | dac_table | `code/dac_table.m68k` | 18 DAC entries of 5 bytes: length (little-endian word), rate, offset (little-endian word) from the entry itself; Z80 bank 0F8000; *evidence: 0F08B4-0F08D2 write 0FAE5E to Z80 1FEE-1FF1 (zram dump: 5E AE 0F AE); Z80 0014-0024 set the bank from 1FF1/1FF0; Z80 015A-0189 index the table by 5 bytes and add the offset; entry 1 starts the samples at 0FAEB8* |
+| `0FAEB8–0FFA10` | pcm | pcm | `sound/pcm/samples.pcm` | 8-bit unsigned DAC samples: 8 sounds behind the 18 dac_table entries; the last byte 0FFA0F is word padding; *evidence: dac_table entries cover 0FAEB8-0FFA0F; 0FB000-0FB500 was mapped as text_misc, its 19 records were these bytes rendered with the font* |
+| `0FFA10–0FFA20` | free | free_0FFA10 |  | filled with 0xFF; 16 bytes before the translators' entry stub |
 | `0FFA20–100000` | code | entry_stub | `code/entry_stub.m68k` | the translators' relocated entry point; *evidence: reset vector at 0x4 = 000FFA20* |
 | `100000–102000` | patch | hero_panel |  | filled with 0xFF; hero stats panel on the character select: cursor hook, tiles and tilemaps (data/hero_panel.yml) |
 | `102000–102020` | patch | difficulty_names |  | filled with 0xFF; difficulty names on the options screen, 3 x 6 characters (text/difficulty.txt) |

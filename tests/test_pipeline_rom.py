@@ -110,8 +110,9 @@ def test_text_roundtrip_over_all_segments(project, baserom):
         ):
             assert text.table.encode(txt) == bytes(baserom.data[off : off + ln])
             count += 1
-    # 202 before Latin V (0x40) and ё (0x3C) became text: binary data now reads as a few more runs
-    assert count == 209
+    # 202 before Latin V (0x40) and ё (0x3C) became text: binary data now reads as a few more runs;
+    # 209 until text_misc (19 records) turned out to be DAC samples (issue #53)
+    assert count == 190
 
 
 def test_pristine_free_font_slots(project, baserom):
