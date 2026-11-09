@@ -38,14 +38,15 @@ def read_table(path: Path) -> dict[str, int]:
     return dict(doc.get("values") or {})
 
 
-def write_table(path: Path, values: dict[str, int], hex_values: bool = False) -> None:
-    """Write new ``values`` into a table asset, keeping its header comments and format."""
+def write_table(
+    path: Path, values: dict[str, int], fmt: str = "u8", hex_values: bool = False
+) -> None:
+    """Write new ``values`` into a table asset in the map's ``fmt``, keeping its header comments."""
     from .assets.table_asset import dump
 
     text = path.read_text(encoding="utf-8")
     header = [ln for ln in text.splitlines() if ln.startswith("#")]
-    doc = yaml.safe_load(text) or {}
-    body = dump(doc.get("format", "u8"), values, hex_values)
+    body = dump(fmt, values, hex_values)
     path.write_text("\n".join(header) + ("\n" if header else "") + body, encoding="utf-8")
 
 
@@ -59,7 +60,7 @@ def set_table_field(seg, path: Path, field: str, value: int) -> tuple[int, list[
     Raises ValueError for an unknown field or a value the format cannot hold.
     """
     from .assets.base import BuildError
-    from .assets.table_asset import TableHandler, bounds
+    from .assets.table_asset import TableHandler, check
 
     try:
         fmt, width, fields = TableHandler()._layout(seg)  # the fields, named or entry_N
@@ -67,10 +68,9 @@ def set_table_field(seg, path: Path, field: str, value: int) -> tuple[int, list[
         raise ValueError(str(exc)) from None
     if field not in fields:
         raise ValueError(f"{seg.name} has no field {field!r}; known: {', '.join(fields)}")
-    lo, hi = bounds(seg, width)
-    if not lo <= value <= hi:
-        shown = f"0x{lo:X}..0x{hi:X}" if seg.get("range") else f"{lo}..{hi} ({fmt})"
-        raise ValueError(f"{seg.name}.{field} {value} is outside {shown}")
+    problem = check(seg, width, field, value)
+    if problem:
+        raise ValueError(f"{seg.name}.{problem}")
     warnings = []
     max_hud = seg.get("max_hud")
     if max_hud is not None and value > max_hud:
@@ -78,7 +78,7 @@ def set_table_field(seg, path: Path, field: str, value: int) -> tuple[int, list[
     values = read_table(path)
     old = values.get(field)
     values[field] = value
-    write_table(path, values, bool(seg.get("hex")))
+    write_table(path, values, fmt, bool(seg.get("hex")))
     return old, warnings
 
 

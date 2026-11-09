@@ -70,7 +70,7 @@ def test_balance_set_writes_a_table_field(synthetic_extracted, capsys):
     assert run(s, "balance", "set", "words.nope", "1") == 1
     assert "no field 'nope'; known: entry_0, entry_1" in capsys.readouterr().err
     assert run(s, "balance", "set", "words.entry_0", "70000") == 1
-    assert "outside 0..65535" in capsys.readouterr().err
+    assert "entry_0=70000 is not an integer in 0..65535" in capsys.readouterr().err
     assert run(s, "balance", "set", "text_demo.x", "1") == 1
     assert "not a table" in capsys.readouterr().err
 

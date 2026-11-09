@@ -538,7 +538,8 @@ segments:
       range: [0x81, 0x9B], hex: true,
       note: "song ID (81-9B, snd_music_index) of each stage, indexed by $C778; stage names as the level select shows them; duel_N is arena N; special_11/12 are the $C778 values set at 00DD4C/00DF00 and 00DE04, whose songs start directly (96 at 00DD56, 97 at 00DF2C)",
       evidence: "00E56C move.w $c778.w,d0; move.b $e578(pc,d0.w),d0; bra $e4b2 (called at 00D71E stage start, 00DB20, 00ECF4); $C778 = 00D686[$C776] (03 01 05 00 09 04 08 0B 07 06 0C 0A 02), level select cursor -> $C776 through 00EE72 (00 01 02 03 04 05 06 07 08 0A 09 0B 0C); duel: $C778 = 00054A[arena - 1] (10 0E 0D 0F); emulator: all 13 stages by level select and one duel, bp 0F091C hears exactly the table's song for the $C778 read from RAM" }
-  - { name: free_00E58B,   start: 0x00E58B, end: 0x00E58C, type: free,   fill: 0x00, note: "1 byte: word alignment before the next routine" }
+  - { name: pad_00E58B,    start: 0x00E58B, end: 0x00E58C, type: data,   path: code/pad_00E58B.m68k,
+      note: "1 byte 00: word alignment before the routine at 00E58C, not free space" }
   - { name: code_main_a,   start: 0x00E58C, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
       frame_wait: 0x00F006,
       note: "includes the HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag)",

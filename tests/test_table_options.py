@@ -42,7 +42,7 @@ def test_balance_set_keeps_hex(tmp_path):
 
 def test_range_refuses_values_outside(tmp_path):
     seg, rom, paths, path = _setup(tmp_path, hex=True, range=[0x81, 0x9B])
-    with pytest.raises(ValueError, match=r"outside 0x81\.\.0x9B"):
+    with pytest.raises(ValueError, match=r"a=156 is not an integer in 0x81\.\.0x9B"):
         balance.set_table_field(seg, path, "a", 0x9C)
     path.write_text(path.read_text(encoding="utf-8").replace("a: 0x86", "a: 0x80"), "utf-8")
     with pytest.raises(BuildError, match=r"a=128 is not an integer in 0x81\.\.0x9B"):
@@ -52,3 +52,36 @@ def test_range_refuses_values_outside(tmp_path):
 def test_without_options_tables_stay_decimal(tmp_path):
     _seg, _rom, _paths, path = _setup(tmp_path)
     assert "  a: 134\n" in path.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("rng", "message"),
+    [
+        (0x9B, "two integers"),
+        ([0x81], "two integers"),
+        ([0x81, "x"], "two integers"),
+        ([0x9B, 0x81], "0 <= lo <= hi <= 0xFF"),
+        ([0, 0x1FF], "0 <= lo <= hi <= 0xFF"),
+    ],
+)
+def test_map_refuses_a_bad_range(rng, message):
+    from ga3.rom_map import RomMapError, _parse_segment
+
+    raw = {"name": "t", "start": 0x10, "end": 0x13, "type": "table", "path": "data/t.yml"}
+    with pytest.raises(RomMapError, match=message):
+        _parse_segment(raw | {"format": "u8", "range": rng}, 0)
+    assert _parse_segment(raw | {"format": "u16", "range": [0, 0x1FF]}, 0).get("range")
+
+
+def test_balance_set_refuses_a_hand_edited_string(tmp_path):
+    seg, _rom, _paths, path = _setup(tmp_path, hex=True)
+    path.write_text(path.read_text(encoding="utf-8").replace("c: 0x9B", "c: oops"), "utf-8")
+    with pytest.raises(ValueError, match="not integers: c"):
+        balance.set_table_field(seg, path, "a", 0x8E)
+
+
+def test_write_table_takes_the_map_format(tmp_path):
+    path = tmp_path / "t.yml"
+    path.write_text("# header\nvalues:\n  a: 1\n", encoding="utf-8")  # no format: line
+    balance.write_table(path, {"a": 0x1234}, "u16", hex_values=True)
+    assert path.read_text(encoding="utf-8") == "# header\nformat: u16\nvalues:\n  a: 0x1234\n"
