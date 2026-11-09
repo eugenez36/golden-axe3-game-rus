@@ -181,6 +181,9 @@ value is the 3-bit count inside the opcode word (1..8, so `max` is at most 8). `
 prints every `table` segment's values as well, and `ga3 balance set
 TABLE.FIELD VALUE` (`walk_speed.kain_x 0x200`) edits one field of its asset
 file; the hero panel (patch `hero_panel`) derives its numbers from these files.
+A table may carry `range: [lo, hi]` (a value outside is refused by `balance set`
+and by the build) and `hex: true` (values written as `0x..`): `stage_music`,
+the song of each stage, has both ([sound.md](sound.md)).
 
 ## Releases
 

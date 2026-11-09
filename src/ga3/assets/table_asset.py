@@ -1,8 +1,10 @@
 """Small numeric tables as YAML (e.g. the HP table at 0x00E492).
 
 Map attributes: ``format`` (u8 | u16 | u32, big-endian), optional ``fields``
-(names, one per entry) and ``max_hud`` (warn when an *edited* value exceeds
-what the HUD can draw; the base ROM's own values are not nagged about).
+(names, one per entry), ``max_hud`` (warn when an *edited* value exceeds
+what the HUD can draw; the base ROM's own values are not nagged about),
+``range: [lo, hi]`` (refuse a value the game cannot use, e.g. a song ID that
+is not in the music index) and ``hex: true`` (write the values as 0x..).
 """
 
 from __future__ import annotations
@@ -18,6 +20,22 @@ from .base import BuildError, Handler, Paths, write_text
 
 WIDTH = {"u8": 1, "u16": 2, "u32": 4}
 FMT = {"u8": "B", "u16": "H", "u32": "I"}
+
+
+def bounds(seg: Segment, width: int) -> tuple[int, int]:
+    """The values a table entry may hold: the map's ``range`` or what the format fits."""
+    lo, hi = seg.get("range") or (0, (1 << (8 * width)) - 1)
+    return int(lo), int(hi)
+
+
+def dump(fmt: str, values: dict[str, int], hex_values: bool = False) -> str:
+    """The YAML body of a table asset; ``hex_values`` writes 0x.. (YAML reads it back as int)."""
+    if not hex_values:
+        return yaml.safe_dump({"format": fmt, "values": dict(values)}, sort_keys=False)
+    digits = 2 * WIDTH[fmt]
+    lines = [f"format: {fmt}", "values:"]
+    lines += [f"  {k}: 0x{v:0{digits}X}" for k, v in values.items()]
+    return "\n".join(lines) + "\n"
 
 
 class TableHandler(Handler):
@@ -39,10 +57,7 @@ class TableHandler(Handler):
     def extract(self, rom: Rom, seg: Segment, paths: Paths) -> list[Path]:
         fmt, _width, fields = self._layout(seg)
         values = struct.unpack(f">{len(fields)}{FMT[fmt]}", bytes(rom.data[seg.start : seg.end]))
-        doc = {
-            "format": fmt,
-            "values": dict(zip(fields, values, strict=True)),
-        }
+        values = dict(zip(fields, values, strict=True))
         header = [
             f"# {seg.name}: {len(fields)} x {fmt}, ROM {seg.start:06X}-{seg.end:06X}",
         ]
@@ -50,7 +65,7 @@ class TableHandler(Handler):
             header.append(f"# {seg.get('note')}")
         if seg.get("evidence"):
             header.append(f"# evidence: {seg.get('evidence')}")
-        body = "\n".join(header) + "\n" + yaml.safe_dump(doc, sort_keys=False)
+        body = "\n".join(header) + "\n" + dump(fmt, values, bool(seg.get("hex")))
         return [write_text(paths.asset(seg.path), body)]
 
     def build(self, rom: Rom, seg: Segment, paths: Paths) -> str | None:
@@ -65,12 +80,13 @@ class TableHandler(Handler):
         missing = [f for f in fields if f not in values]
         if missing:
             raise BuildError(f"{seg}: missing values for {missing}")
-        limit = (1 << (8 * width)) - 1
+        lo, hi = bounds(seg, width)
         out = []
         for f in fields:
             v = values[f]
-            if not isinstance(v, int) or not 0 <= v <= limit:
-                raise BuildError(f"{seg}: {f}={v!r} is not an integer in 0..{limit}")
+            if not isinstance(v, int) or not lo <= v <= hi:
+                shown = f"0x{lo:X}..0x{hi:X}" if seg.get("range") else f"{lo}..{hi}"
+                raise BuildError(f"{seg}: {f}={v!r} is not an integer in {shown}")
             out.append(v)
         blob = struct.pack(f">{len(out)}{FMT[fmt]}", *out)
         old = bytes(rom.data[seg.start : seg.end])

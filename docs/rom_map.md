@@ -9,17 +9,17 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 
 | Type | Bytes | Share |
 |---|---|---|
-| free | 1029524 | 49.1% |
+| free | 1029525 | 49.1% |
 | unknown | 485473 | 23.1% |
 | tiles4bpp | 360448 | 17.2% |
-| code | 116806 | 5.6% |
+| code | 116786 | 5.6% |
 | data | 38988 | 1.9% |
 | patch | 19982 | 1.0% |
 | pcm | 19288 | 0.9% |
 | nemesis | 14050 | 0.7% |
 | text | 11937 | 0.6% |
 | header | 512 | 0.0% |
-| table | 144 | 0.0% |
+| table | 163 | 0.0% |
 
 ## Segments
 
@@ -30,7 +30,10 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `000200–000284` | code | dispatcher | `code/dispatcher.m68k` | 33 long pointers, the main dispatcher |
 | `000284–00E492` | code | code_boot | `code/code_boot.m68k` |  |
 | `00E492–00E496` | table | hp_table | `data/hp_table.yml` | format u8; maximum HP by max-HP level (object +0x144, 0..3): the same for every hero, who all start at level 0 (51); see docs/heroes.md; *evidence: watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0 with d0 = +0x144; +0x144 is raised by an item of kind >= 3 up to 3 (0009FA) and set to 3 in a duel (00DB42); all four heroes start with +0x144 = 0 and HP 51 (RAM dumps after picking each); the HUD bar holds 51 + 8 x level (010514)* |
-| `00E496–0116B6` | code | code_main_a | `code/code_main_a.m68k` | includes the healing cap at 00E49C and HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag); *evidence: frame_wait: disasm 00F006 bclr #0,$c70a / btst #0,$c70a / beq; the VBlank handler 0108F4 sets that bit (010906, 01096E); one call per frame in play (emu/scenes/stage1_fight.txt)* |
+| `00E496–00E578` | code | code_e496 | `code/code_e496.m68k` | the healing cap at 00E49C, SOUND (queue sound d0.b) at 00E4B2, RAM clears, and 00E56C: the stage's song, stage_music[$C778] -> SOUND |
+| `00E578–00E58B` | table | stage_music | `data/stage_music.yml` | format u8; song ID (81-9B, snd_music_index) of each stage, indexed by $C778; stage names as the level select shows them; duel_N is arena N; special_11/12 are the $C778 values set at 00DD4C/00DF00 and 00DE04, whose songs start directly (96 at 00DD56, 97 at 00DF2C); *evidence: 00E56C move.w $c778.w,d0; move.b $e578(pc,d0.w),d0; bra $e4b2 (called at 00D71E stage start, 00DB20, 00ECF4); $C778 = 00D686[$C776] (03 01 05 00 09 04 08 0B 07 06 0C 0A 02), level select cursor -> $C776 through 00EE72 (00 01 02 03 04 05 06 07 08 0A 09 0B 0C); duel: $C778 = 00054A[arena - 1] (10 0E 0D 0F); emulator: all 13 stages by level select and one duel, bp 0F091C hears exactly the table's song for the $C778 read from RAM* |
+| `00E58B–00E58C` | free | free_00E58B |  | filled with 0x00; 1 byte: word alignment before the next routine |
+| `00E58C–0116B6` | code | code_main_a | `code/code_main_a.m68k` | includes the HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag); *evidence: frame_wait: disasm 00F006 bclr #0,$c70a / btst #0,$c70a / beq; the VBlank handler 0108F4 sets that bit (010906, 01096E); one call per frame in play (emu/scenes/stage1_fight.txt)* |
 | `0116B6–0116F6` | patch | menu_version |  | filled with 0xFF; draws 'V \<package version>' right-aligned at plane A row 26, ending at column 24 (the middle of patch menus' bottom bar; column 38 until then); carved out of free_0116B6; *evidence: disasm 014F68-014F8C: menu items drawn at VRAM C8A0 + n\*0100 with attr E000 via a6 = VDP control, then moveq #0,d1; bra.w $15010 at 014F86; VDP regs on the title: plane A C000 (reg 2 = 30), 64-cell rows (reg 16 = 11), H40 (reg 12 = 81)* |
 | `0116F6–011716` | patch | menu_items |  | filled with 0xFF; main-menu items, 4 x 8 characters (were 4 x 7 at 014F8C, plus item 2 again at 015088); carved out of free_0116F6; *evidence: disasm 014F68 lea $14f8c(pc),a0 + 4 x bsr 014FA8; 014FA8 moveq #6,d7 draws 7 characters; 01505E lea $15088(pc),a0 + bsr 014FA8 at C9A0 (item 2, attr C000 when $F089 != 0D: no second pad); no other reference to these strings* |
 | `011716–011800` | patch | kill_counter_count |  | filled with 0xFF; kill counter: the damage and object-free hooks and the new-game reset (assets/patches/kill_counter.s) |

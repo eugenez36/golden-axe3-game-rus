@@ -74,7 +74,8 @@ baserom/ga3.bin ──ga3 extract──▶ assets/ ──ga3 build──▶ buil
   пленниках, `set
   kain_super 20` / `set magic_l2 40` — силу удара и суперудара героя и урон
   заклинаний, `set walk_speed.kain_x 0x200` / `set move_speed.jump_sarah 0x700`
-  — скорость ходьбы, рывка и прыжка каждого класса. Панель героев на экране
+  — скорость ходьбы, рывка и прыжка каждого класса, `set stage_music.stage_1
+  0x8E` — музыку этапа ([docs/sound.md](docs/sound.md)). Панель героев на экране
   выбора читает те же файлы и не расходится с игрой. Это числа внутри кода и
   его таблиц, каждое сверяется с эталонным ROM; адреса — забота карты.
 - **Новый код на ассемблере 68000.** Патчи лежат в `assets/patches/*.s`,
@@ -107,6 +108,7 @@ make test       # pytest (тесты, требующие ROM, без него п
 $EDITOR assets/text/dialogue.txt          # строка; длиннее стать не может
 $EDITOR assets/gfx/font/font.txt          # глиф
 ga3 balance set-hp 60 60 60 60            # таблица HP
+ga3 balance set stage_music.stage_1 0x8E # другая музыка на этапе 1 (docs/sound.md)
 ga3 balance set walk_speed.kain_x 0x200   # параметр героя (список: ga3 balance show)
 make && ga3 verify --update               # пересобрать, записать новый хеш
 make dist                                 # файлы релиза: build/dist/ga3-ВЕРСИЯ.bin, .ips, .sha256
@@ -152,7 +154,7 @@ assets/           ROM, разобранный на части — что ком�
   gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (индексированные)
   palettes/       *.pal, снятые в эмуляторе (источник в ROM пока не найден)
   sound/pcm/      samples.pcm
-  data/           hp_table.yml, walk_speed.yml, move_speed.yml, gameplay.yml (жизни, кредиты, банки, сила ударов,
+  data/           hp_table.yml, walk_speed.yml, move_speed.yml, stage_music.yml, gameplay.yml (жизни, кредиты, банки, сила ударов,
                   урон магии), hero_panel.yml (имена и темп; числа берутся из остальных файлов)
   patches/        *.s: исходники собираемых патчей на 68000 (kill_counter, hero_panel, difficulty, options, menus)
   code/asm/       листинги Capstone (генерируются)

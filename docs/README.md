@@ -9,6 +9,7 @@
 | [emulator.md](emulator.md)               | you write a scene or hunt for an address with watchpoints                                                                      |
 | [patches.md](patches.md)                 | you change the game's code: patch slots, hooks, the 68000 assembler, the kill counter, the hero panel, «ЖЕСТЬ», БАНКИ МАГИИ    |
 | [heroes.md](heroes.md)                   | you want any hero parameter: speeds, every move's power and timing, magic, health, where each lives and what values it takes   |
+| [sound.md](sound.md)                     | you want the music: where the sound bank is, which song plays where, how to give a stage another song                          |
 | [rom_map.md](rom_map.md)                 | you need the full segment table (generated from `rom_map.yml`, do not edit)                                                    |
 | [evidence/](evidence/README.md)          | you want to see the logs and screenshots behind a map entry                                                                    |
 | [ru/journal.md](ru/journal.md)           | you want the whole story in Russian: how each address was found, dead ends included                                            |

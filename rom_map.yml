@@ -25,7 +25,8 @@
 # Per-segment keys (beyond name/start/end|size/type/path)
 #   note, evidence   free text; `evidence` says how an address was proven (CONTRIBUTING rule 3)
 #   text:            min_len (shortest run of printable bytes that counts as a string)
-#   table:           format (u8|u16|u32), fields (one name per entry), max_hud (warn above it)
+#   table:           format (u8|u16|u32), fields (one name per entry), max_hud (warn above it),
+#                    range [lo, hi] (refuse values outside), hex (write values as 0x..)
 #   nemesis:         tiles, xor (checked against the block header); font_art adds
 #                    blob (the derived .nem), first_byte, bg, ink
 #   tiles4bpp:       sheet_tiles (per PNG), cols, prefix (file stem), palette (NAME[/INDEX])
@@ -530,9 +531,17 @@ segments:
       format: u8, fields: [slot_0, slot_1, slot_2, slot_3], max_hud: 0x36,
       note: "maximum HP by max-HP level (object +0x144, 0..3): the same for every hero, who all start at level 0 (51); see docs/heroes.md",
       evidence: "watch FFC8E6 -> writer 00E48C; disasm 00E488 move.b $e492(pc,d0.w),d0 with d0 = +0x144; +0x144 is raised by an item of kind >= 3 up to 3 (0009FA) and set to 3 in a duel (00DB42); all four heroes start with +0x144 = 0 and HP 51 (RAM dumps after picking each); the HUD bar holds 51 + 8 x level (010514)" }
-  - { name: code_main_a,   start: 0x00E496, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
+  - { name: code_e496,     start: 0x00E496, end: 0x00E578, type: code,   path: code/code_e496.m68k,
+      note: "the healing cap at 00E49C, SOUND (queue sound d0.b) at 00E4B2, RAM clears, and 00E56C: the stage's song, stage_music[$C778] -> SOUND" }
+  - { name: stage_music,   start: 0x00E578, end: 0x00E58B, type: table,  path: data/stage_music.yml,
+      format: u8, fields: [stage_3a, stage_2a, stage_8, stage_1, stage_4a, stage_2b, stage_6b, stage_5b, stage_4b, stage_3b, stage_7, stage_5a, stage_6a, duel_3, duel_2, duel_4, duel_1, special_11, special_12],
+      range: [0x81, 0x9B], hex: true,
+      note: "song ID (81-9B, snd_music_index) of each stage, indexed by $C778; stage names as the level select shows them; duel_N is arena N; special_11/12 are the $C778 values set at 00DD4C/00DF00 and 00DE04, whose songs start directly (96 at 00DD56, 97 at 00DF2C)",
+      evidence: "00E56C move.w $c778.w,d0; move.b $e578(pc,d0.w),d0; bra $e4b2 (called at 00D71E stage start, 00DB20, 00ECF4); $C778 = 00D686[$C776] (03 01 05 00 09 04 08 0B 07 06 0C 0A 02), level select cursor -> $C776 through 00EE72 (00 01 02 03 04 05 06 07 08 0A 09 0B 0C); duel: $C778 = 00054A[arena - 1] (10 0E 0D 0F); emulator: all 13 stages by level select and one duel, bp 0F091C hears exactly the table's song for the $C778 read from RAM" }
+  - { name: free_00E58B,   start: 0x00E58B, end: 0x00E58C, type: free,   fill: 0x00, note: "1 byte: word alignment before the next routine" }
+  - { name: code_main_a,   start: 0x00E58C, end: 0x0116B6, type: code,   path: code/code_main_a.m68k,
       frame_wait: 0x00F006,
-      note: "includes the healing cap at 00E49C and HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag)",
+      note: "includes the HP pair update at 010544; frame_wait is the per-frame VBlank wait (ga3 lag)",
       evidence: "frame_wait: disasm 00F006 bclr #0,$c70a / btst #0,$c70a / beq; the VBlank handler 0108F4 sets that bit (010906, 01096E); one call per frame in play (emu/scenes/stage1_fight.txt)" }
   - { name: menu_version,  start: 0x0116B6, size: 0x40,    type: patch,  fill: 0xFF,
       routine: menu_version, hook: 0x014F86, hook_bytes: "72 00 60 00 00 86", return_to: 0x015010,

@@ -77,7 +77,8 @@ you hold.
   costs, `set
   kain_super 20` / `set magic_l2 40` a hero's hit and launch powers and the
   spells' damage, `set walk_speed.kain_x 0x200` / `set move_speed.jump_sarah
-  0x700` the walking, dash and jump speeds of every class. The hero panel on
+  0x700` the walking, dash and jump speeds of every class, `set
+  stage_music.stage_1 0x8E` a stage's song ([docs/sound.md](docs/sound.md)). The hero panel on
   the character select reads the same files, so it never disagrees with the
   game. These are numbers inside the code and its tables, each checked against
   the base ROM; the addresses are the map's business.
@@ -111,6 +112,7 @@ make test       # pytest (ROM-gated tests skip without the ROM)
 $EDITOR assets/text/dialogue.txt          # a string; may not grow
 $EDITOR assets/gfx/font/font.txt          # a glyph
 ga3 balance set-hp 60 60 60 60            # the HP table
+ga3 balance set stage_music.stage_1 0x8E # another song on stage 1 (docs/sound.md)
 ga3 balance set walk_speed.kain_x 0x200   # a hero parameter (ga3 balance show)
 make && ga3 verify --update               # rebuild, record the new hash
 make dist                                 # release files: build/dist/ga3-VERSION.bin, .ips, .sha256
@@ -156,7 +158,7 @@ assets/           the ROM taken apart — see STYLE.md for what is committed
   gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (indexed)
   palettes/       *.pal captured from the emulator (no ROM source known yet)
   sound/pcm/      samples.pcm
-  data/           hp_table.yml, walk_speed.yml, move_speed.yml, gameplay.yml (lives, credits, potions, hit and launch
+  data/           hp_table.yml, walk_speed.yml, move_speed.yml, stage_music.yml, gameplay.yml (lives, credits, potions, hit and launch
                   powers, magic damage), hero_panel.yml (names and tempo; the numbers come from the other files)
   patches/        *.s: 68000 sources of the assembled patches (kill_counter, hero_panel, difficulty, options, menus)
   code/asm/       Capstone listings (generated)
