@@ -78,7 +78,8 @@ you hold.
   kain_super 20` / `set magic_l2 40` a hero's hit and launch powers and the
   spells' damage, `set walk_speed.kain_x 0x200` / `set move_speed.jump_sarah
   0x700` the walking, dash and jump speeds of every class, `set
-  stage_music.stage_1 0x8E` a stage's song ([docs/sound.md](docs/sound.md)). The hero panel on
+  stage_music.stage_1 0x8E` a stage's song, `set boss_song_1 0x8E` a boss's,
+  `set ending_song 0x8E` a scene's ([docs/sound.md](docs/sound.md)). The hero panel on
   the character select reads the same files, so it never disagrees with the
   game. These are numbers inside the code and its tables, each checked against
   the base ROM; the addresses are the map's business.
@@ -159,7 +160,7 @@ assets/           the ROM taken apart — see STYLE.md for what is committed
   palettes/       *.pal captured from the emulator (no ROM source known yet)
   sound/pcm/      samples.pcm
   data/           hp_table.yml, walk_speed.yml, move_speed.yml, stage_music.yml, gameplay.yml (lives, credits, potions, hit and launch
-                  powers, magic damage), hero_panel.yml (names and tempo; the numbers come from the other files)
+                  powers, magic damage, boss and scene songs), hero_panel.yml (names and tempo; the numbers come from the other files)
   patches/        *.s: 68000 sources of the assembled patches (kill_counter, hero_panel, difficulty, options, menus)
   code/asm/       Capstone listings (generated)
 build/            everything derived (ignored): ROM, IPS, emulator, shots, dumps, previews

@@ -19,6 +19,28 @@
 # chronos_super (u8, at 0EEDFC): Chronos: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
 # sarah_hit (u8, at 0EED92): Sarah: power of the first combo hit (B; damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
 # sarah_super (u8, at 0EED98): Sarah: power of the close combo finisher with Fwd, the launch (damage is half); shown on the character select (patch hero_panel). Above 0x64 the stamina meter misbehaves
+# boss_song_1 (u8, at 0ED33E): song that starts when the stage 1 boss comes on screen
+# boss_song_2a (u8, at 0ECED2): song that starts when the stage 2A boss comes on screen
+# boss_song_2b (u8, at 0ED98C, 0ED8EA): song that starts when the stage 2B boss comes on screen
+# boss_song_3a (u8, at 0ECC06, 0ECB54): song that starts when the stage 3A boss comes on screen
+# boss_song_3b (u8, at 0EE78E): song that starts when the stage 3B boss comes on screen
+# boss_song_4a (u8, at 0ED68C): song that starts when the stage 4A boss comes on screen
+# boss_song_4b (u8, at 0EE4DA, 0EE3F4): song that starts when the stage 4B boss comes on screen
+# boss_song_5a (u8, at 0EEA96, 0EEB4C): song that starts when the stage 5A boss comes on screen
+# boss_song_5b (u8, at 0EE08A): song that starts when the stage 5B boss comes on screen
+# boss_song_6a (u8, at 0EECC6): song that starts when the stage 6A boss comes on screen
+# boss_song_6b (u8, at 0EDD12): song that starts when the stage 6B boss comes on screen
+# boss_song_7 (u8, at 0EE7FE): song that starts when the stage 7 boss comes on screen
+# boss_song_8 (u8, at 0ED186): song that starts when the final boss (stage 8, first form) comes on screen
+# stage_clear_song (u8, at 00D9F8): stage cleared: the jingle before the next stage's screen
+# game_over_song (u8, at 00D890): game over (the continue screen follows)
+# duel_won_song (u8, at 00DBC4, 00DC20): a duel fight is over: player 1 beat the computer (00DBC4), or a two-player fight ended (00DC20)
+# duel_lost_song (u8, at 00DBCA): a duel against the computer lost; the title follows
+# boss_8_fall_song (u8, at 00B06A): stage 8: the first form of the final boss falls («Сны становятся явью!»)
+# castle_song (u8, at 00DD56): stage 8: outside the castle with the freed prisoners
+# lightning_song (u8, at 00BA56): stage 8: lightning strikes the castle, the sky goes dark; then stage_music.special_12 for the second form
+# castle_fall_song (u8, at 00DF2C): the castle falls after the final boss's second form
+# ending_song (u8, at 00DFDE): the ending's text pages («И вот наши храбрые вои…»)
 values:
   lives: 2
   credits: 4
@@ -39,3 +61,25 @@ values:
   chronos_super: 12
   sarah_hit: 5
   sarah_super: 15
+  boss_song_1: 0x9B
+  boss_song_2a: 0x9B
+  boss_song_2b: 0x94
+  boss_song_3a: 0x9B
+  boss_song_3b: 0x9B
+  boss_song_4a: 0x9B
+  boss_song_4b: 0x94
+  boss_song_5a: 0x94
+  boss_song_5b: 0x94
+  boss_song_6a: 0x9B
+  boss_song_6b: 0x94
+  boss_song_7: 0x94
+  boss_song_8: 0x95
+  stage_clear_song: 0x8F
+  game_over_song: 0x9A
+  duel_won_song: 0x84
+  duel_lost_song: 0x9A
+  boss_8_fall_song: 0x97
+  castle_song: 0x96
+  lightning_song: 0x95
+  castle_fall_song: 0x97
+  ending_song: 0x8D
