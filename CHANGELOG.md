@@ -11,6 +11,15 @@ hash recorded in `roms.sha1`.
 
 ### Added
 
+- **A stage's song by name.** Table `stage_music` (`00E578`, 19 song IDs
+  indexed by `$C778`: the 13 stages named as the level select shows them,
+  the four duel arenas and two special scenes) in
+  `assets/data/stage_music.yml`; `ga3 balance set stage_music.stage_1 0x8E`
+  gives stage 1 the title's song (checked in the emulator). Tables may now
+  carry `range: [lo, hi]` (refused outside) and `hex: true` (values as
+  `0x..`). `docs/sound.md` lists every song ID and where it is heard. The
+  build is unchanged.
+
 - **The sound bank, mapped** (issue #53). `0F0000–0FFA10` is SEGA's SMPS 68k
   driver: pointer table `0F0000`, music index `0F0116` (27 songs, IDs
   `81–9B`), driver code `0F01FA` (listing `snd_driver.s`), songs `0F186C`,

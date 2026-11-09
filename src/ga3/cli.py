@@ -556,7 +556,8 @@ def cmd_balance(args) -> int:
         return _fail(f"expected {len(values)} values")
     for w in balance.validate_hp(new, seg.get("max_hud")):
         print("  warning: " + w, file=sys.stderr)
-    balance.write_hp(path, dict(zip(values.keys(), new, strict=True)))
+    fmt, hex_values = seg.get("format", "u8"), bool(seg.get("hex"))
+    balance.write_hp(path, dict(zip(values.keys(), new, strict=True)), fmt, hex_values)
     print(f"HP: {list(values.values())} -> {new}  (written to {seg.path}; run `ga3 build`)")
     return 0
 

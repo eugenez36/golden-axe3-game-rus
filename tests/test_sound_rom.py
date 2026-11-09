@@ -50,3 +50,11 @@ def test_dac_table_covers_the_samples(project, baserom):
         first, last = min(first, start), max(last, start + length)
     assert first == pcm.start
     assert last == pcm.end - 1  # one byte of word padding
+
+
+def test_stage_music_names_real_songs(project, baserom):
+    """The map's range for stage_music is exactly the music index's IDs, and the ROM keeps to it."""
+    index, table = project.map.by_name("snd_music_index"), project.map.by_name("stage_music")
+    first, last = table.get("range")
+    assert (first, last) == (0x81, 0x81 + (index.end - index.start) // 4 - 1)
+    assert all(first <= b <= last for b in baserom.data[table.start : table.end])

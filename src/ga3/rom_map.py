@@ -133,6 +133,21 @@ def _int(value: Any, where: str) -> int:
     return value
 
 
+TABLE_WIDTH = {"u8": 1, "u16": 2, "u32": 4}
+
+
+def _check_table_range(rng: Any, fmt: Any, where: str) -> None:
+    """A table's ``range`` is ``[lo, hi]``, integers with 0 <= lo <= hi within the format."""
+    if fmt not in TABLE_WIDTH:
+        return  # the table handler reports an unknown format
+    top = (1 << (8 * TABLE_WIDTH[fmt])) - 1
+    pair = isinstance(rng, list) and len(rng) == 2
+    if not pair or not all(isinstance(v, int) and not isinstance(v, bool) for v in rng):
+        raise RomMapError(f"{where}: range must be [lo, hi], two integers")
+    if not 0 <= rng[0] <= rng[1] <= top:
+        raise RomMapError(f"{where}: range must have 0 <= lo <= hi <= 0x{top:X} ({fmt})")
+
+
 def _parse_segment(raw: dict[str, Any], idx: int) -> Segment:
     where = f"segments[{idx}]"
     if not isinstance(raw, dict):
@@ -161,6 +176,8 @@ def _parse_segment(raw: dict[str, Any], idx: int) -> Segment:
     attrs = {
         k: v for k, v in raw.items() if k not in {"name", "start", "end", "size", "type", "path"}
     }
+    if stype == "table" and "range" in attrs:
+        _check_table_range(attrs["range"], attrs.get("format", "u8"), where)
     return Segment(name, start, end, stype, path, attrs)
 
 
