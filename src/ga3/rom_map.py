@@ -88,6 +88,12 @@ class Constant:
         """The largest value allowed: ``max`` when given, else what the format holds."""
         return self.attrs.get("max", (1 << (8 * self.width)) - 1)
 
+    @property
+    def bounds(self) -> tuple[int, int]:
+        """The values allowed: ``range`` when given, else 0..``limit``."""
+        lo, hi = self.attrs.get("range") or (0, self.limit)
+        return lo, hi
+
 
 @dataclass
 class RomMap:
@@ -136,11 +142,12 @@ def _int(value: Any, where: str) -> int:
 TABLE_WIDTH = {"u8": 1, "u16": 2, "u32": 4}
 
 
-def _check_table_range(rng: Any, fmt: Any, where: str) -> None:
-    """A table's ``range`` is ``[lo, hi]``, integers with 0 <= lo <= hi within the format."""
-    if fmt not in TABLE_WIDTH:
+def _check_range(rng: Any, fmt: Any, where: str, widths: dict[str, int] = TABLE_WIDTH) -> None:
+    """A ``range`` (of a table or a constant) is ``[lo, hi]``, integers with
+    0 <= lo <= hi within the format."""
+    if fmt not in widths:
         return  # the table handler reports an unknown format
-    top = (1 << (8 * TABLE_WIDTH[fmt])) - 1
+    top = (1 << (8 * widths[fmt])) - 1
     pair = isinstance(rng, list) and len(rng) == 2
     if not pair or not all(isinstance(v, int) and not isinstance(v, bool) for v in rng):
         raise RomMapError(f"{where}: range must be [lo, hi], two integers")
@@ -177,7 +184,7 @@ def _parse_segment(raw: dict[str, Any], idx: int) -> Segment:
         k: v for k, v in raw.items() if k not in {"name", "start", "end", "size", "type", "path"}
     }
     if stype == "table" and "range" in attrs:
-        _check_table_range(attrs["range"], attrs.get("format", "u8"), where)
+        _check_range(attrs["range"], attrs.get("format", "u8"), where)
     return Segment(name, start, end, stype, path, attrs)
 
 
@@ -226,7 +233,9 @@ def _parse_constants(block: Any, size: int) -> tuple[str | None, dict[str, Const
     ``[address, "base-ROM bytes of the instruction", operand offset]`` for each
     instruction that carries it -- and, like a segment, ``evidence`` (required),
     ``note`` and ``max_hud`` (a warning above it). ``max`` is a hard limit: a
-    larger value is refused by ``ga3 balance set`` and by the build. A site
+    larger value is refused by ``ga3 balance set`` and by the build; ``range:
+    [lo, hi]`` (instead of ``max``) refuses values below ``lo`` as well, and
+    ``hex: true`` writes the value as ``0x..`` in the asset file. A site
     ``[address, "hex bytes", offset, quick]`` is an ``addq`` / ``subq``: the
     value is the 3-bit count in the opcode word at ``offset`` (1..8), so such a
     constant needs ``max`` of at most 8.
@@ -277,6 +286,12 @@ def _parse_constants(block: Any, size: int) -> tuple[str | None, dict[str, Const
                 raise RomMapError(f"{where}.sites[{i}]: 0x{at:06X} is past rom.size")
             sites.append(Site(at, expect, offset, quick))
         attrs = {k: v for k, v in d.items() if k not in ("format", "sites")}
+        if "range" in attrs:
+            if "max" in attrs or any(s.quick for s in sites):
+                raise RomMapError(f"{where}: range replaces max and does not go with quick sites")
+            _check_range(attrs["range"], fmt, where, CONSTANT_WIDTH)
+        if not isinstance(attrs.get("hex", False), bool):
+            raise RomMapError(f"{where}: hex must be true or false")
         if "max" in attrs:
             top = (1 << (8 * CONSTANT_WIDTH[fmt])) - 1
             if not isinstance(attrs["max"], int) or isinstance(attrs["max"], bool):
@@ -380,6 +395,8 @@ def constants_table(rm: RomMap) -> str:
     for c in rm.constants.values():
         sites = ", ".join(f"`{s.at:06X}`" for s in c.sites)
         notes = [_md_text(c.get("note", ""))] if c.get("note") else []
+        if c.get("range"):
+            notes.append("range `0x{:X}..0x{:X}`".format(*c.bounds))
         notes.append(f"*evidence: {_md_text(c.get('evidence'))}*")
         lines.append(f"| {c.name} | {c.format} | {sites} | {'; '.join(notes)} |")
     return "\n".join(lines) + "\n"

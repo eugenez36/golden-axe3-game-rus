@@ -58,3 +58,21 @@ def test_stage_music_names_real_songs(project, baserom):
     first, last = table.get("range")
     assert (first, last) == (0x81, 0x81 + (index.end - index.start) // 4 - 1)
     assert all(first <= b <= last for b in baserom.data[table.start : table.end])
+
+
+def test_song_constants_are_play_commands(project, baserom):
+    """Every ``*_song`` constant is a stage event [.. .. 00 ID][00 00 00 03] (command 3 hands
+    the ID to SOUND, 00C2F0) or ``moveq #ID,d0`` right before ``jsr``/``bra`` SOUND (00E4B2)."""
+    songs = {n: c for n, c in project.map.constants.items() if "song" in n}
+    assert len(songs) == 22
+    for name, c in songs.items():
+        assert c.get("range") == [0x81, 0x9B] and c.get("hex"), name
+        for s in c.sites:
+            if s.offset == 3:  # a stage event
+                assert baserom.data[s.at + 2] == 0 and baserom.u32(s.at + 4) == 3, name
+                assert 0x0EC300 <= s.at < 0x0F0000, name
+            else:  # moveq #ID,d0 then jsr $e4b2(pc) / bra.w $e4b2
+                assert (baserom.data[s.at], s.offset) == (0x70, 1), name
+                op, disp = baserom.u16(s.at + 2), baserom.u16(s.at + 4)
+                assert op in (0x4EBA, 0x6000), name
+                assert (s.at + 4 + disp) & 0xFFFF == 0xE4B2, name

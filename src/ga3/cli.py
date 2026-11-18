@@ -520,10 +520,16 @@ def cmd_balance(args) -> int:
         if cpath is not None:
             current = constants.read_values(cpath)
             print(f"Constants ({proj.map.constants_path}):")
+            width = max(len(name) for name in proj.map.constants)
             for c in proj.map.constants.values():
                 where = ", ".join(f"{s.at:06X}" for s in c.sites)
                 most = f", max {c.limit}" if "max" in c.attrs else ""
-                print(f"  {c.name:14s} {current.get(c.name, '?'):>3} ({c.format} at {where}{most})")
+                if c.get("range"):
+                    most = ", range 0x{:X}..0x{:X}".format(*c.bounds)
+                value = current.get(c.name, "?")
+                if c.get("hex") and isinstance(value, int):
+                    value = f"0x{value:02X}"
+                print(f"  {c.name:{width}s} {value:>4} ({c.format} at {where}{most})")
         return 0
     if args.balcmd == "set":
         value = int(args.value, 0)
@@ -536,17 +542,19 @@ def cmd_balance(args) -> int:
                 old, warnings = balance.set_table_field(
                     seg, proj.paths.asset(seg.path), field, value
                 )
-                where = seg.path
+                where, hex_values = seg.path, bool(seg.get("hex"))
             else:
                 if cpath is None:
                     return _fail("rom_map.yml declares no constants")
                 old, warnings = balance.set_constant(proj.map, cpath, args.name, value)
                 where = proj.map.constants_path
+                hex_values = bool(proj.map.constants[args.name].get("hex"))
         except ValueError as exc:
             return _fail(str(exc))
         for w in warnings:
             print("  warning: " + w, file=sys.stderr)
-        print(f"{args.name}: {old} -> {value}  (written to {where}; run `ga3 build`)")
+        shown = [f"0x{v:02X}" if hex_values and isinstance(v, int) else v for v in (old, value)]
+        print(f"{args.name}: {shown[0]} -> {shown[1]}  (written to {where}; run `ga3 build`)")
         return 0
     seg = proj.map.by_name("hp_table")
     path = proj.paths.asset(seg.path)

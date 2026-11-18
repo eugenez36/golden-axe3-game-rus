@@ -187,3 +187,53 @@ def test_balance_cli_shows_and_sets(synth_constants, capsys):
 def test_rom_map_doc_lists_the_constants(synth_constants):
     table = rom_map.constants_table(synth_constants.project.map)
     assert "| lives | u8 | `000204`, `00020A` | demo; *evidence: synthetic* |" in table
+
+
+def test_range_and_hex(synth_constants, capsys):
+    """``range: [lo, hi]`` refuses values on both sides; ``hex`` writes 0x.. (song IDs)."""
+    s = synth_constants
+    v = {"format": "u8", "sites": SITES, "range": [0x03, 0x9B], "hex": True, "evidence": "e"}
+    _with_constants(s, {"song": v})
+    assert s.project.map.constants["song"].bounds == (0x03, 0x9B)
+    pl.extract_all(s.project, s.rom, log=lambda *_: None)
+    gp = s.root / "assets" / "data" / "gameplay.yml"
+    assert "\n  song: 0x05\n" in gp.read_text(encoding="utf-8")
+    assert balance.set_constant(s.project.map, gp, "song", 0x8E) == (5, [])
+    assert "\n  song: 0x8E\n" in gp.read_text(encoding="utf-8")
+    assert yaml.safe_load(gp.read_text(encoding="utf-8"))["values"] == {"song": 0x8E}
+    for bad in (0x02, 0x9C):
+        with pytest.raises(ValueError, match=r"outside 0x3\.\.0x9B \(u8\)"):
+            balance.set_constant(s.project.map, gp, "song", bad)
+    gp.write_text("values:\n  song: 0x9C\n", encoding="utf-8")  # edited by hand
+    with pytest.raises(pl.PipelineError, match=r"song: 156 is outside 0x3\.\.0x9B"):
+        pl.build(s.project, s.rom, log=lambda *_: None)
+    gp.write_text("values:\n  song: 0x8E\n", encoding="utf-8")
+    notes = []
+    assert bytes(pl.build(s.project, s.rom, log=notes.append).data)[0x205] == 0x8E
+    assert any("constants.song: 0x05 -> 0x8E" in n for n in notes)
+    assert main(["--root", str(s.root), "balance", "set", "song", "0x8F"]) == 0
+    assert "song: 0x8E -> 0x8F" in capsys.readouterr().out
+    assert main(["--root", str(s.root), "balance", "show"]) == 0
+    assert re.search(
+        r"song\s+0x8F \(u8 at 000204, 00020A, range 0x3\.\.0x9B\)", capsys.readouterr().out
+    )
+    assert "range `0x3..0x9B`" in rom_map.constants_table(s.project.map)
+
+
+@pytest.mark.parametrize(
+    ("extra", "message"),
+    [
+        ({"range": [1, 9], "max": 9}, "range replaces max"),
+        ({"range": [9, 1]}, r"0 <= lo <= hi <= 0xFF"),
+        ({"range": [1]}, "two integers"),
+        ({"hex": "yes"}, "hex must be true or false"),
+    ],
+)
+def test_map_refuses_a_bad_range_or_hex(extra, message):
+    with pytest.raises(rom_map.RomMapError, match=message):
+        _parse({"n": {"sites": [[0x10, "70 05", 1]], "evidence": "e"} | extra})
+
+
+def test_quick_sites_take_max_not_range():
+    with pytest.raises(rom_map.RomMapError, match="range replaces max"):
+        _parse({"n": {"sites": [[0x10, "5B 29", 0, "quick"]], "range": [1, 8], "evidence": "e"}})

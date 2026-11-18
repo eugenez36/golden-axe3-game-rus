@@ -106,8 +106,9 @@ def set_constant(rm, path: Path, name: str, value: int) -> tuple[int, list[str]]
     if name not in rm.constants:
         raise ValueError(f"no constant {name!r}; known: {', '.join(rm.constants)}")
     c = rm.constants[name]
-    if not 0 <= value <= c.limit:
-        raise ValueError(f"{name} {value} is outside 0..{c.limit} ({c.format})")
+    why = constants.problem(c, value)
+    if why:
+        raise ValueError(f"{name} {why}")
     warnings = []
     max_hud = c.get("max_hud")
     if max_hud is not None and value > max_hud:

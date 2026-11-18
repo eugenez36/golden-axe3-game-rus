@@ -11,6 +11,18 @@ hash recorded in `roms.sha1`.
 
 ### Added
 
+- **Bosses' and scenes' songs by name.** Every song of the game is now traced
+  to where it plays (`docs/sound.md`): a boss's song is a stage event
+  (`[.. .. 00 ID][00 00 00 03]`, 17 entries in `0EC300–0F0000`), the scenes'
+  songs are `moveq #ID,d0` before `SOUND`. 22 constants in
+  `assets/data/gameplay.yml`: `boss_song_1` … `boss_song_8`,
+  `stage_clear_song`, `game_over_song`, `duel_won_song`, `duel_lost_song` and
+  the end of stage 8 (`boss_8_fall_song`, `castle_song`, `lightning_song`,
+  `castle_fall_song`, `ending_song`); `ga3 balance set boss_song_1 0x8E` gives
+  the boss of stage 1 the title's song (checked in the emulator). Constants
+  may now carry `range` and `hex` like tables, and `balance set` prints hex
+  values in hex. The build is unchanged.
+
 - **A stage's song by name.** Table `stage_music` (`00E578`, 19 song IDs
   indexed by `$C778`: the 13 stages named as the level select shows them,
   the four duel arenas and two special scenes) in

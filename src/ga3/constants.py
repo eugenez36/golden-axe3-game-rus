@@ -72,6 +72,15 @@ def check(rom: Rom, rm: RomMap) -> list[str]:
     return problems
 
 
+def problem(c: Constant, value: object) -> str | None:
+    """Why ``value`` cannot be constant ``c``, or None; shared by the build and ``balance set``."""
+    lo, hi = c.bounds
+    if isinstance(value, int) and not isinstance(value, bool) and lo <= value <= hi:
+        return None
+    shown = f"0x{lo:X}..0x{hi:X}" if c.get("range") else f"{lo}..{hi}"
+    return f"{value!r} is outside {shown} ({c.format})"
+
+
 def read_values(path: Path) -> dict[str, int]:
     doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     return dict(doc.get("values") or {})
@@ -85,8 +94,14 @@ def write_values(path: Path, values: dict[str, int], rm: RomMap) -> Path:
     for c in rm.constants.values():
         sites = ", ".join(f"{s.at:06X}" for s in c.sites)
         lines.append(f"# {c.name} ({c.format}, at {sites}): {c.get('note', '')}".rstrip(": "))
-    body = yaml.safe_dump({"values": values}, sort_keys=False, allow_unicode=True)
-    return write_bytes(path, ("\n".join(lines) + "\n" + body).encode("utf-8"))
+    lines.append("values:")
+    for name, value in values.items():
+        c = rm.constants.get(name)
+        shown = (
+            f"0x{value:02X}" if c is not None and c.get("hex") and isinstance(value, int) else value
+        )
+        lines.append(f"  {name}: {shown}")
+    return write_bytes(path, ("\n".join(lines) + "\n").encode("utf-8"))
 
 
 def extract(rom: Rom, rm: RomMap, paths: Paths) -> list[Path]:
@@ -113,8 +128,9 @@ def build(rom: Rom, rm: RomMap, paths: Paths) -> list[str]:
         if c.name not in values:
             raise BuildError(f"constants: {path.name} has no value for {c.name!r}")
         value = values[c.name]
-        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= c.limit:
-            raise BuildError(f"constants.{c.name}: {value!r} is outside 0..{c.limit} ({c.format})")
+        why = problem(c, value)
+        if why:
+            raise BuildError(f"constants.{c.name}: {why}")
         for s in c.sites:
             found = bytes(rom.data[s.at : s.at + len(s.expect)])
             if found != s.expect:
@@ -125,7 +141,8 @@ def build(rom: Rom, rm: RomMap, paths: Paths) -> list[str]:
             _write(rom.data, c, s, value)
         was = _base_value(c, c.sites[0])
         if value != was:
-            note = f"constants.{c.name}: {was} -> {value}"
+            shown = [f"0x{v:02X}" if c.get("hex") else str(v) for v in (was, value)]
+            note = f"constants.{c.name}: {shown[0]} -> {shown[1]}"
             max_hud = c.get("max_hud")
             if max_hud is not None and value > max_hud:
                 note += f"; warning: above what the HUD can draw ({max_hud})"

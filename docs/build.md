@@ -183,7 +183,10 @@ TABLE.FIELD VALUE` (`walk_speed.kain_x 0x200`) edits one field of its asset
 file; the hero panel (patch `hero_panel`) derives its numbers from these files.
 A table may carry `range: [lo, hi]` (a value outside is refused by `balance set`
 and by the build) and `hex: true` (values written as `0x..`): `stage_music`,
-the song of each stage, has both ([sound.md](sound.md)).
+the song of each stage, has both ([sound.md](sound.md)). A constant takes the
+same two keys, `range` instead of `max` (and not on `quick` sites): the songs
+of the bosses and of the scenes (`boss_song_1`, `ending_song` …) are constants
+with `range: [0x81, 0x9B]`.
 
 ## Releases
 
