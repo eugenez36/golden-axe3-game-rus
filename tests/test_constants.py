@@ -8,7 +8,7 @@ import re
 import pytest
 import yaml
 
-from ga3 import balance, rom_map
+from ga3 import balance, constants, rom_map
 from ga3 import pipeline as pl
 from ga3.cli import main
 from ga3.rom import Rom
@@ -218,6 +218,19 @@ def test_range_and_hex(synth_constants, capsys):
         r"song\s+0x8F \(u8 at 000204, 00020A, range 0x3\.\.0x9B\)", capsys.readouterr().out
     )
     assert "range `0x3..0x9B`" in rom_map.constants_table(s.project.map)
+
+
+def test_write_values_keeps_a_stray_string_a_string(synth_constants):
+    """A value mistyped by hand is written back as YAML would (the build refuses it later);
+    unquoted, ``a: b`` or ``x # y`` would change or break the file."""
+    s = synth_constants
+    _with_constants(s, {"song": {"format": "u8", "sites": SITES, "hex": True, "evidence": "e"}})
+    gp = s.root / "assets" / "data" / "gameplay.yml"
+    for stray in ("a: b", "x # y", "0x8E"):
+        constants.write_values(gp, {"song": stray}, s.project.map)
+        assert yaml.safe_load(gp.read_text(encoding="utf-8"))["values"] == {"song": stray}
+    constants.write_values(gp, {"song": 0x8E}, s.project.map)
+    assert "\n  song: 0x8E\n" in gp.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(
