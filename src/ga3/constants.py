@@ -97,9 +97,10 @@ def write_values(path: Path, values: dict[str, int], rm: RomMap) -> Path:
     lines.append("values:")
     for name, value in values.items():
         c = rm.constants.get(name)
-        shown = (
-            f"0x{value:02X}" if c is not None and c.get("hex") and isinstance(value, int) else value
-        )
+        if c is not None and c.get("hex") and type(value) is int:
+            shown = f"0x{value:02X}"
+        else:  # anything else as YAML would write it: a stray string stays a string
+            shown = yaml.safe_dump(value, default_flow_style=True).removesuffix("...\n").strip()
         lines.append(f"  {name}: {shown}")
     return write_bytes(path, ("\n".join(lines) + "\n").encode("utf-8"))
 

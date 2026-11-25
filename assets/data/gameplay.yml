@@ -30,7 +30,6 @@
 # boss_song_5b (u8, at 0EE08A): song that starts when the stage 5B boss comes on screen
 # boss_song_6a (u8, at 0EECC6): song that starts when the stage 6A boss comes on screen
 # boss_song_6b (u8, at 0EDD12): song that starts when the stage 6B boss comes on screen
-# boss_song_7 (u8, at 0EE7FE): song that starts when the stage 7 boss comes on screen
 # boss_song_8 (u8, at 0ED186): song that starts when the final boss (stage 8, first form) comes on screen
 # stage_clear_song (u8, at 00D9F8): stage cleared: the jingle before the next stage's screen
 # game_over_song (u8, at 00D890): game over (the continue screen follows)
@@ -72,7 +71,6 @@ values:
   boss_song_5b: 0x94
   boss_song_6a: 0x9B
   boss_song_6b: 0x94
-  boss_song_7: 0x94
   boss_song_8: 0x95
   stage_clear_song: 0x8F
   game_over_song: 0x9A

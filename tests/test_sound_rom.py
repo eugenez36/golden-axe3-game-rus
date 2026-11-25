@@ -64,7 +64,7 @@ def test_song_constants_are_play_commands(project, baserom):
     """Every ``*_song`` constant is a stage event [.. .. 00 ID][00 00 00 03] (command 3 hands
     the ID to SOUND, 00C2F0) or ``moveq #ID,d0`` right before ``jsr``/``bra`` SOUND (00E4B2)."""
     songs = {n: c for n, c in project.map.constants.items() if "song" in n}
-    assert len(songs) == 22
+    assert len(songs) == 21
     for name, c in songs.items():
         assert c.get("range") == [0x81, 0x9B] and c.get("hex"), name
         for s in c.sites:
@@ -76,3 +76,72 @@ def test_song_constants_are_play_commands(project, baserom):
                 op, disp = baserom.u16(s.at + 2), baserom.u16(s.at + 4)
                 assert op in (0x4EBA, 0x6000), name
                 assert (s.at + 4 + disp) & 0xFFFF == 0xE4B2, name
+
+
+def _sections(rom, base, index):
+    """Section pointers ($C77A) of the list at ``base`` for $C778 = ``index``: 18 word offsets
+    (special_12, the 19th, would read the first pointer's high word), then a long per section."""
+    offsets = [rom.u16(base + 2 * i) for i in range(18)]
+    first = offsets[index]
+    later = [o for o in offsets if o > first]
+    count = (min(later) - first) // 4 if later else 1
+    return [rom.u32(base + first + 4 * k) for k in range(count)]
+
+
+def _sound_events(rom, names):
+    """Every stage event whose command (low 6 bits of its second long) is 3, play sound:
+    {entry address: {list names that reach it}}. Object lists hold 8-byte entries up to FFFF;
+    a script section is a word table of scripts, a script is words (wave offsets from it,
+    FFFC-FFFF end it), a wave is a word (delay, count) and ``count`` entries (00C0A4)."""
+
+    def read_base(lea):  # lea $xxxxxx.l,a4
+        assert rom.u16(lea) == 0x49F9
+        return rom.u32(lea + 2)
+
+    objects, scripts = read_base(0x00C15A), read_base(0x00BDF2)
+    found = {}
+
+    def add(entry, name):
+        if rom.u32(entry + 4) & 0x3F == 3:
+            found.setdefault(entry, set()).add(name)
+
+    for index, name in enumerate(names[:18]):
+        for p in _sections(rom, objects, index):
+            while rom.u16(p) != 0xFFFF:
+                add(p, name)
+                p += 8
+        for p in _sections(rom, scripts, index):
+            for j in range(rom.u16(p) // 2):
+                script = p + rom.u16(p + 2 * j)
+                for k in range(64):
+                    x = rom.u16(script + 2 * k)
+                    if x == 0 or x >= 0xFFFC:
+                        break
+                    wave = script + x
+                    for e in range(rom.u16(wave) & 0xFF):
+                        add(wave + 2 + 8 * e, name)
+    return found
+
+
+def test_boss_songs_sit_in_their_stages_lists(project, baserom):
+    """``boss_song_X`` names every song event of stage X and nothing else: walked exactly as
+    the game reads the lists, not found by byte pattern (which once put stage 7's name on a
+    scene's entry)."""
+    names = project.map.by_name("stage_music").get("fields")
+    found = _sound_events(baserom, names)
+    in_stages = {
+        a
+        for a, where in found.items()
+        if 0x81 <= baserom.data[a + 3] <= 0x9B and any(n.startswith("stage_") for n in where)
+    }
+    sites = set()
+    for name, c in project.map.constants.items():
+        if name.startswith("boss_song_"):
+            stage = "stage_" + name.removeprefix("boss_song_")
+            for s in c.sites:
+                assert stage in found.get(s.at, ()), (name, hex(s.at))
+                sites.add(s.at)
+    assert sites == in_stages
+    # left out on purpose: the castle scene's entry (never heard) and a sound effect
+    rest = {a: (baserom.data[a + 3], sorted(found[a])) for a in found.keys() - in_stages}
+    assert rest == {0x0EE7FE: (0x94, ["special_11"]), 0x0EEA12: (0x04, ["stage_5a"])}

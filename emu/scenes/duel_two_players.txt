@@ -1,0 +1,69 @@
+# ДУЭЛЬ for two: player 2 presses START on the hero select, so $C72B bit 2
+# stays clear (no computer). Player 2 is left at 1 HP and player 1 attacks;
+# the fight ends at 00DC20 (moveq #$84,d0 -> SOUND, duel_won_song), then
+# the title: a two-player duel is one fight. The HP is poked once: poking it
+# again while player 2 is down revives the hero and the fight goes on.
+# With bp E4BA / bp DC20 (watchlog): 84 from 00DC20 at frame 4394.
+include _boot.inc
+press down 6
+press down 6
+wait 20
+press start 10
+wait 60
+pad2 start 10
+wait 100
+screenshot build/shots/duel_2p_select.png 2
+press start 10
+pad2 start 10
+wait 600
+press start 10
+pad2 start 10
+wait 300
+press start 10
+pad2 start 10
+wait 400
+poke8 FFCA46 01
+poke8 FFC8E6 33
+hold right 12
+press b 3
+wait 6
+press b 3
+wait 6
+press b 3
+poke8 FFC8E6 33
+hold right 12
+press b 3
+wait 6
+press b 3
+wait 6
+press b 3
+poke8 FFC8E6 33
+hold right 12
+press b 3
+wait 6
+press b 3
+wait 6
+press b 3
+poke8 FFC8E6 33
+hold right 12
+press b 3
+wait 6
+press b 3
+wait 6
+press b 3
+poke8 FFC8E6 33
+hold right 12
+press b 3
+wait 6
+press b 3
+wait 6
+press b 3
+poke8 FFC8E6 33
+hold right 12
+press b 3
+wait 6
+press b 3
+wait 6
+press b 3
+wait 20
+screenshot build/shots/duel_2p_won.png 2

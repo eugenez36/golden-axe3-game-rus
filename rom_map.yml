@@ -528,24 +528,24 @@ constants:                       # numbers inside code (instruction operands), e
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 1 boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
     boss_song_2a:
       format: u8
       sites:
-        - [0x0ECED2, "00 00 00 9B 00 00 00 03", 3]   # event block 0ECDD6, sections 1 and 2
+        - [0x0ECED2, "00 00 00 9B 00 00 00 03", 3]   # sections 1 and 2, script 8, wave 0ECEC8
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 2A boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
     boss_song_2b:
       format: u8
       sites:
-        - [0x0ED98C, "00 00 00 94 00 00 00 03", 3]   # section 2 (event block 0ED97C)
-        - [0x0ED8EA, "00 00 00 94 00 00 00 03", 3]   # section 3 (event block 0ED8DA)
+        - [0x0ED98C, "00 00 00 94 00 00 00 03", 3]   # section 2, script 2, wave 0ED98A
+        - [0x0ED8EA, "00 00 00 94 00 00 00 03", 3]   # section 3, script 2, wave 0ED8E8
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 2B boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives 0ED98C and bp 00E4BA the song (bot run through the stage, docs/sound.md); 0ED8EA, the other fork, by the list walk"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives 0ED98C and bp 00E4BA the song (bot run through the stage, docs/sound.md); 0ED8EA, the other fork, by the list walk"
     boss_song_3a:
       format: u8
       sites:
@@ -554,81 +554,73 @@ constants:                       # numbers inside code (instruction operands), e
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 3A boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists and scanning 0EC300-0F0000 for [.. .. 00 ID 00 00 00 03] (17 entries, 8 of them heard); not heard yet: the bot does not reach this boss"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists (16 song entries in the stages' lists, 8 of them heard; tests/test_sound_rom.py walks them); not heard yet: the bot does not reach this boss"
     boss_song_3b:
       format: u8
       sites:
-        - [0x0EE78E, "00 00 00 9B 00 00 00 03", 3]   # event block 0EE6DC
+        - [0x0EE78E, "00 00 00 9B 00 00 00 03", 3]   # section 1, script 10, wave 0EE78C
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 3B boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
     boss_song_4a:
       format: u8
       sites:
-        - [0x0ED68C, "00 00 00 9B 00 00 00 03", 3]   # event block 0ED59A
+        - [0x0ED68C, "00 00 00 9B 00 00 00 03", 3]   # section 1, script 6, wave 0ED68A
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 4A boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
     boss_song_4b:
       format: u8
       sites:
-        - [0x0EE4DA, "00 00 00 94 00 00 00 03", 3]   # section 2 (event block 0EE4C6)
-        - [0x0EE3F4, "00 00 00 94 00 00 00 03", 3]   # section 3 (event block 0EE3BC)
+        - [0x0EE4DA, "00 00 00 94 00 00 00 03", 3]   # section 2, script 3, wave 0EE4D8
+        - [0x0EE3F4, "00 00 00 94 00 00 00 03", 3]   # section 3, script 3, wave 0EE3F2
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 4B boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists and scanning 0EC300-0F0000 for [.. .. 00 ID 00 00 00 03] (17 entries, 8 of them heard); not heard yet: the bot does not reach this boss"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists (16 song entries in the stages' lists, 8 of them heard; tests/test_sound_rom.py walks them); not heard yet: the bot does not reach this boss"
     boss_song_5a:
       format: u8
       sites:
-        - [0x0EEA96, "00 00 00 94 00 00 00 03", 3]   # section 2 (event block 0EEA6C)
-        - [0x0EEB4C, "00 00 00 94 00 00 00 03", 3]   # section 3 (event block 0EEB1A)
+        - [0x0EEA96, "00 00 00 94 00 00 00 03", 3]   # section 2, script 1, wave 0EEA94
+        - [0x0EEB4C, "00 00 00 94 00 00 00 03", 3]   # section 3, script 1, wave 0EEB4A
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 5A boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists and scanning 0EC300-0F0000 for [.. .. 00 ID 00 00 00 03] (17 entries, 8 of them heard); not heard yet: the bot does not reach this boss"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists (16 song entries in the stages' lists, 8 of them heard; tests/test_sound_rom.py walks them); not heard yet: the bot does not reach this boss"
     boss_song_5b:
       format: u8
       sites:
-        - [0x0EE08A, "00 00 00 94 00 00 00 03", 3]   # section 5 (event block 0EE050)
+        - [0x0EE08A, "00 00 00 94 00 00 00 03", 3]   # section 5, script 1, wave 0EE088
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 5B boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists and scanning 0EC300-0F0000 for [.. .. 00 ID 00 00 00 03] (17 entries, 8 of them heard); not heard yet: the bot does not reach this boss"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists (16 song entries in the stages' lists, 8 of them heard; tests/test_sound_rom.py walks them); not heard yet: the bot does not reach this boss"
     boss_song_6a:
       format: u8
       sites:
-        - [0x0EECC6, "00 00 00 9B 00 00 00 03", 3]   # event block 0EEC68, which the duel arenas share
+        - [0x0EECC6, "00 00 00 9B 00 00 00 03", 3]   # section 1, script 3, wave 0EECC4
       range: [0x81, 0x9B]
       hex: true
-      note: "song that starts when the stage 6A boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
+      note: "song that starts when the stage 6A boss comes on screen; the four duel arenas share stage 6A's event lists (offset 0x9C for $C778 = $0C..$10), but no duel run has played it"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
     boss_song_6b:
       format: u8
       sites:
-        - [0x0EDD12, "00 00 00 94 00 00 00 03", 3]   # section 5 (event block 0EDD0A)
+        - [0x0EDD12, "00 00 00 94 00 00 00 03", 3]   # section 5, script 0, wave 0EDD10
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the stage 6B boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
-    boss_song_7:
-      format: u8
-      sites:
-        - [0x0EE7FE, "BB 80 00 94 00 00 00 03", 3]   # event block 0EE7FA; the same 8 bytes start the object list of $C778 = $11
-      range: [0x81, 0x9B]
-      hex: true
-      note: "song that starts when the stage 7 boss comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; found by walking those lists and scanning 0EC300-0F0000 for [.. .. 00 ID 00 00 00 03] (17 entries, 8 of them heard); not heard yet: the bot does not reach this boss"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
     boss_song_8:
       format: u8
       sites:
-        - [0x0ED186, "00 00 00 95 00 00 00 03", 3]   # event block 0ED0AC
+        - [0x0ED186, "00 00 00 95 00 00 00 03", 3]   # section 1, script 9, wave 0ED184
       range: [0x81, 0x9B]
       hex: true
       note: "song that starts when the final boss (stage 8, first form) comes on screen"
-      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the second long 3 is the command 'play' (00C228: d1 & 0x3F = 3 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
+      evidence: "an 8-byte stage event [long, long]: the low byte of the first long is the ID, the low 6 bits of the second long are the command, 3 = play sound d0.b (00C228 -> 00C2F0 bra SOUND); stage event lists: 0EC866 (00C15A) and 0EC90A (00BDF2), a word offset per $C778 then a long per section $C77A; heard in the emulator: bp 00C228 (d1 = 3) gives this entry and bp 00E4BA the song (bot run through the stage, docs/sound.md)"
     stage_clear_song:
       format: u8
       sites:
@@ -649,11 +641,11 @@ constants:                       # numbers inside code (instruction operands), e
       format: u8
       sites:
         - [0x00DBC4, "70 84", 1]   # moveq #$84,d0: a duel against the computer won
-        - [0x00DC20, "70 84", 1]   # moveq #$84,d0: a two-player duel fight over
+        - [0x00DC20, "70 84", 1]   # moveq #$84,d0: a two-player duel fight won
       range: [0x81, 0x9B]
       hex: true
       note: "a duel fight is over: player 1 beat the computer (00DBC4), or a two-player fight ended (00DC20)"
-      evidence: "duel bot (enemy HP poked to 1): 84 from 00DBC4 at frame 6437, then $C766 C -> D and the next arena; 00DC20 by disassembly (taken when $C72B bit 2 is clear)"
+      evidence: "duel bot (enemy HP poked to 1): 84 from 00DBC4 at frame 6437, then $C766 C -> D and the next arena; emu/scenes/duel_two_players.txt (player 2 joins on the hero select, $C72B = 8, bit 2 clear; player 2 at 1 HP): 84 from 00DC20 at frame 4394, then $C766 = D and the title"
     duel_lost_song:
       format: u8
       sites:
