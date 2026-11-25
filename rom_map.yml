@@ -15,12 +15,14 @@
 #              format: font_art -> path is text art, blob is the derived .nem
 #   tiles4bpp  uncompressed 4bpp tiles              -> assets/gfx/tiles/*.png (indexed)
 #   pcm        raw sample data                      -> assets/sound/pcm/*.pcm
+#   palette    16-word CRAM palettes, back to back  -> assets/palettes/*.pal (the word is built)
 #   free       filler verified to hold `fill`; candidate space for relocated data
 #   patch      generated 68000 routine (ga3.patches) in former free space, plus a
 #              jmp hook over six bytes elsewhere; nothing is extracted
-#   (palettes do sit in ROM -- the title's at 0EB200, 0EB278, 0EB2A2, inside
-#    text_dialogue; patch menus points the game at new ones instead of editing
-#    them. The captures under `palettes:` below remain a rendering reference)
+#   (the stages' palettes are segments pal_sets ... pal_cycles, 031E16-032934;
+#    the title's sit at 0EB200, 0EB278, 0EB2A2, inside text_dialogue, and patch
+#    menus points the game at new ones. The captures under `palettes:` below
+#    remain a rendering reference)
 #
 # Per-segment keys (beyond name/start/end|size/type/path)
 #   note, evidence   free text; `evidence` says how an address was proven (CONTRIBUTING rule 3)
@@ -31,6 +33,8 @@
 #                    blob (the derived .nem), first_byte, bg, ink
 #   tiles4bpp:       sheet_tiles (per PNG), cols, prefix (file stem), palette (NAME[/INDEX])
 #   free:            fill (the byte the whole range must hold)
+#   palette:         script (each palette is a whole-line palette script: F0|line, 00,
+#                    16 words), labels (one comment per palette in the .pal)
 #   patch:           routine, hook, hook_bytes (base ROM bytes at hook, hex), fill,
 #                    plus the routine's parameters (menu_version: return_to, vram_end, attr)
 # The `rom:` block: title, serial, size, sha1, md5, header_checksum, entry_point --
@@ -803,6 +807,32 @@ segments:
       tiles: 18, xor: true }
   - { name: nem_0295EE,    start: 0x0295EE, end: 0x029F08, type: nemesis, path: gfx/nemesis/nem_0295EE.nem,
       tiles: 208, xor: false }
+  # Stage palettes 031E16-032934, walked as the game reads them (tests/test_palettes_rom.py).
+  # The target buffer FFE49A (4 lines x 16 words) is what the fade at 0FFCB0 moves the live
+  # buffer FFE51A toward; CRAM is DMA'd from FFE51A.
+  - { name: pal_sets,      start: 0x031E16, end: 0x031E2A, type: data,   path: code/pal_sets.m68k,
+      note: "base palette sets: 2 word offsets, then per set 4 offsets from its block, lines 0-3; set 0 = 032410, 0323EE, 032584, 0326E4 (pal_lines, pal_pool), set 1 = 032764 four times (loaded at 00EEB2, then copied straight to the live buffer by 0111BE)",
+      evidence: "0112EE: lea $31e16,a4; adda.w (a4,d0.w),a4, then four offsets from that block, 16 words each copied by 011312 into FFE49A; called at 00EEB2 and from 0112D6 with set 0; emulator: on all 13 stages (level select) FFE49A line 0 = 032410 and line 2 = 032584 but for the colours cycle 4 writes" }
+  - { name: pal_stage,     start: 0x031E2A, end: 0x031E8E, type: data,   path: code/pal_stage.m68k,
+      note: "line 3 of each stage: 19 word offsets by $C778 (see stage_music for the names), then per stage one offset per substage $C77A from its subtable to a palette of pal_pool; subtables are shared (stage 1 and duel 1, 5A and duel 3, 7 and duel 4 and $C778 = $11, 8 and $12, 3B and duel 2)",
+      evidence: "0112D6: set 0 through 0112EE, then lea $31e2a,a4; jsr $d4ac (a4 += (a4)[$C778*2], a4 += (a4)[$C77A*2]); 16 words -> FFE4FA (line 3); called at 00D66E, 00D97E, 00DAF8, 00DCF4, 00E042, 00ECD0 and from 000326; emulator (emu/explore/palettes.txt): on all 13 stages FFE49A line 3 = the palette the table gives for $C778/$C77A, except exactly the colours a running cycle (pal_cycles) writes" }
+  - { name: pal_script_index, start: 0x031E8E, end: 0x031F18, type: data, path: code/pal_script_index.m68k,
+      note: "69 word offsets of palette scripts by number; 22/23, 2C/2E and 00/33/34 share a script. A script: byte (count - 1) << 4 | line, byte colour offset (in bytes), then count words; a word with bit 15 set skips its low byte instead of writing",
+      evidence: "011294 (into FFE49A) and 01127E (into FFE51A): lea $31e8e,a4; adda.w (a4,d0.w),a4; the script is read at 0112A8-0112D4; 011294 is called at 00B3F6, 00C2AC, 00C2B4, 00D9E2, 00D9F0, 00DE3A, 00E07C, 00E14E, 00EE06, 01127E at 0100E6; the lowest offset (008A) ends the table" }
+  - { name: pal_scripts,   start: 0x031F18, end: 0x0323EC, type: data,   path: code/pal_scripts.m68k,
+      note: "palette scripts that change part of a line (44, 42, 43, 3F, 40, 00-34 but 2D), mostly the heroes' line 1; 031F24 (script 42) is Kain's",
+      evidence: "every entry of pal_script_index walked as 0112A8 reads it: these scripts tile 031F18-0323EC without a gap or a byte of anything else; emulator 2026-11-06: Kain's line 1 in FFE49A is set 0's 0323EE changed by 031F24 (13 colours)" }
+  - { name: pal_lines,     start: 0x0323EC, end: 0x032584, type: palette, path: palettes/pal_lines.pal, script: true,
+      labels: ["script 2D; line 1 of the base set (the heroes' line)", "script 35 (loads line 1); its words are line 0 of the base set, every stage", script 36, script 37, script 38, script 39, script 3A, script 3B, script 3C, script 3D, script 3E, script 41],
+      note: "12 whole-line palette scripts (F_ 00 + 16 words): 2D, 35, 36-3E, 41; pal_sets points at the words of 2D and 35",
+      evidence: "pal_script_index entries 2D, 35, 36-3E and 41 walked as 0112A8 reads them: each header F1 00 or F3 00, back to back; pal_sets set 0 lines 1 and 0 are 0323EE and 032410, two bytes into scripts 2D and 35; emulator: FFE49A line 0 = 032410 on all 13 stages" }
+  - { name: pal_pool,      start: 0x032584, end: 0x032784, type: palette, path: palettes/pal_pool.pal,
+      labels: ["base set line 2, every stage (colours 4-7: cycle 4)", "line 3: stage 3B, duel 2", "line 3: stage 4B", "line 3: stage 4A", "line 3: stage 1 and duel 1, substage 1", "line 3: stage 1 and duel 1", "line 3: stage 2A", "line 3: stage 2B", "line 3: stage 5A, duel 3", "line 3: stage 6B", "line 3: stage 5B", "line 3: stage 3A; base set line 3", "line 3: stage 6A", "line 3: stage 8 and $C778 = $12", "line 3: stage 7, duel 4 and $C778 = $11", "set 1, all four lines: black but colours 0 and 12 ($0442) and 6 (white)"],
+      note: "16 palettes: set 0's line 2, the 14 line-3 palettes pal_stage picks from, set 1's",
+      evidence: "pal_sets set 0 lines 2 and 3 (032584, 0326E4) and set 1 (032764); every pal_stage entry lands on 032584 + 32 k; emulator: line 3 matched for every stage the level select reaches (13), the duels by the table only" }
+  - { name: pal_cycles,    start: 0x032784, end: 0x032934, type: data,   path: code/pal_cycles.m68k,
+      note: "colour cycles: 8 word offsets by cycle number (0 means none; its entry repeats 1's), then per cycle 12 bytes [colour offset in bytes, words - 1, frames per step, line][long: frames table][long: sequence]; the frames table holds word offsets of the sets of words, the sequence 1-based frame numbers, 00 starts it over, a negative byte stops it; the zero byte after an odd-length sequence is padding",
+      evidence: "0111EA, called for the slots FFE5A0, FFE5AE, FFE5BC at 0072BE-0072D2: slot byte 0 = cycle number, bit 7 once loaded (lea $32784,a4 copies the 12 bytes to slot +2), then every step writes the frame's words to FFE49A and FFE51A (011246-01126E); a zero sequence byte reloads, a negative one clears the slot (01127A); emulator: slot bytes 84 (water, line 2 colours 4-7) on all 13 stages, 83 on 2A, 82 on 2B, 86 and 87 on 3B, 81 on 6A, and line 3 differs from pal_stage's palette only in colours those cycles write" }
   - { name: walk_speed,    start: 0x0337E6, end: 0x0337FA, type: table,  path: data/walk_speed.yml,
       format: u16, fields: [proud_x, proud_depth, beast_x, beast_depth, kain_x, kain_depth, chronos_x, chronos_depth, sarah_x, sarah_depth],
       note: "walking speed of each class (0 Proud, 1 the winged beast-man of the duel, 2 Kain, 3 Chronos, 4 Sarah): X then depth, signed 8.8 pixels per frame (0x0190 = 1.5625); docs/heroes.md, Movement",

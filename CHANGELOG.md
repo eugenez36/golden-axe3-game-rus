@@ -11,6 +11,19 @@ hash recorded in `roms.sha1`.
 
 ### Added
 
+- **The stages' palettes in ROM.** `031E16–032934` is mapped the way the
+  game reads it: base palette sets (`pal_sets`), line 3 of each stage by
+  `$C778`/`$C77A` (`pal_stage`), 69 palette scripts (`pal_script_index`,
+  `pal_scripts`) and 8 colour cycles (`pal_cycles`, the water among them).
+  28 whole palettes are editable as text: `assets/palettes/pal_lines.pal`
+  (12 whole-line scripts, lines 0 and 1 of every stage among them) and
+  `assets/palettes/pal_pool.pal` (line 2 and the 14 line-3 palettes), via a
+  new segment type `palette` that writes the CRAM words exactly; one colour
+  of stage 1's sky turned red in the emulator after a one-word edit. Checked
+  in the emulator on all 13 stages; `tests/test_palettes_rom.py` walks the
+  tables. A build that meets a stale local `unknown_*.raw` now says which
+  `ga3 extract --only` refreshes it. The build is unchanged.
+
 - **Bosses' and scenes' songs by name.** Every song of the game is now traced
   to where it plays (`docs/sound.md`): a boss's song is a stage event
   (`[.. .. 00 ID][00 00 00 03]`, 17 entries in `0EC300–0F0000`), the scenes'

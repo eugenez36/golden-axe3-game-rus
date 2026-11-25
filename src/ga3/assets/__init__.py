@@ -13,6 +13,7 @@ from __future__ import annotations
 from .base import BuildError, Handler, Paths
 from .header import HeaderHandler
 from .nemesis_asset import FontArtHandler, NemesisHandler
+from .palette_asset import PaletteHandler
 from .patch_asset import PatchHandler
 from .raw_asset import RawHandler
 from .table_asset import TableHandler
@@ -24,6 +25,7 @@ HANDLERS: dict[str, Handler] = {
     "nemesis": NemesisHandler(),
     "text": TextHandler(),
     "table": TableHandler(),
+    "palette": PaletteHandler(),
     "tiles4bpp": TilesHandler(),
     "pcm": RawHandler(committed=True),
     "raw": RawHandler(committed=True),

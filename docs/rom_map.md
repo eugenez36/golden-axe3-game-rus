@@ -10,14 +10,15 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | Type | Bytes | Share |
 |---|---|---|
 | free | 1029524 | 49.1% |
-| unknown | 485473 | 23.1% |
+| unknown | 482627 | 23.0% |
 | tiles4bpp | 360448 | 17.2% |
 | code | 116786 | 5.6% |
-| data | 38989 | 1.9% |
+| data | 40915 | 2.0% |
 | patch | 19982 | 1.0% |
 | pcm | 19288 | 0.9% |
 | nemesis | 14050 | 0.7% |
 | text | 11937 | 0.6% |
+| palette | 920 | 0.0% |
 | header | 512 | 0.0% |
 | table | 163 | 0.0% |
 
@@ -62,7 +63,15 @@ header checksum `9BB5`, entry point `0FFA20`. The build expands it to 2097152 by
 | `01E29A–01E3DC` | nemesis | nem_01E29A | `gfx/nemesis/nem_01E29A.nem` | 18 tiles, XOR |
 | `01E3DC–0295EE` | unknown | unk_01E3DC |  |  |
 | `0295EE–029F08` | nemesis | nem_0295EE | `gfx/nemesis/nem_0295EE.nem` | 208 tiles |
-| `029F08–0337E6` | unknown | unk_029F08 |  |  |
+| `029F08–031E16` | unknown | unk_029F08 |  |  |
+| `031E16–031E2A` | data | pal_sets | `code/pal_sets.m68k` | base palette sets: 2 word offsets, then per set 4 offsets from its block, lines 0-3; set 0 = 032410, 0323EE, 032584, 0326E4 (pal_lines, pal_pool), set 1 = 032764 four times (loaded at 00EEB2, then copied straight to the live buffer by 0111BE); *evidence: 0112EE: lea $31e16,a4; adda.w (a4,d0.w),a4, then four offsets from that block, 16 words each copied by 011312 into FFE49A; called at 00EEB2 and from 0112D6 with set 0; emulator: on all 13 stages (level select) FFE49A line 0 = 032410 and line 2 = 032584 but for the colours cycle 4 writes* |
+| `031E2A–031E8E` | data | pal_stage | `code/pal_stage.m68k` | line 3 of each stage: 19 word offsets by $C778 (see stage_music for the names), then per stage one offset per substage $C77A from its subtable to a palette of pal_pool; subtables are shared (stage 1 and duel 1, 5A and duel 3, 7 and duel 4 and $C778 = $11, 8 and $12, 3B and duel 2); *evidence: 0112D6: set 0 through 0112EE, then lea $31e2a,a4; jsr $d4ac (a4 += (a4)[$C778\*2], a4 += (a4)[$C77A\*2]); 16 words -> FFE4FA (line 3); called at 00D66E, 00D97E, 00DAF8, 00DCF4, 00E042, 00ECD0 and from 000326; emulator (emu/explore/palettes.txt): on all 13 stages FFE49A line 3 = the palette the table gives for $C778/$C77A, except exactly the colours a running cycle (pal_cycles) writes* |
+| `031E8E–031F18` | data | pal_script_index | `code/pal_script_index.m68k` | 69 word offsets of palette scripts by number; 22/23, 2C/2E and 00/33/34 share a script. A script: byte (count - 1) \<\< 4 \| line, byte colour offset (in bytes), then count words; a word with bit 15 set skips its low byte instead of writing; *evidence: 011294 (into FFE49A) and 01127E (into FFE51A): lea $31e8e,a4; adda.w (a4,d0.w),a4; the script is read at 0112A8-0112D4; 011294 is called at 00B3F6, 00C2AC, 00C2B4, 00D9E2, 00D9F0, 00DE3A, 00E07C, 00E14E, 00EE06, 01127E at 0100E6; the lowest offset (008A) ends the table* |
+| `031F18–0323EC` | data | pal_scripts | `code/pal_scripts.m68k` | palette scripts that change part of a line (44, 42, 43, 3F, 40, 00-34 but 2D), mostly the heroes' line 1; 031F24 (script 42) is Kain's; *evidence: every entry of pal_script_index walked as 0112A8 reads it: these scripts tile 031F18-0323EC without a gap or a byte of anything else; emulator 2026-11-06: Kain's line 1 in FFE49A is set 0's 0323EE changed by 031F24 (13 colours)* |
+| `0323EC–032584` | palette | pal_lines | `palettes/pal_lines.pal` | 12 whole-line palette scripts (F_ 00 + 16 words): 2D, 35, 36-3E, 41; pal_sets points at the words of 2D and 35; *evidence: pal_script_index entries 2D, 35, 36-3E and 41 walked as 0112A8 reads them: each header F1 00 or F3 00, back to back; pal_sets set 0 lines 1 and 0 are 0323EE and 032410, two bytes into scripts 2D and 35; emulator: FFE49A line 0 = 032410 on all 13 stages* |
+| `032584–032784` | palette | pal_pool | `palettes/pal_pool.pal` | 16 palettes: set 0's line 2, the 14 line-3 palettes pal_stage picks from, set 1's; *evidence: pal_sets set 0 lines 2 and 3 (032584, 0326E4) and set 1 (032764); every pal_stage entry lands on 032584 + 32 k; emulator: line 3 matched for every stage the level select reaches (13), the duels by the table only* |
+| `032784–032934` | data | pal_cycles | `code/pal_cycles.m68k` | colour cycles: 8 word offsets by cycle number (0 means none; its entry repeats 1's), then per cycle 12 bytes [colour offset in bytes, words - 1, frames per step, line][long: frames table][long: sequence]; the frames table holds word offsets of the sets of words, the sequence 1-based frame numbers, 00 starts it over, a negative byte stops it; the zero byte after an odd-length sequence is padding; *evidence: 0111EA, called for the slots FFE5A0, FFE5AE, FFE5BC at 0072BE-0072D2: slot byte 0 = cycle number, bit 7 once loaded (lea $32784,a4 copies the 12 bytes to slot +2), then every step writes the frame's words to FFE49A and FFE51A (011246-01126E); a zero sequence byte reloads, a negative one clears the slot (01127A); emulator: slot bytes 84 (water, line 2 colours 4-7) on all 13 stages, 83 on 2A, 82 on 2B, 86 and 87 on 3B, 81 on 6A, and line 3 differs from pal_stage's palette only in colours those cycles write* |
+| `032934–0337E6` | unknown | unk_032934 |  |  |
 | `0337E6–0337FA` | table | walk_speed | `data/walk_speed.yml` | format u16; walking speed of each class (0 Proud, 1 the winged beast-man of the duel, 2 Kain, 3 Chronos, 4 Sarah): X then depth, signed 8.8 pixels per frame (0x0190 = 1.5625); docs/heroes.md, Movement; *evidence: lea $337e6,a4 at 0070B6, read as +class x 4 (0070B6-0070E0) into the velocity of the physics step 002C14; measured in the emulator: Proud 1.359, Kain 1.564, Chronos 2.000, Sarah 1.769 px per frame; 0x0320 doubles Kain's speed cleanly, 0 stops sideways walking, from about 0x3000 the hero leaves the screen* |
 | `0337FA–033872` | table | move_speed | `data/move_speed.yml` | format u16; four rows of 15 classes (0x1E bytes a row), signed 8.8 pixels per frame: dash speed, jump velocity up, dash-jump velocity up, steering in the air; classes 5-14 are enemies; docs/heroes.md, Movement; *evidence: lea $337fa,a5 at 003BF6, row 0 read as +class x 2 for the dash; row 1 (0x33818) used at 004B74 for the jump; measured in the emulator: dash exactly 3 / 4 / 5 / 4 px per frame, a standing jump 64 / 68 / 69 / 69 px high for Proud / Kain / Chronos / Sarah; 0x0BE0 jumps 276 px, 0 or negative never leaves the ground* |
 | `033872–05AEAA` | unknown | unk_033872 |  |  |

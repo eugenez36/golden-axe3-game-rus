@@ -5,14 +5,17 @@ A CRAM word is ``----BBB-GGG-RRR-``: three 3-bit components, bits 0, 4, 8 and
 
 The DMA log shows CRAM is always filled from Work RAM (FFE51A / FFF200); the
 routine at 01209E copies palettes there from ROM (the title's at 0EB200,
-0EB278, 0EB2A2 -- patch ``menus`` points the game at new ones). The ``.pal``
-files under ``assets/palettes/`` come from emulator CRAM dumps and serve as a
-rendering reference, not as build inputs.
+0EB278, 0EB2A2 -- patch ``menus`` points the game at new ones). The stages'
+palettes sit in 031E16-032934 (tables, palette scripts, colour cycles; see
+rom_map.yml); segments of type ``palette`` are built from ``.pal`` files read
+word for word by ``parse_pal_words``. The other ``.pal`` files under
+``assets/palettes/`` are emulator CRAM captures, a rendering reference only.
 """
 
 from __future__ import annotations
 
 import os
+import re
 import struct
 from pathlib import Path
 
@@ -101,12 +104,22 @@ def find_palettes(data: bytes, start: int = 0x200, count: int = 16) -> list[int]
 # The word is authoritative; the RGB is a convenience for humans and editors.
 
 
-def format_pal(cram: bytes, comments: list[str] | None = None) -> str:
+def format_pal(
+    cram: bytes,
+    comments: list[str] | None = None,
+    lines_of: list[int] | None = None,
+    labels: list[str] | None = None,
+) -> str:
+    """``lines_of`` puts ``line L`` into each header (palette scripts, see
+    ``parse_pal_words``); ``labels`` adds a comment after each header."""
     if len(cram) % 32:
         raise ValueError("CRAM data must be a multiple of 32 bytes (16 words per palette)")
     lines = [f"; {c}" for c in (comments or [])]
     for p in range(len(cram) // 32):
-        lines.append(f"[palette {p}]")
+        head = f"[palette {p}]" if lines_of is None else f"[palette {p} line {lines_of[p]}]"
+        if labels and p < len(labels) and labels[p]:  # a short list: ga3 map --check says so
+            head += f"  ; {labels[p]}"
+        lines.append(head)
         for i in range(16):
             w = struct.unpack_from(">H", cram, p * 32 + i * 2)[0]
             r, g, b = word_to_rgb(w)
@@ -138,6 +151,59 @@ def parse_pal(text: str) -> list[list[RGB]]:
         else:
             raise ValueError(f"line {lineno}: cannot parse colour {raw!r}")
     for i, p in enumerate(pals):
+        if len(p) != 16:
+            raise ValueError(f"palette {i} has {len(p)} colours, expected 16")
+    return pals
+
+
+_HEAD = re.compile(r"\[palette\s+(\d+)(?:\s+line\s+([0-3]))?\]$")
+
+
+def parse_pal_words(text: str) -> list[tuple[int | None, list[int]]]:
+    """Parse a ``.pal`` file exactly: ``(line, 16 CRAM words)`` per palette.
+
+    ``line`` is the ``line L`` of a ``[palette N line L]`` header, else None.
+    A colour may be given as the word, as ``#RRGGBB`` (snapped to the nearest
+    VDP level) or as both; when both are there they must agree, so an edit to
+    one of them alone is refused instead of silently ignored. Words must be
+    real CRAM colours (bits 0, 4, 8 and 12-15 clear).
+    """
+    pals: list[tuple[int | None, list[int]]] = []
+    cur: list[int] | None = None
+    for lineno, raw in enumerate(text.splitlines(), 1):
+        line = raw.split(";", 1)[0].strip()
+        if not line:
+            continue
+        if line.startswith("["):
+            m = _HEAD.match(line)
+            if not m:
+                raise ValueError(f"line {lineno}: expected [palette N] or [palette N line L]")
+            if int(m.group(1)) != len(pals):
+                raise ValueError(f"line {lineno}: palette {m.group(1)}, expected {len(pals)}")
+            cur = []
+            pals.append((None if m.group(2) is None else int(m.group(2)), cur))
+            continue
+        if cur is None:
+            raise ValueError(f"line {lineno}: colour before the first [palette N] header")
+        word = rgb = None
+        for part in line.split():
+            if part.lower().startswith("0x") and word is None:
+                word = int(part, 16)
+            elif part.startswith("#") and len(part) == 7 and rgb is None:
+                rgb = (int(part[1:3], 16), int(part[3:5], 16), int(part[5:7], 16))
+            else:
+                raise ValueError(f"line {lineno}: cannot parse colour {raw.strip()!r}")
+        if word is None:
+            word = rgb_to_word(rgb)  # type: ignore[arg-type]
+        elif rgb is not None and word_to_rgb(word) != rgb:
+            raise ValueError(
+                f"line {lineno}: #{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X} is not 0x{word:04X} "
+                f"(#{'%02X%02X%02X' % word_to_rgb(word)}); change both or delete one"
+            )
+        if word & 0xF111:
+            raise ValueError(f"line {lineno}: 0x{word:04X} is not a CRAM colour")
+        cur.append(word)
+    for i, (_line, p) in enumerate(pals):
         if len(p) != 16:
             raise ValueError(f"palette {i} has {len(p)} colours, expected 16")
     return pals

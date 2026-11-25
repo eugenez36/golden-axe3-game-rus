@@ -1,0 +1,294 @@
+# Stage palettes (rom_map.yml pal_sets ... pal_cycles): every stage through the
+# level select (FFF18B/FFF18A poked on the hero select), then Work RAM and CRAM.
+# The palette target is FFE49A (4 lines x 16 words), the live buffer FFE51A, the
+# cycle slots FFE5A0/FFE5AE/FFE5BC (byte 0 = cycle number | 80), the stage
+# $C778/$C77A. Found: line 0 = 032410 and line 3 = pal_stage's palette for
+# $C778/$C77A on every stage, but for the colours the slots' cycles write.
+# Run: ga3 emu emu/explore/palettes.txt (about 13 x 1500 frames).
+quiet
+
+# stage 1
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 00
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 00
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_1_wram.bin
+dump cram build/dumps/explore/palettes_1_cram.bin
+screenshot build/shots/explore/palettes_1.png 1
+
+# stage 2A
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 01
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 01
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_2a_wram.bin
+dump cram build/dumps/explore/palettes_2a_cram.bin
+screenshot build/shots/explore/palettes_2a.png 1
+
+# stage 2B
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 02
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 02
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_2b_wram.bin
+dump cram build/dumps/explore/palettes_2b_cram.bin
+screenshot build/shots/explore/palettes_2b.png 1
+
+# stage 3A
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 03
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 03
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_3a_wram.bin
+dump cram build/dumps/explore/palettes_3a_cram.bin
+screenshot build/shots/explore/palettes_3a.png 1
+
+# stage 3B
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 04
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 04
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_3b_wram.bin
+dump cram build/dumps/explore/palettes_3b_cram.bin
+screenshot build/shots/explore/palettes_3b.png 1
+
+# stage 4A
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 05
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 05
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_4a_wram.bin
+dump cram build/dumps/explore/palettes_4a_cram.bin
+screenshot build/shots/explore/palettes_4a.png 1
+
+# stage 4B
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 06
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 06
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_4b_wram.bin
+dump cram build/dumps/explore/palettes_4b_cram.bin
+screenshot build/shots/explore/palettes_4b.png 1
+
+# stage 5A
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 07
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 07
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_5a_wram.bin
+dump cram build/dumps/explore/palettes_5a_cram.bin
+screenshot build/shots/explore/palettes_5a.png 1
+
+# stage 5B
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 08
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 08
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_5b_wram.bin
+dump cram build/dumps/explore/palettes_5b_cram.bin
+screenshot build/shots/explore/palettes_5b.png 1
+
+# stage 6A
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 09
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 09
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_6a_wram.bin
+dump cram build/dumps/explore/palettes_6a_cram.bin
+screenshot build/shots/explore/palettes_6a.png 1
+
+# stage 6B
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 0A
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 0A
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_6b_wram.bin
+dump cram build/dumps/explore/palettes_6b_cram.bin
+screenshot build/shots/explore/palettes_6b.png 1
+
+# stage 7
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 0B
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 0B
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_7_wram.bin
+dump cram build/dumps/explore/palettes_7_cram.bin
+screenshot build/shots/explore/palettes_7.png 1
+
+# stage 8
+reset
+include ../scenes/_boot.inc
+press start 10
+wait 90
+poke8 FFF18B 01
+poke8 FFF18A 0C
+press start 10
+wait 30
+poke8 FFF18B 01
+poke8 FFF18A 0C
+wait 500
+press start 10
+wait 400
+press b 6
+wait 60
+press b 6
+wait 200
+dump wram build/dumps/explore/palettes_8_wram.bin
+dump cram build/dumps/explore/palettes_8_cram.bin
+screenshot build/shots/explore/palettes_8.png 1

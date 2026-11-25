@@ -60,7 +60,10 @@ class RawHandler(Handler):
                 continue  # passthrough from the base ROM
             blob = path.read_bytes()
             if len(blob) != e - s:
-                raise BuildError(f"{seg}: {path.name} is {len(blob)} bytes, slot is {e - s}")
+                hint = ""
+                if seg.synthetic:  # the map has narrowed the gap since the last extract
+                    hint = f"; a stale extract? run: ga3 extract --only {seg.name}"
+                raise BuildError(f"{seg}: {path.name} is {len(blob)} bytes, slot is {e - s}{hint}")
             rom.data[s:e] = blob
             applied += 1
         return f"{applied} file(s)" if applied and not self.committed else None

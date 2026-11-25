@@ -57,7 +57,7 @@ you hold.
 - **The ROM, taken apart.** Header and vectors as YAML, 210 strings in eleven text
   files, the font as text art, 14 Nemesis blocks, 22 indexed-PNG sheets of tile
   art, the PCM region, the HP table and gameplay constants, the hero panel's
-  data, six captured palettes and Capstone listings
+  data, the stages' palettes (28 as `.pal`), six captured palettes and Capstone listings
   of every code segment. What is still unidentified is measured, not hidden:
   `ga3 map` prints the coverage.
 - **Nemesis codec, both ways.** Decoder lifted from the game's disassembly and
@@ -157,7 +157,7 @@ assets/           the ROM taken apart — see STYLE.md for what is committed
   header/         vectors.yml, header.yml
   text/           menu · stages · ending · dialogue · misc · menu_items · difficulty · options · code_main_{b,d,e} .txt, encoding.tbl
   gfx/            font/font.txt, nemesis/*.nem, tiles/art_*.png (indexed)
-  palettes/       *.pal captured from the emulator (no ROM source known yet)
+  palettes/       *.pal: the stages' palettes from ROM (pal_lines, pal_pool) and six captured in the emulator
   sound/pcm/      samples.pcm
   data/           hp_table.yml, walk_speed.yml, move_speed.yml, stage_music.yml, gameplay.yml (lives, credits, potions, hit and launch
                   powers, magic damage, boss and scene songs), hero_panel.yml (names and tempo; the numbers come from the other files)
@@ -180,6 +180,7 @@ Generated from `rom_map.yml`: [docs/rom_map.md](docs/rom_map.md). The short vers
 | `000200–01B780`                  | 68000 code, with the HP table at `00E492`, a Nemesis block at `013E76`, the menu / stage / ending text, the menu-version routine, the main-menu items and the kill counter at `0116B6–011800` |
 | `01B780–01E3DC`                  | 12 Nemesis blocks nearly back to back (a 6-byte data stub after the font, 43 unknown bytes at `01E26F`), the font at `01D85E` (840 B)                                                         |
 | `0295EE–029F08`                  | one more Nemesis block (208 tiles)                                                                                                                                                            |
+| `031E16–032934`                  | the stages' palettes: base sets, line 3 by stage, 69 palette scripts, 8 colour cycles; 28 whole palettes as `.pal` (`pal_lines`, `pal_pool`)                                                  |
 | `05AEAA–05AFCE`, `05B30A–05B42A` | the kill counter's display code and digit glyphs, in two former holes                                                                                                                         |
 | `080000–0D8000`                  | 11 264 uncompressed 4bpp tiles                                                                                                                                                                |
 | `0E9B00–0EC300`                  | dialogue, credits, ending text                                                                                                                                                                |

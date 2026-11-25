@@ -5,16 +5,17 @@ kept for provenance, not as regression checks (`emu/scenes/` is for that), and
 they write under `build/dumps/explore/` and `build/shots/explore/` (`hp.txt`
 keeps its screenshots next to the dumps).
 
-| Script                      | What it found                                                                                                                                                |
-|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `dmalog.txt`                | every DMA transfer with its source: CRAM always comes from Work RAM; 13 uncompressed ROM→VRAM sources outside the tile art (`00084A`, `01E84A`, `04ADBE`, …) |
-| `nemdec.txt`                | breakpoints on `NemDec` (0122FC) / `NemDecToRAM` (01230E): register dumps give the source offsets of all 14 Nemesis blocks                                   |
-| `fontvram.txt`              | `vwatch AF00 B80`: the font's DMA source is `01D85E`                                                                                                         |
-| `fontsrc.txt`               | `watch FFE84A 200`: how the font is staged in Work RAM                                                                                                       |
-| `hpwatch.txt`               | `watch FFC8E6 2`: the writers of player 1's HP — `00EA20` in play, `00E48C` at start (the table reader)                                                      |
-| `hp.txt`                    | 26 Work RAM dumps + screenshots for `ga3 ramsearch corr` (HP bar correlation r = 1.0)                                                                        |
-| `enter.txt`                 | attract-mode walk into stage 1 with VRAM/CRAM snapshots (`stage1*.pal`)                                                                                      |
-| `survey.txt`, `survey2.txt` | blind screenshot sweeps of the first minute                                                                                                                  |
+| Script                      | What it found                                                                                                                                                                                                              |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `dmalog.txt`                | every DMA transfer with its source: CRAM always comes from Work RAM; 13 uncompressed ROM→VRAM sources outside the tile art (`00084A`, `01E84A`, `04ADBE`, …)                                                               |
+| `nemdec.txt`                | breakpoints on `NemDec` (0122FC) / `NemDecToRAM` (01230E): register dumps give the source offsets of all 14 Nemesis blocks                                                                                                 |
+| `fontvram.txt`              | `vwatch AF00 B80`: the font's DMA source is `01D85E`                                                                                                                                                                       |
+| `fontsrc.txt`               | `watch FFE84A 200`: how the font is staged in Work RAM                                                                                                                                                                     |
+| `hpwatch.txt`               | `watch FFC8E6 2`: the writers of player 1's HP — `00EA20` in play, `00E48C` at start (the table reader)                                                                                                                    |
+| `hp.txt`                    | 26 Work RAM dumps + screenshots for `ga3 ramsearch corr` (HP bar correlation r = 1.0)                                                                                                                                      |
+| `enter.txt`                 | attract-mode walk into stage 1 with VRAM/CRAM snapshots (`stage1*.pal`)                                                                                                                                                    |
+| `survey.txt`, `survey2.txt` | blind screenshot sweeps of the first minute                                                                                                                                                                                |
+| `palettes.txt`              | all 13 stages by the level select, Work RAM and CRAM each: line 0 of the palette target `FFE49A` is `032410`, line 3 the palette `pal_stage` gives for `$C778`/`$C77A` but for the colours the cycle slots `FFE5A0`… write |
 
 Removed on purpose: `fontdma.txt` (identical to `fontvram.txt`), `hptest.txt`
 (produced no output), `menu_test.txt` and `letters.txt` (folded into
